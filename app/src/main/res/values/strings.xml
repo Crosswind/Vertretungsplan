@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Vertretungsplan</string>
+    <string name="menu_settings_title">Einstellungen</string>
+    <string name="menu_refresh_title">Neu laden</string>
+    <string name="menu_donate_title">Spenden</string>
+    <string name="settings_menu_refresh_title">Klassen neu laden</string>
+</resources>

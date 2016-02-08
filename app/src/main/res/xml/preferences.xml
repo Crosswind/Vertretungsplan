@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreference
+        android:key="show_whole_plan"
+        android:title="Gesamten Plan anzeigen"
+        android:defaultValue="true"
+        android:disableDependentsState="true"
+        />
+    <ListPreference
+        android:key="class_to_show"
+        android:title="Klasse"
+        android:summary="Für welche Klasse soll der Plan angezeigt werden?"
+        android:dependency="show_whole_plan"
+        android:defaultValue="false"
+        />
+</PreferenceScreen>
