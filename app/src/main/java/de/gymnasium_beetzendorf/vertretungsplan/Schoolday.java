@@ -4,19 +4,19 @@ import java.util.List;
 
 public class Schoolday {
 
-    private String date; // Date of the school day
+    private long date; // Date of the school day
     private List<String> changes; //classes that are affected to a change
     private String changesAsString;
     private List<Subject> subjects; //subjects that changed
     private long last_updated;
 
     // getters
-    public String getDate() {
+    public long getDate() {
         return date;
     }
 
     // setters
-    public void setDate(String date) {
+    public void setDate(long date) {
         this.date = date;
     }
 

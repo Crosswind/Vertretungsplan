@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // creation of substitution days
         query = "CREATE TABLE " + TABLE_SUBSTITUTION_DAYS + " (" +
                 SD_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                SD_DATE + " TEXT, " +
+                SD_DATE + " FLOAT, " +
                 SD_LAST_UPDATED + " FLOAT, " +
                 SD_PAST + " BOOLEAN" +
                 ");";
@@ -92,11 +93,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return is_up_to_date;
     }
 
-    public List<Schoolday> getAllSubstitutions(String date) {
-        // TODO: implement method to return substitutions from db
+    public List<Schoolday> getAllSubstitutions(String date, boolean after3Pm) {
         SQLiteDatabase db = getReadableDatabase();
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + date + "'";
+
+        long time = 0;
+        try {
+            time = MainActivity.formatter.parse(date).getTime();
+        } catch (ParseException e) {
+            Log.i(MainActivity.TAG, "ParseException", e);
+        }
+
+        if (after3Pm) {
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " > '" + time + "'";
+
+        } else {
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= '" + time + "'";
+        }
         cursor = db.rawQuery(query, null);
+
         /*if (cursor != null) {
             cursor.moveToFirst();
         }

@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -34,7 +33,15 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TabFragment.OnSwipeRefreshListener {
+
+    /*
+    structure of calling refreshs etc:
+    - when created refresh from internet
+    - when reopened fetch results from db
+
+
+     */
 
     public static final String TAG = "MainActivity";
     public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
@@ -43,7 +50,12 @@ public class MainActivity extends AppCompatActivity {
     public static final String SHOW_WHOLE_PLAN = "show_whole_plan";
     public static final String CLASS_TO_SHOW = "class_to_show";
     public static final String PREFERENCES_CHANGED = "preferences_changed";
+
+    public static final SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
+    public static final SimpleDateFormat customFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
+
     public String date = "";
+
     public SharedPreferences myPreferences;
     public TabLayout mainTabLayout;
     public ViewPager mainViewPager;
@@ -84,44 +96,31 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    // main handler for refreshing data from the server and distributing it to database and to recycler
-    public static void refresh() {
-
-    }
-
     // activity override methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.activity_main_fragment);
+
         //helper = new Helper(getApplicationContext(), );
 
         // todays date
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
         Calendar c = Calendar.getInstance();
         date = formatter.format(c.getTime());
 
-
-        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if (myPreferences.getBoolean(FIRST_TIME_OPENED, true)) {
-            Intent i = new Intent(this, Startup.class);
-            startActivity(i);
-            //myPreferences.edit().putBoolean(FIRST_TIME_OPENED, false).apply();
-        } else if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) {
-            fetchTimetable();
-            Log.i(TAG, "fetchTimetable");
-            myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply();
-        } else {
-            fetchTimetable();
-        }
-        setContentView(R.layout.activity_main_fragment);
+        refresh();
     }
 
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Toast.makeText(MainActivity.this, "This gets called when back is pressed", Toast.LENGTH_SHORT).show();
+    protected void onResume() {
+        super.onResume();
 
+        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
+            refresh();
+            myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+        }
     }
 
     // overflow menu override methods
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case R.id.menu_refresh:
-                fetchTimetable();
+                refresh();
                 break;
             case R.id.menu_settings:
                 Intent i = new Intent(this, PreferenceActivity.class);
@@ -160,40 +159,59 @@ public class MainActivity extends AppCompatActivity {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    // method to fetch xml and kick the whole thing off will probably be deprecated in future versions
-    public void fetchTimetable() {
+    // main handler for refreshing data from the server and distributing it to database and to recycler
+    public void refresh() {
         if (checkConnection()) {
-            DownloadFileFromURL downloader = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
-            downloader.execute();
+            DownloadFileFromURL downloadFileFromURL = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
+            downloadFileFromURL.execute(); // the rest will be executed in onPostExecute
+
+            // notify to cancel refreshing
         } else {
-            Toast.makeText(this, "No internet connection available", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Keine Internetverbindung", Toast.LENGTH_LONG).show();
+            // notifiy swipeRefreshLayout to cancel refreshing
         }
     }
 
-    public void saveExtractedXMLToDB(List<Schoolday> extractedSchooldays) {
-        DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        db_handler.getAllSubstitutions(date);
-        displayData(date, extractedSchooldays);
-    }
-
-    public void displayData(String requestedDate, List<Schoolday> results) {
+    public void displayData(List<Schoolday> results) {
         mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+
+        // check if current day is needed or if it's passt 3 pm that day
+        long currentTime = System.currentTimeMillis();
+        long afterSchoolTime = 0;
+
+        try {
+            afterSchoolTime = customFormatter.parse(date + " 15:00").getTime();
+        } catch (ParseException e) {
+            Log.i(TAG, "ParseException for afterSchoolTime", e);
+        }
+
+        boolean after3Pm; // true if it's later than 3 pm
+        if (afterSchoolTime != 0) {
+            if (currentTime > afterSchoolTime) { // today no longer needs to be displayed
+                after3Pm = true;
+            } else {
+                after3Pm = false;
+            }
+        } else {
+            after3Pm = false;
+        }
+
+        // get needed results
+        DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        List<Schoolday> results1 = databaseHandler.getAllSubstitutions(date, after3Pm);
+
         // remove unnecessary items from results
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
         long today = 0, temp = 0;
         try {
-            today = formatter.parse(date).getTime();
+            today = formatter.parse(date).getTime(); // put todays date in a milliseconds value
         } catch (ParseException e) {
             e.printStackTrace();
         }
         Log.i(TAG, "today: " + String.valueOf(today));
         for (int i = results.size() - 1; i >= 0; i--) {
-            try {
-                temp = formatter.parse(results.get(i).getDate()).getTime();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            temp = results.get(i).getDate(); // time of the results in milliseconds
+
             if (temp < today) {
                 results.remove(i);
             }
@@ -217,12 +235,16 @@ public class MainActivity extends AppCompatActivity {
 
             // only create a tab if there's any information to show within that tab
             if (results.get(n).getSubjects().size() > 0) {
-                mainTabLayout.addTab(mainTabLayout.newTab().setText(results.get(n).getDate().substring(0, 6)));
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(results.get(n).getDate());
+                String tempDate = formatter.format(calendar.getTime());
+                //Log.i(TAG, "tempDate: " + tempDate);
+                mainTabLayout.addTab(mainTabLayout.newTab().setText(tempDate.substring(0, 6)));
             }
         }
 
         // remove empty results
-        // easier to do an extra for loop because this doesnt reverse the order since we're going backwards through the list
+        // easier to do an extra for loop because this doesn't reverse the order since we're going backwards through the list
         for (int k = results.size() - 1; k >= 0; k--) {
             if (results.get(k).getSubjects().size() == 0) {
                 results.remove(k);
@@ -236,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mainViewPager.setCurrentItem(tab.getPosition());
+
             }
 
             @Override
@@ -305,35 +328,13 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             // kick off the xml parsing
             List<Schoolday> xmlResults = XMLParser.parseXMLInput(getApplicationContext());
+
             // saves result to db
             DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
             db_handler.insertXmlResults(xmlResults);
-            saveExtractedXMLToDB(xmlResults);
-        }
-    }
 
-    public static class InstantiateLayout {
-        View view;
-        Context context;
-        DatabaseHandler db_handler;
-
-        public InstantiateLayout(View view, Context context) {
-            this.view = view;
-            this.context = context;
-        }
-
-        public void drawTheLayout() {
-
-        }
-
-
-        public List<Subject> getSubjects(int id) {
-            List<Subject> subjects = new ArrayList<Subject>();
-
-            DatabaseHandler db_handler = new DatabaseHandler(context, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-            subjects = db_handler.getSubstitutions(id);
-
-            return subjects;
+            // display data
+            displayData(xmlResults);
         }
     }
 }

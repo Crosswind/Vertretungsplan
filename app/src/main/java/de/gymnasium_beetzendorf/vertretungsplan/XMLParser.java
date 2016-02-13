@@ -8,6 +8,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -114,7 +115,13 @@ public class XMLParser {
                                 break;
                             case dateTag:
                                 String dateString = extractDateFromTitle(text);
-                                currentDay.setDate(dateString);
+                                long dateInMillis = 0;
+                                try {
+                                    dateInMillis = MainActivity.formatter.parse(dateString).getTime();
+                                } catch (ParseException e) {
+                                    Log.i(MainActivity.TAG, "ParseException", e);
+                                }
+                                currentDay.setDate(dateInMillis);
                                 break;
                             case affectedClassesTag:
                                 String[] affectedClasses = text.split(", ");
@@ -122,11 +129,10 @@ public class XMLParser {
                                 break;
                             case lastUpdatedTag:
                                 long last_updated;
-                                SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy, HH:mm", Locale.GERMANY);
                                 Date date;
                                 last_updated = 0;
                                 try {
-                                    date = formatter.parse(text);
+                                    date = MainActivity.formatter.parse(text);
                                     last_updated = date.getTime();
 
                                 } catch (ParseException e) {
