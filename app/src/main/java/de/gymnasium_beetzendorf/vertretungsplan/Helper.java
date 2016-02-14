@@ -3,7 +3,6 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 import android.content.Context;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
-import android.widget.TextView;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class Helper {
         this.view = view;
     }
 
-    public void refresh () {
+    public void refresh() {
         SwipeRefreshLayout srl = (SwipeRefreshLayout) view.findViewById(R.id.mainSwipeContainer);
         srl.setRefreshing(true);
     }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,10 +20,10 @@ import java.util.List;
 
 public class RefreshService {
 
+    private static RefreshService instance = new RefreshService();
     Context context;
     SharedPreferences sharedPreferences;
     DatabaseHandler databaseHandler;
-    private static RefreshService instance = new RefreshService();
 
     private RefreshService() {
     }
@@ -33,7 +32,7 @@ public class RefreshService {
         return instance;
     }
 
-    public void init (Context context) {
+    public void init(Context context) {
         this.context = context;
     }
 
@@ -43,7 +42,6 @@ public class RefreshService {
 
         // more code to refresh needs to be added here
     }
-
 
 
     // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website

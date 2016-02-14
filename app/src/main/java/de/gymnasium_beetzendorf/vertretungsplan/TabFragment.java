@@ -2,13 +2,11 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,10 +24,6 @@ public class TabFragment extends Fragment {
 
     public void setSubjectsToDisplay(List<Subject> subjectsToDisplay) {
         this.subjectsToDisplay = subjectsToDisplay;
-    }
-
-    public interface OnSwipeRefreshListener {
-        void refresh ();
     }
 
     @Override
@@ -72,5 +66,9 @@ public class TabFragment extends Fragment {
         swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf); //
 
         return customView;
+    }
+
+    public interface OnSwipeRefreshListener {
+        void refresh();
     }
 }

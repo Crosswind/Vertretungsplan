@@ -1,7 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 public class Startup extends AppCompatActivity {
 
