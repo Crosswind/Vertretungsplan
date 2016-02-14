@@ -8,18 +8,15 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class XMLParser {
 
@@ -117,7 +114,7 @@ public class XMLParser {
                                 String dateString = extractDateFromTitle(text);
                                 long dateInMillis = 0;
                                 try {
-                                    dateInMillis = MainActivity.formatter.parse(dateString).getTime();
+                                    dateInMillis = MainActivity.dateFormatter.parse(dateString).getTime();
                                 } catch (ParseException e) {
                                     Log.i(MainActivity.TAG, "ParseException", e);
                                 }
@@ -132,7 +129,7 @@ public class XMLParser {
                                 Date date;
                                 last_updated = 0;
                                 try {
-                                    date = MainActivity.formatter.parse(text);
+                                    date = MainActivity.dateFormatter.parse(text);
                                     last_updated = date.getTime();
 
                                 } catch (ParseException e) {

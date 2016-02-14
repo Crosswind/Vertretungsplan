@@ -66,7 +66,7 @@ public class TabFragment extends Fragment {
             @Override
             public void onRefresh() {
                 mCallback.refresh();
-                swipeRefreshLayout.setRefreshing(false);
+                //swipeRefreshLayout.setRefreshing(false);
             }
         });
         swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf); //

@@ -17,7 +17,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHandler";
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 1;
+    public static int DATABASE_VERSION = 2;
 
     // table substitution_days
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
@@ -39,7 +39,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // stuff
     private String query;
-    private Cursor cursor;
+    private ContentValues values;
+
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -82,6 +83,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public boolean isUpToDate(String date, Long last_updated) {
         SQLiteDatabase db = getReadableDatabase();
         Boolean is_up_to_date;
+        Cursor cursor;
         query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + date + "'";
         cursor = db.rawQuery(query, null);
 
@@ -93,12 +95,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return is_up_to_date;
     }
 
-    public List<Schoolday> getAllSubstitutions(String date, boolean after3Pm) {
+    public List<Schoolday> getAllSubstitutions(String date, boolean after3Pm) { // return all substitutions from a certain date on
         SQLiteDatabase db = getReadableDatabase();
+        List<Schoolday> schooldayList = new ArrayList<>();
+        Cursor cursor;
 
         long time = 0;
         try {
-            time = MainActivity.formatter.parse(date).getTime();
+            time = MainActivity.dateFormatter.parse(date).getTime();
         } catch (ParseException e) {
             Log.i(MainActivity.TAG, "ParseException", e);
         }
@@ -111,62 +115,80 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         cursor = db.rawQuery(query, null);
 
-        /*if (cursor != null) {
-            cursor.moveToFirst();
-        }
-        Integer id = cursor.getInt(cursor.getColumnIndex(SD_ID));
-        String db_date = cursor.getString(cursor.getColumnIndex(SD_DATE));
-        Log.i(MainActivity.TAG, "id: " + String.valueOf(id) + " date: " + db_date);
-
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
-        cursor = db.rawQuery(query, null);
-        */
         Log.i(MainActivity.TAG, "query: " + query + "\nmenge der elemente: " + String.valueOf(cursor.getCount()));
 
+        if (cursor.moveToFirst()) {
+            do {
+                Log.i(MainActivity.TAG, "current position: " + String.valueOf(cursor.getPosition()));
+                Schoolday currentSchoolday = new Schoolday();
+                currentSchoolday.setDate(cursor.getLong(1));
+                currentSchoolday.setLastUpdated(cursor.getLong(2));
+                currentSchoolday.setSubjects(getSubstitutions(cursor.getInt(0)));
+                Log.i(MainActivity.TAG, "current position1: " + String.valueOf(cursor.getPosition()));
 
-        return null;
+                schooldayList.add(currentSchoolday);
+            } while (cursor.moveToNext());
+        }
+
+        Log.i(MainActivity.TAG, "größe des schooldaylist arrays: " + String.valueOf(schooldayList.size()));
+
+        db.close();
+        return schooldayList;
     }
 
-    public List<Subject> getSubstitutions(int id) {
-        // TODO: implement method to fetch substituions for a single day
+    public List<Subject> getSubstitutions(int id) { // return substitutions for a certain day
         SQLiteDatabase db = getReadableDatabase();
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE "  + SR_DAY + " = '" + id + "'";
-        cursor = db.rawQuery(query, null);
-        if (cursor != null) {
-            cursor.moveToFirst();
-        }
-        while (!cursor.isLast()) {
+        List<Subject> subjectList = new ArrayList<>();
+        Cursor cursor;
 
-            cursor.moveToNext();
+        // query all subjects for a certain date
+        query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
+        cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Subject currentSubject = new Subject();
+                currentSubject.setCourse(cursor.getString(2));
+                currentSubject.setPeriod(cursor.getInt(3));
+                currentSubject.setSubject(cursor.getString(4));
+                currentSubject.setTeacher(cursor.getString(5));
+                currentSubject.setRoom(cursor.getString(6));
+                currentSubject.setInfo(cursor.getString(7));
+                subjectList.add(currentSubject);
+            } while (cursor.moveToNext());
         }
-        return new ArrayList<>();
+
+        db.close();
+        return subjectList;
     }
 
     public void insertXmlResults(List<Schoolday> results) {
-        SQLiteDatabase db = getReadableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
         Schoolday currentDay;
+        Cursor cursor;
         for (int n = 0; n < results.size(); n++) {
             currentDay = results.get(n);
-            Log.i(MainActivity.TAG, "menge der ergebnisse: " + String.valueOf(results.size()));
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + currentDay.getDate() + "'";
             cursor = db.rawQuery(query, null);
+
+            //Log.i(MainActivity.TAG, "cursor count: " + String.valueOf(cursor.getCount()));
+
             cursor.moveToFirst();
-            Log.i(MainActivity.TAG, "cursor number when checking for current date: " + String.valueOf(cursor.getCount()) + " datum: " + currentDay.getDate());
-            //int id = cursor.getInt(0);
-            ContentValues values = new ContentValues();
+
             if (cursor.getCount() == 0) {
-                query = "INSERT INTO " + TABLE_SUBSTITUTION_DAYS + " (" + SD_DATE + "," + SD_LAST_UPDATED + "," + SD_PAST + ") VALUES ('" +
-                        currentDay.getDate() + "','" + currentDay.getLastUpdated() + "','false')";
-                Cursor newCursor = db.rawQuery(query, null);
-                Log.i(MainActivity.TAG, "newcursor count: " + String.valueOf(newCursor.getCount()));
-                newCursor.close();
+                values = new ContentValues();
+                values.put(SD_DATE, currentDay.getDate());
+                values.put(SD_LAST_UPDATED, currentDay.getLastUpdated());
+                values.put(SD_PAST, false);
+                db.insert(TABLE_SUBSTITUTION_DAYS, null, values);
             } else if (cursor.getCount() == 1) {
+                values = new ContentValues();
                 int id = cursor.getInt(cursor.getColumnIndex(SD_ID));
                 // updating table days
                 values.put(SD_LAST_UPDATED, currentDay.getLastUpdated());
                 db.update(TABLE_SUBSTITUTION_DAYS, values, SD_ID + " = ?", new String[]{String.valueOf(id)});
 
-                // clear corresponding table rows and then readd it
+                // clear corresponding table rows and then re-add it
                 db.delete(TABLE_SUBSTITUTION_ROWS, SR_DAY + " = ?", new String[]{String.valueOf(id)});
                 Subject currentSubject;
                 for (int i = 0; i < currentDay.getSubjects().size(); i++) {
@@ -182,12 +204,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     db.insert(TABLE_SUBSTITUTION_ROWS, null, values);
                 }
             }
+
         }
     }
 
     public boolean cleanDatabase() {
         // TODO: implement method to delete all rows older than 30 days
-        SQLiteDatabase db = getReadableDatabase();
         return true;
     }
 

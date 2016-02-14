@@ -51,8 +51,9 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
     public static final String CLASS_TO_SHOW = "class_to_show";
     public static final String PREFERENCES_CHANGED = "preferences_changed";
 
-    public static final SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
-    public static final SimpleDateFormat customFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
+    public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
+    public static final SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
+    public static final SimpleDateFormat weekdayFormatter = new SimpleDateFormat("EE", Locale.GERMANY);
 
     public String date = "";
 
@@ -107,9 +108,14 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
         // todays date
         Calendar c = Calendar.getInstance();
-        date = formatter.format(c.getTime());
+        date = dateFormatter.format(c.getTime());
 
+        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //displayData(null);
         refresh();
+        //DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        //databaseHandler.onUpgrade(databaseHandler.getReadableDatabase(), DatabaseHandler.DATABASE_VERSION, 2);
     }
 
     @Override
@@ -142,12 +148,12 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
                 Intent i = new Intent(this, PreferenceActivity.class);
                 startActivity(i);
                 break;
-            case R.id.menu_donate:
+            /*case R.id.menu_donate:
                 Toast.makeText(this, "Hier könnt ihr uns ein Feierabend-Bier spendieren", Toast.LENGTH_LONG).show();
                 break;
             case R.id.menu_uber:
 
-                break;
+                break;*/
         }
         return super.onOptionsItemSelected(item);
     }
@@ -181,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
         long afterSchoolTime = 0;
 
         try {
-            afterSchoolTime = customFormatter.parse(date + " 15:00").getTime();
+            afterSchoolTime = dateTimeFormatter.parse(date + " 15:00").getTime();
         } catch (ParseException e) {
             Log.i(TAG, "ParseException for afterSchoolTime", e);
         }
@@ -199,12 +205,12 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
         // get needed results
         DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        List<Schoolday> results1 = databaseHandler.getAllSubstitutions(date, after3Pm);
+        results = databaseHandler.getAllSubstitutions(date, after3Pm);
 
         // remove unnecessary items from results
         long today = 0, temp = 0;
         try {
-            today = formatter.parse(date).getTime(); // put todays date in a milliseconds value
+            today = dateFormatter.parse(date).getTime(); // put todays date in a milliseconds value
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -237,9 +243,10 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
             if (results.get(n).getSubjects().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(results.get(n).getDate());
-                String tempDate = formatter.format(calendar.getTime());
-                //Log.i(TAG, "tempDate: " + tempDate);
-                mainTabLayout.addTab(mainTabLayout.newTab().setText(tempDate.substring(0, 6)));
+                String tempDate = dateFormatter.format(calendar.getTime());
+                String tempWeekday = weekdayFormatter.format(calendar.getTime());
+                Log.i(TAG, "tempDate: " + tempWeekday + " " + tempDate);
+                mainTabLayout.addTab(mainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
             }
         }
 
@@ -332,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
             // saves result to db
             DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
             db_handler.insertXmlResults(xmlResults);
+            //Log.i(TAG, "Menge der gespeicherten Ergebnisse: " + String.valueOf(xmlResults.size()));
 
             // display data
             displayData(xmlResults);
