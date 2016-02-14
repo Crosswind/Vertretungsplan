@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
     public SharedPreferences myPreferences;
     public TabLayout mainTabLayout;
     public ViewPager mainViewPager;
-    public Helper helper;
 
     // method to return the classes the school is
     // right now just returns a static result because classes are not dynamically receivable from the website
@@ -173,12 +172,14 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
             // notify to cancel refreshing
         } else {
-            Toast.makeText(this, "Keine Internetverbindung", Toast.LENGTH_LONG).show();
+            displayData();
+            Toast.makeText(this, "Keine Internetverbindung - Daten möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
             // notifiy swipeRefreshLayout to cancel refreshing
         }
     }
 
-    public void displayData(List<Schoolday> results) {
+    public void displayData() {
+        List<Schoolday> results;
         mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
@@ -193,22 +194,15 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
         }
 
         boolean after3Pm; // true if it's later than 3 pm
-        if (afterSchoolTime != 0) {
-            if (currentTime > afterSchoolTime) { // today no longer needs to be displayed
-                after3Pm = true;
-            } else {
-                after3Pm = false;
-            }
-        } else {
-            after3Pm = false;
-        }
+        // today no longer needs to be displayed
+        after3Pm = afterSchoolTime != 0 && currentTime > afterSchoolTime;
 
         // get needed results
         DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
         results = databaseHandler.getAllSubstitutions(date, after3Pm);
 
         // remove unnecessary items from results
-        long today = 0, temp = 0;
+        long today = 0, temp;
         try {
             today = dateFormatter.parse(date).getTime(); // put todays date in a milliseconds value
         } catch (ParseException e) {
@@ -289,37 +283,26 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                // open connection and streams for writing the file
                 URL url = new URL(QUERY_URL);
-
-                // keep track of the start time
-                long start = System.currentTimeMillis();
-
                 URLConnection urlConnection = url.openConnection();
-                // Log.i(TAG, "Connection geöffnet");
 
                 InputStream is = urlConnection.getInputStream();
                 BufferedInputStream bis = new BufferedInputStream(is);
-                //Log.i(TAG, "Buffered-/InputStream aktiv");
 
                 FileOutputStream fos = openFileOutput("temp.xml", MODE_PRIVATE);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
-                OutputStreamWriter out = new OutputStreamWriter(bos, "UTF-8");
-                //Log.i(TAG, "File-/BufferedOutput aktiv");
 
                 // writing to file
                 byte data[] = new byte[1024];
-                int count, total = 0;
+                int count;
                 while ((count = bis.read(data)) != -1) {
-                    total += count; // total size
                     bos.write(data, 0, count);
                 }
 
                 // close streams so the file does not get corrupted
                 bos.flush();
                 bos.close();
-
-                // how much time did it take
-                //Log.i(TAG, "Dauerte - " + String.valueOf(System.currentTimeMillis() - start) + "ms \n Buffer: " + total);
 
             } catch (FileNotFoundException e) {
                 Log.i(Helper.TAG, "Datei konnte nicht gefunden werden", e);
@@ -342,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
             //Log.i(TAG, "Menge der gespeicherten Ergebnisse: " + String.valueOf(xmlResults.size()));
 
             // display data
-            displayData(xmlResults);
+            displayData();
         }
     }
 }
