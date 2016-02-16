@@ -14,6 +14,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -32,15 +34,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements TabFragment.OnSwipeRefreshListener {
-
-    /*
-    structure of calling refreshs etc:
-    - when created refresh from internet
-    - when reopened fetch results from db
-
-
-     */
+public class MainActivity extends AppCompatActivity
+        implements TabFragment.OnSwipeRefreshListener {
 
     public static final String TAG = "MainActivity";
     public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
@@ -59,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
     public SharedPreferences myPreferences;
     public TabLayout mainTabLayout;
     public ViewPager mainViewPager;
+    public ProgressBar progressBar;
 
     // method to return the classes the school is
     // right now just returns a static result because classes are not dynamically receivable from the website
@@ -100,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main_fragment);
+        setContentView(R.layout.activity_main);
 
         //helper = new Helper(getApplicationContext(), );
 
@@ -109,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
         date = dateFormatter.format(c.getTime());
 
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        //progressBar.setIndeterminate(true);
 
         //displayData(null);
         refresh();
@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
+            progressBar.setVisibility(View.VISIBLE);
             refresh();
             myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
         }
@@ -146,12 +147,12 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
                 Intent i = new Intent(this, PreferenceActivity.class);
                 startActivity(i);
                 break;
-            /*case R.id.menu_donate:
-                Toast.makeText(this, "Hier könnt ihr uns ein Feierabend-Bier spendieren", Toast.LENGTH_LONG).show();
+            case R.id.menu_donate:
+                Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
                 break;
             case R.id.menu_uber:
-
-                break;*/
+                Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -171,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
             // notify to cancel refreshing
         } else {
-            displayData();
+            //displayData();
             Toast.makeText(this, "Keine Internetverbindung - Daten möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
             // notifiy swipeRefreshLayout to cancel refreshing
         }
@@ -218,19 +219,6 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
         // draw the tabs depending on the days from the file
         mainTabLayout.removeAllTabs();
         for (int n = 0; n < results.size(); n++) {
-            List<Subject> subjectsToDisplay = new ArrayList<>();
-            if (myPreferences.getBoolean(SHOW_WHOLE_PLAN, true)) {
-                subjectsToDisplay = results.get(n).getSubjects();
-            } else {
-                List<Subject> tempSubjectsToDisplay;
-                tempSubjectsToDisplay = results.get(n).getSubjects();
-                for (int i = 0; i < tempSubjectsToDisplay.size(); i++) {
-                    if (tempSubjectsToDisplay.get(i).getCourse().contains(myPreferences.getString(CLASS_TO_SHOW, "None"))) {
-                        subjectsToDisplay.add(tempSubjectsToDisplay.get(i));
-                    }
-                }
-            }
-            results.get(n).setSubjects(subjectsToDisplay);
 
             // only create a tab if there's any information to show within that tab
             if (results.get(n).getSubjects().size() > 0) {
@@ -269,6 +257,12 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+
+        if (results.size() == 0) {
+            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
+        }
+
+        progressBar.setVisibility(View.INVISIBLE);
     }
 
     // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website
@@ -325,6 +319,18 @@ public class MainActivity extends AppCompatActivity implements TabFragment.OnSwi
 
             // display data
             displayData();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setIndeterminate(true);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            progressBar.setIndeterminate(false);
         }
     }
 }

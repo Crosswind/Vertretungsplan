@@ -3,9 +3,11 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -39,11 +41,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // stuff
     private String query;
-    private ContentValues values;
-
+    private SharedPreferences sharedPreferences;
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     @Override
@@ -87,11 +89,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + date + "'";
         cursor = db.rawQuery(query, null);
 
-        if (last_updated > cursor.getLong(cursor.getColumnIndex(SD_LAST_UPDATED))) {
-            is_up_to_date = false;
-        } else {
-            is_up_to_date = true;
-        }
+        is_up_to_date = last_updated <= cursor.getLong(cursor.getColumnIndex(SD_LAST_UPDATED));
+
+        cursor.close();
         return is_up_to_date;
     }
 
@@ -132,6 +132,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         Log.i(MainActivity.TAG, "größe des schooldaylist arrays: " + String.valueOf(schooldayList.size()));
 
+        cursor.close();
         db.close();
         return schooldayList;
     }
@@ -140,9 +141,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         List<Subject> subjectList = new ArrayList<>();
         Cursor cursor;
+        String classToShow, classToShowPrimary, classToShowSecondary;
+
+        // specify the results needed depending on the settings
+        if (sharedPreferences.getBoolean(MainActivity.SHOW_WHOLE_PLAN, true)) {
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
+        } else {
+            classToShow = sharedPreferences.getString(MainActivity.CLASS_TO_SHOW, null);
+            if (classToShow != null) {
+                classToShowPrimary = classToShow.substring(0, 2);
+                classToShowSecondary = classToShow.substring(3, 4);
+                // how it works right now (might change once the whole plan will be available through the app + specific course selection will be available
+                // search for entries that definitely include the general class (05, 11, 12, etc). it necessarily checks if A/B/C is also included
+                // if not, second condition (OR) is that the entry needs to be longer than 4 (-> all entries that have a specific course like 12 inf1
+
+                query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "' " +
+                        "AND " + SR_COURSE + " LIKE '" + classToShowPrimary + "%' " +
+                        "AND (" + SR_COURSE + " LIKE '%" + classToShowSecondary + "' " +
+                        "OR length(" + SR_COURSE + ") > 4)";
+                Log.i(MainActivity.TAG, "final search query: " + query);
+            } else {
+                query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
+            }
+        }
 
         // query all subjects for a certain date
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
         cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
@@ -158,6 +181,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
+        cursor.close();
         db.close();
         return subjectList;
     }
@@ -175,6 +199,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
             cursor.moveToFirst();
 
+            ContentValues values;
             if (cursor.getCount() == 0) {
                 values = new ContentValues();
                 values.put(SD_DATE, currentDay.getDate());
@@ -204,7 +229,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     db.insert(TABLE_SUBSTITUTION_ROWS, null, values);
                 }
             }
-
+            cursor.close();
         }
     }
 

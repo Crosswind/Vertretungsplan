@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +18,6 @@ import java.util.List;
 public class TabFragment extends Fragment {
     List<Subject> subjectsToDisplay = new ArrayList<>();
     OnSwipeRefreshListener mCallback;
-
-    public List<Subject> getSubjectsToDisplay() {
-        return subjectsToDisplay;
-    }
 
     public void setSubjectsToDisplay(List<Subject> subjectsToDisplay) {
         this.subjectsToDisplay = subjectsToDisplay;
