@@ -156,9 +156,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 // if not, second condition (OR) is that the entry needs to be longer than 4 (-> all entries that have a specific course like 12 inf1
 
                 query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "' " +
-                        "AND " + SR_COURSE + " LIKE '" + classToShowPrimary + "%' " +
+                        "AND " + SR_COURSE + " LIKE '%" + classToShowPrimary + "%' " +
                         "AND (" + SR_COURSE + " LIKE '%" + classToShowSecondary + "' " +
-                        "OR length(" + SR_COURSE + ") > 4)";
+                        "OR length(" + SR_COURSE + ") > 4)" +
+                        "ORDER BY " + SR_PERIOD;
                 Log.i(MainActivity.TAG, "final search query: " + query);
             } else {
                 query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";

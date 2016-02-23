@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> implements View.OnClickListener {
+public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
+        implements View.OnClickListener {
 
     private static final String TAG = "RecyclerViewAdapter";
 
@@ -19,6 +21,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private Context context;
 
     private int expandedPosition = -1;
+    private int prev = -1;
 
     public RecyclerViewAdapter(Context context, List<Subject> results) {
         subjectList = results;
@@ -48,7 +51,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onBindViewHolder(RecyclerViewAdapter.ViewHolder holder, int position) {
         Subject currentSubject = subjectList.get(position);
 
-        // reference textviews in my layout_item
+        // reference textviews in layout_item
         TextView courseTextView = holder.courseTextView;
         TextView periodTextView = holder.periodTextView;
         TextView teacherTextView = holder.teacherTextView;
@@ -124,7 +127,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 color = R.color.defaultColor;
                 break;
         }
-        itemCardView.setBackgroundColor(ContextCompat.getColor(context, color));
+        itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
         // differentiating between free period or not
         if (currentSubject.getSubject().equals("---")
@@ -142,9 +145,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         teacherTextView.setText(currentSubject.getTeacher());
         infoTextView.setText(currentSubject.getInfo());
 
+        Log.i(MainActivity.TAG, "expandedPosition: " + expandedPosition + " prev. " + prev);
+
         // change visibility on onclick event
         if (position == expandedPosition) {
             infoTextView.setVisibility(View.VISIBLE);
+        } else if (position == prev) {
+            infoTextView.setVisibility(View.GONE);
         } else {
             infoTextView.setVisibility(View.GONE);
         }
@@ -154,15 +161,22 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onClick(View v) {
         ViewHolder holder = (ViewHolder) v.getTag();
 
-        // notify previous item if there's one
-        if (expandedPosition >= 0) {
-            int prev = expandedPosition;
+        // check if the same item has been clicked - then collapse it
+        if (expandedPosition == holder.getLayoutPosition()) {
+            prev = expandedPosition;
+            expandedPosition = -1;
             notifyItemChanged(prev);
-        }
+        } else {
+            // notifiy previous item to collapse
+            if (expandedPosition >= 0) {
+                prev = expandedPosition;
+                notifyItemChanged(prev);
+            }
 
-        // notifiy clicked icon to expand
-        expandedPosition = holder.getLayoutPosition();
-        notifyItemChanged(expandedPosition);
+            // assign newly clicked item
+            expandedPosition = holder.getLayoutPosition();
+            notifyItemChanged(expandedPosition);
+        }
     }
 
     @Override

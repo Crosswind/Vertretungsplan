@@ -63,16 +63,17 @@ public class MainActivity extends AppCompatActivity
         classList.add("05 A");
         classList.add("05 B");
         classList.add("05 C");
-        classList.add("05 D");
         classList.add("06 A");
         classList.add("06 B");
         classList.add("06 C");
+        classList.add("06 D");
         classList.add("07 A");
         classList.add("07 B");
         classList.add("07 C");
         classList.add("08 A");
         classList.add("08 B");
         classList.add("08 C");
+        classList.add("08 D");
         classList.add("09 A");
         classList.add("09 B");
         classList.add("09 C");
@@ -105,27 +106,36 @@ public class MainActivity extends AppCompatActivity
         date = dateFormatter.format(c.getTime());
 
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        //progressBar.setIndeterminate(true);
 
-        //displayData(null);
-        refresh();
-        //DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        //databaseHandler.onUpgrade(databaseHandler.getReadableDatabase(), DatabaseHandler.DATABASE_VERSION, 2);
+
+        if (checkConnection()) {
+            refresh();
+        } else {
+            displayData();
+            Toast.makeText(this, "Offlinedaten geladen. Möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
+        }
+        progressBar.setVisibility(View.INVISIBLE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        progressBar.setVisibility(View.VISIBLE);
+
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
-            progressBar.setVisibility(View.VISIBLE);
-            refresh();
-            myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+            if (checkConnection()) {
+                refresh();
+            } else {
+                displayData();
+                Toast.makeText(this, "Offlinedaten geladen. Möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
+            }
+            progressBar.setVisibility(View.INVISIBLE);
         }
+        myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+
     }
 
     // overflow menu override methods
@@ -147,12 +157,12 @@ public class MainActivity extends AppCompatActivity
                 Intent i = new Intent(this, PreferenceActivity.class);
                 startActivity(i);
                 break;
-            case R.id.menu_donate:
+            /*case R.id.menu_donate:
                 Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
                 break;
             case R.id.menu_uber:
                 Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
-                break;
+                break;*/
         }
         return super.onOptionsItemSelected(item);
     }
