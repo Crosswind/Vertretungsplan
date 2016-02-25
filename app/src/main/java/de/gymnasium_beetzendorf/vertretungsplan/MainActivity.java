@@ -1,8 +1,10 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -38,12 +40,17 @@ public class MainActivity extends AppCompatActivity
         implements TabFragment.OnSwipeRefreshListener {
 
     public static final String TAG = "MainActivity";
-    public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
-    public static final String SUBSTITUTION_QUERY_FILE = "/Vertretungsplan_Klassen.xml";
+
     public static final String FIRST_TIME_OPENED = "first_time_opened";
     public static final String SHOW_WHOLE_PLAN = "show_whole_plan";
     public static final String CLASS_TO_SHOW = "class_to_show";
     public static final String PREFERENCES_CHANGED = "preferences_changed";
+
+    // server related
+    public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
+    public static final String SUBSTITUTION_QUERY_FILE = "/Vertretungsplan_Klassen.xml";
+    public static final String SERVER_SCHEDULE_DIRECTORY = "/vertrertungsplaene";
+    public static final String SCHEDULE_QUERY_FILE = "/";
 
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
     public static final SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
@@ -51,10 +58,10 @@ public class MainActivity extends AppCompatActivity
 
     public String date = "";
 
-    public SharedPreferences myPreferences;
-    public TabLayout mainTabLayout;
-    public ViewPager mainViewPager;
-    public ProgressBar progressBar;
+    private SharedPreferences myPreferences;
+    private TabLayout mainTabLayout;
+    private ViewPager mainViewPager;
+    private ProgressBar progressBar;
 
     // method to return the classes the school is
     // right now just returns a static result because classes are not dynamically receivable from the website
@@ -97,18 +104,25 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        // activate boot receiver
+        ComponentName receiver = new ComponentName(this, BootReceiver.class);
+        PackageManager packageManager = this.getPackageManager();
+        packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
-        //helper = new Helper(getApplicationContext(), );
+        // set the main layout to be used by the activity
+        setContentView(R.layout.activity_main);
 
         // todays date
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
 
+        // instantiate preference
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        // define progress bar
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-
+        // based on current connection state launch activity
         if (checkConnection()) {
             refresh();
         } else {
@@ -116,6 +130,33 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Offlinedaten geladen. Möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
         }
         progressBar.setVisibility(View.INVISIBLE);
+
+
+        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
+
+        byte[] bytes = base64EncodedPublicKey.getBytes();
+        for (int i = 0; i < bytes.length; i++) {
+            if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
+                bytes[i] = (byte) ('a' + (bytes[i] - 'A'));
+            } else if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
+                bytes[i] = (byte) ('A' + (bytes[i] - 'a'));
+            }
+        }
+
+        String base64DecodedPublicKey = new String (bytes);
+        Log.i(MainActivity.TAG, "new decoded string: " + base64DecodedPublicKey);
+
+        bytes = base64DecodedPublicKey.getBytes();
+        for (int i = 0; i < bytes.length; i++) {
+            if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
+                bytes[i] = (byte) ('a' + (bytes[i] - 'A'));
+            } else if (bytes[i] >= 'a' && bytes[i] <= 'z') {
+                bytes[i] = (byte) ('A' + (bytes[i] - 'a'));
+            }
+        }
+
+        base64EncodedPublicKey = new String (bytes);
+        Log.i(MainActivity.TAG, "new encoded string: " + base64EncodedPublicKey);
     }
 
     @Override
@@ -148,19 +189,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
+Intent i;
         switch (id) {
             case R.id.menu_refresh:
                 refresh();
                 break;
             case R.id.menu_settings:
-                Intent i = new Intent(this, PreferenceActivity.class);
+                i = new Intent(this, PreferenceActivity.class);
                 startActivity(i);
                 break;
-            /*case R.id.menu_donate:
-                Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
+            case R.id.menu_donate:
+                i = new Intent(this, DonateActivity.class);
+                startActivity(i);
                 break;
-            case R.id.menu_uber:
+            /*case R.id.menu_uber:
                 Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
                 break;*/
         }

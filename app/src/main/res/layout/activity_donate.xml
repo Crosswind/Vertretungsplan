@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/activity_vertical_margin">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:text="Falls euch die Arbeit gefällt würde ich mich über eine kleine Spende freuen. Sei es ein Feierabendbier, ein Döner oder irgendwann ein neuer PC - eine Anwendung wird sich bestimmt dafür finden!\nWICHTIG: Es handelt sich lediglich um eine Spende, durch welche keine weiteren Inhalte freigeschaltet werden!\n\nDanke für eure Unterstützung!"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <Button
+            android:id="@+id/donateOneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="donateOne"
+            android:text="1€ Spenden"
+            android:layout_below="@+id/textView"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:id="@+id/donateTwoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/donateOneButton"
+            android:layout_centerHorizontal="true"
+            android:onClick="donateTwo"
+            android:text="2€ Spenden" />
+
+        <Button
+            android:id="@+id/donateFiveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="donateFive"
+            android:text="5€ Spenden"
+            android:layout_below="@+id/donateTwoButton"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+</ScrollView>
+

@@ -9,4 +9,13 @@
         <item name="android:textColorPrimaryInverse">@color/textColorPrimaryInverse</item>
         <item name="android:textColorSecondaryInverse">@color/textColorSecondaryInverse</item>
     </style>
+
+    <style name="Vertretungsplan.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Vertretungsplan.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Vertretungsplan.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

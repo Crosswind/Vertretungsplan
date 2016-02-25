@@ -4,4 +4,5 @@
     <string name="menu_refresh_title">Neu laden</string>
     <string name="menu_donate_title">Spenden</string>
     <string name="settings_menu_refresh_title">Klassen neu laden</string>
+    <string name="title_activity_donate">DonateActivity</string>
 </resources>

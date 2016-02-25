@@ -50,8 +50,6 @@ public class TabFragment extends Fragment {
         mainRecyclerView.setAdapter(adapter);
         mainRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        final RefreshService refreshService = RefreshService.getInstance();
-
         final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) customView.findViewById(R.id.mainSwipeContainer);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
