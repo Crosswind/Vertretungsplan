@@ -12,22 +12,22 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 public class XMLParser {
 
     static final String TAG = ".vertretungsplan";
-    // header tags
+
+    // schedule xml tags
     static final String headerTag = "kopf"; // header for timetable
     static final String dateTag = "titel"; // date needs to be extracted
     static final String affectedClassesTag = "aenderungk"; // shows affected classes
     static final String lastUpdatedTag = "datum";
 
-    // actual information tags
     static final String timetableTag = "haupt";
     static final String changeTag = "aktion"; // contains the timetable
     static final String courseTag = "klasse"; // contains a change
@@ -36,6 +36,11 @@ public class XMLParser {
     static final String teacherTag = "lehrer"; // new/changed room
     static final String roomTag = "raum"; // additional information such as assignments etc
     static final String infoTag = "info";
+
+    // schedule xml tags
+    static final String rowScheduleTag = "zeile";
+    static final String periodScheduleTag = "stunde";
+    static final String dayScheduleTag = "tag";
 
     public static String extractDateFromTitle(String title) {
         // needed to extract the date (format: dd:MM:yyyy)
@@ -62,7 +67,7 @@ public class XMLParser {
         return dateString;
     }
 
-    public static List<Schoolday> parseXMLInput(Context context) {
+    public static List<Schoolday> parseSubstitutionXml(Context context) {
         List<Schoolday> result;
         result = new ArrayList<>();
 
@@ -76,7 +81,7 @@ public class XMLParser {
             XmlPullParser xpp = factory.newPullParser();
 
             // open fis to the file to get the information
-            FileInputStream fis = context.openFileInput("temp.xml");
+            FileInputStream fis = context.openFileInput("substitution.xml");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, "ISO-8859-1")); // set enconding!!
 
             // set input for the parser
@@ -126,11 +131,11 @@ public class XMLParser {
                                 break;
                             case lastUpdatedTag:
                                 long last_updated;
-                                Date date;
                                 last_updated = 0;
+                                // remove komma so parsing doesn't fail
+                                text = text.replace(",", "");
                                 try {
-                                    date = MainActivity.dateFormatter.parse(text);
-                                    last_updated = date.getTime();
+                                    last_updated = MainActivity.dateTimeFormatter.parse(text).getTime();
 
                                 } catch (ParseException e) {
                                     e.printStackTrace();
@@ -176,33 +181,99 @@ public class XMLParser {
                 // move to the next iteration -- finally reach END_DOCUMENT
                 eventType = xpp.next();
             }
-        } catch (
-                XmlPullParserException e
-                )
-
-        {
-            Log.i(TAG, "PullParserException", e);
-        } catch (
-                FileNotFoundException e
-                )
-
-        {
+        } catch (XmlPullParserException e) {
+            Log.i(TAG, "PullParserException in ", e);
+        } catch (FileNotFoundException e) {
             Log.i(TAG, "File not found", e);
-        } catch (
-                IOException e
-                )
-
-        {
+        } catch (IOException e) {
             Log.i(TAG, "IOException", e);
-        } catch (
-                NullPointerException e
-                )
-
-        {
+        } catch (NullPointerException e) {
             Log.i(TAG, "Some data is missing (NullPointer)", e);
         }
 
-        //Log.i(TAG, "1. tag: " + String.valueOf(result.get(0).getDate()) + "\n 2. tag: " + String.valueOf(result.get(1).getDate()));
         return result;
+    }
+
+
+    // not needed right now
+    public static List<Schoolday> parseScheduleXml(Context context) {
+
+        Schoolday currentDay = new Schoolday();
+        List<Schoolday> currentDayList = new ArrayList<>();
+        Subject currentSubject = new Subject();
+        List<Subject> currentSubjectList = new ArrayList<>();
+
+        try {
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+            factory.setNamespaceAware(true);
+            XmlPullParser xpp = factory.newPullParser();
+
+            // open fis to the file to get the information
+            FileInputStream fis = context.openFileInput("substitution.xml");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, "ISO-8859-1")); // set enconding!!
+
+            // set input for the parser
+            xpp.setInput(bufferedReader);
+
+            // set starting event type
+            int eventType = xpp.getEventType();
+
+            String tag, period, text = "";
+            int day = 0;
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                tag = xpp.getName();
+                switch (eventType) {
+                    case XmlPullParser.START_TAG:
+                        switch (tag) {
+                            case dayScheduleTag + "{1,5}":
+                                try {
+                                    day = Integer.parseInt(tag.substring(3));
+                                } catch (NumberFormatException e) {
+                                    Log.e(MainActivity.TAG, "NumverFormatException when parsing day: ", e);
+                                }
+                                if (currentDayList.get(day-1) == null) {
+                                    currentDay = new Schoolday();
+                                    currentSubjectList = new ArrayList<>();
+
+                                    currentDay.setSubjects(currentSubjectList);
+                                    currentDayList.add(day - 1, currentDay);
+
+                                    currentSubject = new Subject();
+
+                                }
+                                break;
+
+                        }
+
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        text = xpp.getText();
+                        break;
+                    case XmlPullParser.END_TAG:
+                        switch (tag) {
+                            case periodScheduleTag:
+                                period = text;
+                                break;
+                            case dayScheduleTag + "{1,5}":
+                                currentSubjectList.add(currentSubject);
+                        }
+                        break;
+                }
+                eventType = xpp.next();
+            }
+
+        } catch (XmlPullParserException e) {
+            Log.i(MainActivity.TAG, "XmlPullParserException in ScheduleParser", e);
+        } catch (FileNotFoundException e) {
+            Log.i(MainActivity.TAG, "FileNotFoudException in ScheduleParser", e);
+        } catch (UnsupportedEncodingException e) {
+            Log.i(MainActivity.TAG, "UnsopportedEncodingException in ScheduleParser", e);
+        } catch (IOException e) {
+            Log.i(MainActivity.TAG, "IOExcpetion in ScheduleParser", e);
+        }
+
+        return currentDayList;
     }
 }

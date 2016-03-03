@@ -4,10 +4,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,14 +22,6 @@ public class TabFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        // TODO: implement a request to new data
-        DatabaseHandler databaseHandler = new DatabaseHandler(getContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
@@ -45,25 +35,27 @@ public class TabFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View customView = inflater.inflate(R.layout.fragment_tab, container, false);
-        RecyclerView mainRecyclerView = (RecyclerView) customView.findViewById(R.id.mainRecyclerView);
+        final RecyclerView mainRecyclerView = (RecyclerView) customView.findViewById(R.id.mainRecyclerView);
+
         RecyclerViewAdapter adapter = new RecyclerViewAdapter(getContext(), subjectsToDisplay);
         mainRecyclerView.setAdapter(adapter);
-        mainRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) customView.findViewById(R.id.mainSwipeContainer);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        mainRecyclerView.setLayoutManager(linearLayoutManager);
+
+        mainRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onRefresh() {
-                mCallback.refresh();
-                //swipeRefreshLayout.setRefreshing(false);
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                // disable refreshing when the list is not scrolled all the way up
+                mCallback.toggleRefreshing((linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 0));
+                super.onScrollStateChanged(recyclerView, newState);
             }
         });
-        swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf); //
 
         return customView;
     }
 
     public interface OnSwipeRefreshListener {
-        void refresh();
+        void toggleRefreshing(boolean enabled);
     }
 }

@@ -20,7 +20,6 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
     public android.support.v4.app.Fragment getItem(int position) {
         TabFragment tabFragment = new TabFragment();
         tabFragment.setSubjectsToDisplay(resultsToDisplay.get(position).getSubjects());
-        //Log.i(MainActivity.TAG, "fragment id: " + String.valueOf(tabFragment.getId()));
         return tabFragment;
     }
 

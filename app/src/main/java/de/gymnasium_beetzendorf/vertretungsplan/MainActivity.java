@@ -1,5 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +14,11 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -45,12 +46,13 @@ public class MainActivity extends AppCompatActivity
     public static final String SHOW_WHOLE_PLAN = "show_whole_plan";
     public static final String CLASS_TO_SHOW = "class_to_show";
     public static final String PREFERENCES_CHANGED = "preferences_changed";
+    public static final String ALARM_REGISTERED = "alarm_registered";
 
     // server related
     public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
     public static final String SUBSTITUTION_QUERY_FILE = "/Vertretungsplan_Klassen.xml";
-    public static final String SERVER_SCHEDULE_DIRECTORY = "/vertrertungsplaene";
-    public static final String SCHEDULE_QUERY_FILE = "/";
+    public static final String SERVER_SCHEDULE_DIRECTORY = "/stundenkl";
+    public static final String SCHEDULE_QUERY_FILE = "/aktuell";
 
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
     public static final SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences myPreferences;
     private TabLayout mainTabLayout;
     private ViewPager mainViewPager;
-    private ProgressBar progressBar;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     // method to return the classes the school is
     // right now just returns a static result because classes are not dynamically receivable from the website
@@ -109,71 +111,73 @@ public class MainActivity extends AppCompatActivity
         PackageManager packageManager = this.getPackageManager();
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
+        // instantiate preference
+        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        // register alarm if it hasn't been done by the application after booting the device
+        if (!myPreferences.getBoolean(ALARM_REGISTERED, false)) {
+            // assign RefreshService class
+            Intent alarmIntent = new Intent(this, RefreshService.class);
+            PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+            // set the alarm
+            // it starts at 6 am and repeats once an hour
+            // elapsed_realtime is used to save ressources
+            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    System.currentTimeMillis(),
+                    AlarmManager.INTERVAL_HOUR,
+                    alarmPendingIntent);
+            myPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
+        }
+
         // set the main layout to be used by the activity
         setContentView(R.layout.activity_main);
+
+        // toolbar
+        // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         // todays date
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
 
-        // instantiate preference
-        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        // define SwipeRefreshLayout
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
 
-        // define progress bar
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf);
 
-        // based on current connection state launch activity
+        // display the data that's in the database for far
+        displayData();
+
+        // try to refresh the data whenever the application is opened
         if (checkConnection()) {
             refresh();
         } else {
-            displayData();
-            Toast.makeText(this, "Offlinedaten geladen. Möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
-        }
-        progressBar.setVisibility(View.INVISIBLE);
-
-
-        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
-
-        byte[] bytes = base64EncodedPublicKey.getBytes();
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
-                bytes[i] = (byte) ('a' + (bytes[i] - 'A'));
-            } else if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
-                bytes[i] = (byte) ('A' + (bytes[i] - 'a'));
-            }
+            Toast.makeText(this, "Keine Verbindung.", Toast.LENGTH_LONG).show();
         }
 
-        String base64DecodedPublicKey = new String (bytes);
-        Log.i(MainActivity.TAG, "new decoded string: " + base64DecodedPublicKey);
-
-        bytes = base64DecodedPublicKey.getBytes();
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
-                bytes[i] = (byte) ('a' + (bytes[i] - 'A'));
-            } else if (bytes[i] >= 'a' && bytes[i] <= 'z') {
-                bytes[i] = (byte) ('A' + (bytes[i] - 'a'));
-            }
-        }
-
-        base64EncodedPublicKey = new String (bytes);
-        Log.i(MainActivity.TAG, "new encoded string: " + base64EncodedPublicKey);
+        //String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        progressBar.setVisibility(View.VISIBLE);
-
         myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
             if (checkConnection()) {
-                refresh();
+                swipeRefreshLayout.setRefreshing(true);
+                displayData();
             } else {
                 displayData();
-                Toast.makeText(this, "Offlinedaten geladen. Möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Keine Verbindung. Offlinedaten geladen.", Toast.LENGTH_LONG).show();
             }
-            progressBar.setVisibility(View.INVISIBLE);
         }
         myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
 
@@ -189,10 +193,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-Intent i;
+        Intent i;
         switch (id) {
             case R.id.menu_refresh:
                 refresh();
+                swipeRefreshLayout.setRefreshing(false);
                 break;
             case R.id.menu_settings:
                 i = new Intent(this, PreferenceActivity.class);
@@ -209,6 +214,15 @@ Intent i;
         return super.onOptionsItemSelected(item);
     }
 
+    // workaround for bug with SwipeRefreshLayout
+    // it would refresh even if RecyclerView is not at the top
+    @Override
+    public void toggleRefreshing(boolean enabled) {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setEnabled(enabled);
+        }
+    }
+
     // checks whether there's an active internet connection (WiFi/Data)
     public boolean checkConnection() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -216,17 +230,23 @@ Intent i;
         return networkInfo != null && networkInfo.isConnected();
     }
 
+    public void onCancelDownload() {
+        swipeRefreshLayout.setRefreshing(false);
+        Toast.makeText(this, "Fehler!", Toast.LENGTH_LONG).show();
+
+    }
+
     // main handler for refreshing data from the server and distributing it to database and to recycler
     public void refresh() {
         if (checkConnection()) {
+            swipeRefreshLayout.setRefreshing(true);
             DownloadFileFromURL downloadFileFromURL = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
             downloadFileFromURL.execute(); // the rest will be executed in onPostExecute
 
             // notify to cancel refreshing
         } else {
-            //displayData();
-            Toast.makeText(this, "Keine Internetverbindung - Daten möglicherweise nicht aktuell!", Toast.LENGTH_LONG).show();
-            // notifiy swipeRefreshLayout to cancel refreshing
+            Toast.makeText(this, "Keine Verbindung.", Toast.LENGTH_LONG).show();
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
@@ -235,23 +255,14 @@ Intent i;
         mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
-        // check if current day is needed or if it's passt 3 pm that day
-        long currentTime = System.currentTimeMillis();
-        long afterSchoolTime = 0;
+        String currentTabText = "";
+        int currentTabCount = -1;
 
-        try {
-            afterSchoolTime = dateTimeFormatter.parse(date + " 15:00").getTime();
-        } catch (ParseException e) {
-            Log.i(TAG, "ParseException for afterSchoolTime", e);
-        }
-
-        boolean after3Pm; // true if it's later than 3 pm
-        // today no longer needs to be displayed
-        after3Pm = afterSchoolTime != 0 && currentTime > afterSchoolTime;
+        //mainViewPager.canScrollVertically(-1);
 
         // get needed results
         DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        results = databaseHandler.getAllSubstitutions(date, after3Pm);
+        results = databaseHandler.getAllSubstitutions();
 
         // remove unnecessary items from results
         long today = 0, temp;
@@ -260,7 +271,7 @@ Intent i;
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        Log.i(TAG, "today: " + String.valueOf(today));
+
         for (int i = results.size() - 1; i >= 0; i--) {
             temp = results.get(i).getDate(); // time of the results in milliseconds
 
@@ -268,6 +279,17 @@ Intent i;
                 results.remove(i);
             }
         }
+
+        // check if tabs are already there and store the current tab to reopen it
+        if (mainTabLayout.getTabCount() > 0) {
+            currentTabCount = mainTabLayout.getSelectedTabPosition();
+            try {
+                currentTabText = (String) mainTabLayout.getTabAt(currentTabCount).getText();
+            } catch (NullPointerException e) {
+                Log.i(TAG, "NullPointerException on setting currentTabText", e);
+            }
+        }
+
         // draw the tabs depending on the days from the file
         mainTabLayout.removeAllTabs();
         for (int n = 0; n < results.size(); n++) {
@@ -278,16 +300,7 @@ Intent i;
                 calendar.setTimeInMillis(results.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
-                Log.i(TAG, "tempDate: " + tempWeekday + " " + tempDate);
                 mainTabLayout.addTab(mainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
-            }
-        }
-
-        // remove empty results
-        // easier to do an extra for loop because this doesn't reverse the order since we're going backwards through the list
-        for (int k = results.size() - 1; k >= 0; k--) {
-            if (results.get(k).getSubjects().size() == 0) {
-                results.remove(k);
             }
         }
 
@@ -298,7 +311,6 @@ Intent i;
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mainViewPager.setCurrentItem(tab.getPosition());
-
             }
 
             @Override
@@ -310,11 +322,24 @@ Intent i;
             }
         });
 
+        if (mainTabLayout.getTabCount() > 0) {
+            try {
+                if (currentTabCount > -1 && currentTabCount < mainTabLayout.getTabCount()) {
+                    if (mainTabLayout.getTabAt(currentTabCount).getText() == currentTabText &&
+                            mainTabLayout.getSelectedTabPosition() == currentTabCount) {
+                        mainTabLayout.getTabAt(currentTabCount).select();
+                    }
+                }
+            } catch (NullPointerException e) {
+                Log.i(TAG, "NullPointerException on setting currentTabText", e);
+            }
+        }
+
         if (results.size() == 0) {
             mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
         }
 
-        progressBar.setVisibility(View.INVISIBLE);
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website
@@ -335,7 +360,7 @@ Intent i;
                 InputStream is = urlConnection.getInputStream();
                 BufferedInputStream bis = new BufferedInputStream(is);
 
-                FileOutputStream fos = openFileOutput("temp.xml", MODE_PRIVATE);
+                FileOutputStream fos = openFileOutput("substitution.xml", MODE_PRIVATE);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
 
                 // writing to file
@@ -351,6 +376,7 @@ Intent i;
 
             } catch (FileNotFoundException e) {
                 Log.i(Helper.TAG, "Datei konnte nicht gefunden werden", e);
+                onCancelDownload();
             } catch (MalformedURLException e) {
                 Log.i(Helper.TAG, "URL inkorrekt", e);
             } catch (IOException e) {
@@ -362,27 +388,23 @@ Intent i;
         @Override
         protected void onPostExecute(Void aVoid) {
             // kick off the xml parsing
-            List<Schoolday> xmlResults = XMLParser.parseXMLInput(getApplicationContext());
+            List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(getApplicationContext());
 
-            // saves result to db
+            // get database
             DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-            db_handler.insertXmlResults(xmlResults);
-            //Log.i(TAG, "Menge der gespeicherten Ergebnisse: " + String.valueOf(xmlResults.size()));
+            List<Schoolday> databaseResults = db_handler.getAllSubstitutions();
 
-            // display data
-            displayData();
-        }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar.setIndeterminate(true);
-        }
+            if (databaseResults.size() > 0 && xmlResults.size() > 0) {
 
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            progressBar.setIndeterminate(false);
+                if (databaseResults.get(0).getLastUpdated() >= xmlResults.get(0).getLastUpdated()) {
+                    Toast.makeText(getApplicationContext(), "Vertretungsplan aktuell.", Toast.LENGTH_LONG).show();
+                } else {
+                    // insert data into database
+                    db_handler.insertSubstitutionXmlResults(xmlResults);
+                    displayData();
+                }
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ import android.util.Log;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
@@ -40,12 +41,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static String SR_INFO = "info";
 
     // stuff
-    private String query;
+    private String query, date;
     private SharedPreferences sharedPreferences;
+
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        Calendar c = Calendar.getInstance();
+        date = MainActivity.dateFormatter.format(c.getTime());
     }
 
     @Override
@@ -95,7 +100,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return is_up_to_date;
     }
 
-    public List<Schoolday> getAllSubstitutions(String date, boolean after3Pm) { // return all substitutions from a certain date on
+    public List<Schoolday> getAllSubstitutions() { // return all substitutions from a certain date on
         SQLiteDatabase db = getReadableDatabase();
         List<Schoolday> schooldayList = new ArrayList<>();
         Cursor cursor;
@@ -107,6 +112,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             Log.i(MainActivity.TAG, "ParseException", e);
         }
 
+        boolean after3Pm = after3Pm();
+
         if (after3Pm) {
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " > '" + time + "'";
 
@@ -115,22 +122,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         cursor = db.rawQuery(query, null);
 
-        Log.i(MainActivity.TAG, "query: " + query + "\nmenge der elemente: " + String.valueOf(cursor.getCount()));
-
         if (cursor.moveToFirst()) {
             do {
-                Log.i(MainActivity.TAG, "current position: " + String.valueOf(cursor.getPosition()));
+                //Log.i(MainActivity.TAG, "current position: " + String.valueOf(cursor.getPosition()));
                 Schoolday currentSchoolday = new Schoolday();
                 currentSchoolday.setDate(cursor.getLong(1));
                 currentSchoolday.setLastUpdated(cursor.getLong(2));
                 currentSchoolday.setSubjects(getSubstitutions(cursor.getInt(0)));
-                Log.i(MainActivity.TAG, "current position1: " + String.valueOf(cursor.getPosition()));
 
-                schooldayList.add(currentSchoolday);
+                // only add currentSchoolday if it contains any subjects
+                if (currentSchoolday.getSubjects().size() > 0) {
+                    schooldayList.add(currentSchoolday);
+                }
             } while (cursor.moveToNext());
         }
 
-        Log.i(MainActivity.TAG, "größe des schooldaylist arrays: " + String.valueOf(schooldayList.size()));
+        //Log.i(MainActivity.TAG, "größe des schooldaylist arrays: " + String.valueOf(schooldayList.size()));
 
         cursor.close();
         db.close();
@@ -160,7 +167,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                         "AND (" + SR_COURSE + " LIKE '%" + classToShowSecondary + "' " +
                         "OR length(" + SR_COURSE + ") > 4)" +
                         "ORDER BY " + SR_PERIOD;
-                Log.i(MainActivity.TAG, "final search query: " + query);
             } else {
                 query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
             }
@@ -187,7 +193,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return subjectList;
     }
 
-    public void insertXmlResults(List<Schoolday> results) {
+    public void insertSubstitutionXmlResults(List<Schoolday> results) {
         SQLiteDatabase db = getWritableDatabase();
         Schoolday currentDay;
         Cursor cursor;
@@ -232,6 +238,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
             cursor.close();
         }
+    }
+
+    public boolean after3Pm() {
+        // check if current day is needed or if it's passt 3 pm that day
+        long currentTime = System.currentTimeMillis();
+        long afterSchoolTime = 0;
+
+        try {
+            afterSchoolTime = MainActivity.dateTimeFormatter.parse(date + " 15:00").getTime();
+        } catch (ParseException e) {
+            Log.i(TAG, "ParseException for afterSchoolTime", e);
+        }
+
+        // today no longer needs to be displayed
+        return afterSchoolTime != 0 && currentTime > afterSchoolTime;
     }
 
     public boolean cleanDatabase() {

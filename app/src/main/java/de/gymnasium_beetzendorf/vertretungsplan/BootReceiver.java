@@ -5,6 +5,8 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -27,6 +29,10 @@ public class BootReceiver extends BroadcastReceiver {
                 Log.i(MainActivity.TAG, "ParseException in RefreshService", e);
             }
 
+            if (System.currentTimeMillis() > firstRefresh) {
+                firstRefresh = System.currentTimeMillis();
+            }
+
             // assign RefreshService class
             Intent alarmIntent = new Intent(context, RefreshService.class);
             PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, alarmManagerRequestCode, alarmIntent, 0);
@@ -39,5 +45,8 @@ public class BootReceiver extends BroadcastReceiver {
                     AlarmManager.INTERVAL_HOUR,
                     alarmPendingIntent);
         }
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.edit().putBoolean(MainActivity.ALARM_REGISTERED, true).apply();
     }
 }

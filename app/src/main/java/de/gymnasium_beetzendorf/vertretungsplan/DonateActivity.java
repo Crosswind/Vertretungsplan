@@ -28,9 +28,9 @@ public class DonateActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_donate);
 
-        String base64DecodedPublicKey = "miibijanbgkqhkig9w0baqefaaocaq8amiibcgkcaqeawq6nvtxbdanqu4j1ru2fex3dgb3xbeuhp6pcwl6zclnwhpwjhzeu6dvgpj/f1nxvehat0c4us5beu9xbc16k9htf/ffhw/9ohr+hc9utasmlq07705pdrenvj/j9syispfwwmcomaaruyfj2ujldtvs//bi5to5lgxhqock4fetgtlw4d4lyx10sz+ctdhfukbaqqg7pwkson+wrjm/9nzxutxkwyftmfmpsj+dhoqfblwf82vyej135azmprmpd4f2+ascu2bkoljkq3uxyt2rcohmcqj1zwygf0mnl3yki5o9jnj9udkeo6u+h7yukgzmwhw54klnizx/olgse+qidaqab/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
+        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
 
-        mHelper = new IabHelper(this, encodePublicKey(base64DecodedPublicKey));
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
         mHelper.enableDebugLogging(true, MainActivity.TAG);
         mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             @Override
@@ -66,7 +66,6 @@ public class DonateActivity extends AppCompatActivity {
             if (result.isFailure()) {
                 Log.i(MainActivity.TAG, "something went wrong here while purchasing");
             } else if (info.getSku().equals(ITEM_SKU)) {
-                mButton.setEnabled(false);
                 consumeItem();
             }
         }
@@ -98,12 +97,14 @@ public class DonateActivity extends AppCompatActivity {
     public void donateOne(View view) {
         mButton = (Button) findViewById(R.id.donateOneButton);
         ITEM_SKU = ITEM_DONATE_ONE;
+        mButton.setEnabled(false);
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
     }
 
     public void donateTwo(View view) {
         mButton = (Button) findViewById(R.id.donateTwoButton);
         ITEM_SKU = ITEM_DONATE_TWO;
+        mButton.setEnabled(false);
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
 
     }
@@ -111,24 +112,13 @@ public class DonateActivity extends AppCompatActivity {
     public void donateFive(View view) {
         mButton = (Button) findViewById(R.id.donateFiveButton);
         ITEM_SKU = ITEM_DONATE_FIVE;
+        mButton.setEnabled(false);
+
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
     }
 
     public void consumeItem() {
         mHelper.queryInventoryAsync(mReceivedInventoryListener);
         Toast.makeText(this, "Danke für die Spende!", Toast.LENGTH_LONG).show();
-    }
-
-    private String encodePublicKey (String base64DecodedPublicKey) {
-        byte[] bytes = base64DecodedPublicKey.getBytes();
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] >= 'A' && bytes[i] <= 'Z') {
-                bytes[i] = (byte) ('a' + (bytes[i] - 'A'));
-            } else if (bytes[i] >= 'a' && bytes[i] <= 'z') {
-                bytes[i] = (byte) ('A' + (bytes[i] - 'a'));
-            }
-        }
-
-        return new String(bytes);
     }
 }

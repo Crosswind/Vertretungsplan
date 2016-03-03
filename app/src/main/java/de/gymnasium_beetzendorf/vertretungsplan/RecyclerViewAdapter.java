@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -144,8 +143,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         periodTextView.setText(String.valueOf(currentSubject.getPeriod()) + ". Stunde");
         teacherTextView.setText(currentSubject.getTeacher());
         infoTextView.setText(currentSubject.getInfo());
-
-        Log.i(MainActivity.TAG, "expandedPosition: " + expandedPosition + " prev. " + prev);
 
         // change visibility on onclick event
         if (position == expandedPosition) {
