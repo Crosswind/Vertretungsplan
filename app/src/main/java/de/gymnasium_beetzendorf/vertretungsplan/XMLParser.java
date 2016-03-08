@@ -24,7 +24,7 @@ public class XMLParser {
 
     // schedule xml tags
     static final String headerTag = "kopf"; // header for timetable
-    static final String dateTag = "titel"; // date needs to be extracted
+    static final String dateTag = "titel"; // mDate needs to be extracted
     static final String affectedClassesTag = "aenderungk"; // shows affected classes
     static final String lastUpdatedTag = "datum";
 
@@ -43,7 +43,7 @@ public class XMLParser {
     static final String dayScheduleTag = "tag";
 
     public static String extractDateFromTitle(String title) {
-        // needed to extract the date (format: dd:MM:yyyy)
+        // needed to extract the mDate (format: dd:MM:yyyy)
         String dateString, dateStringHolder;
         String[] dateStringHolderSplit;
         String[] dateNames = {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
@@ -232,7 +232,7 @@ public class XMLParser {
                                 } catch (NumberFormatException e) {
                                     Log.e(MainActivity.TAG, "NumverFormatException when parsing day: ", e);
                                 }
-                                if (currentDayList.get(day-1) == null) {
+                                if (currentDayList.get(day - 1) == null) {
                                     currentDay = new Schoolday();
                                     currentSubjectList = new ArrayList<>();
 

@@ -25,7 +25,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // table substitution_days
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
     private static String SD_ID = "id";
-    private static String SD_DATE = "date";
+    private static String SD_DATE = "Date";
     private static String SD_LAST_UPDATED = "last_updated";
     private static String SD_PAST = "past";
 
@@ -100,7 +100,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return is_up_to_date;
     }
 
-    public List<Schoolday> getAllSubstitutions() { // return all substitutions from a certain date on
+    public List<Schoolday> getAllSubstitutions() { // return all substitutions from a certain mDate on
         SQLiteDatabase db = getReadableDatabase();
         List<Schoolday> schooldayList = new ArrayList<>();
         Cursor cursor;
@@ -141,6 +141,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         cursor.close();
         db.close();
+        Log.i(MainActivity.TAG, "Größe der Liste: " + schooldayList.size());
         return schooldayList;
     }
 
@@ -172,7 +173,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
         }
 
-        // query all subjects for a certain date
+        // query all subjects for a certain mDate
         cursor = db.rawQuery(query, null);
 
         if (cursor.moveToFirst()) {
@@ -201,9 +202,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             currentDay = results.get(n);
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + currentDay.getDate() + "'";
             cursor = db.rawQuery(query, null);
-
-            //Log.i(MainActivity.TAG, "cursor count: " + String.valueOf(cursor.getCount()));
-
             cursor.moveToFirst();
 
             ContentValues values;
@@ -219,25 +217,35 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 // updating table days
                 values.put(SD_LAST_UPDATED, currentDay.getLastUpdated());
                 db.update(TABLE_SUBSTITUTION_DAYS, values, SD_ID + " = ?", new String[]{String.valueOf(id)});
+            }
 
-                // clear corresponding table rows and then re-add it
-                db.delete(TABLE_SUBSTITUTION_ROWS, SR_DAY + " = ?", new String[]{String.valueOf(id)});
-                Subject currentSubject;
-                for (int i = 0; i < currentDay.getSubjects().size(); i++) {
-                    currentSubject = currentDay.getSubjects().get(i);
-                    values.clear();
-                    values.put(SR_DAY, id);
-                    values.put(SR_COURSE, currentSubject.getCourse());
-                    values.put(SR_PERIOD, currentSubject.getPeriod());
-                    values.put(SR_ROOM, currentSubject.getRoom());
-                    values.put(SR_SUBJECT, currentSubject.getSubject());
-                    values.put(SR_TEACHER, currentSubject.getTeacher());
-                    values.put(SR_INFO, currentSubject.getInfo());
-                    db.insert(TABLE_SUBSTITUTION_ROWS, null, values);
-                }
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + currentDay.getDate() + "'";
+            cursor = db.rawQuery(query, null);
+            cursor.moveToFirst();
+            int id = cursor.getInt(cursor.getColumnIndex(SD_ID));
+
+            // clear corresponding table rows and then re-add them
+            // subjects need to be deleted everytime because we don't want old results in the database that aren't valid anymore
+            // --> the way how the xml file is set up -> there is no indicator if a substitution lost its validity
+            db.delete(TABLE_SUBSTITUTION_ROWS, SR_DAY + " = ?", new String[]{String.valueOf(id)});
+            Subject currentSubject;
+            for (int i = 0; i < currentDay.getSubjects().size(); i++) {
+                currentSubject = currentDay.getSubjects().get(i);
+                values = new ContentValues();
+                values.put(SR_DAY, id);
+                values.put(SR_COURSE, currentSubject.getCourse());
+                values.put(SR_PERIOD, currentSubject.getPeriod());
+                values.put(SR_ROOM, currentSubject.getRoom());
+                values.put(SR_SUBJECT, currentSubject.getSubject());
+                values.put(SR_TEACHER, currentSubject.getTeacher());
+                values.put(SR_INFO, currentSubject.getInfo());
+                db.insert(TABLE_SUBSTITUTION_ROWS, null, values);
             }
             cursor.close();
         }
+
+        Log.i(MainActivity.TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
+        db.close();
     }
 
     public boolean after3Pm() {

@@ -9,6 +9,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -26,23 +28,33 @@ import java.util.List;
 
 public class RefreshService extends IntentService {
 
+    private SharedPreferences mSharedPreferences;
+
+    public RefreshService() {
+        super("RefreshService");
+    }
+
     public RefreshService(String name) {
         super(name);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        Log.i(MainActivity.TAG, "service call received");
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         Calendar calendar = Calendar.getInstance();
         String date = MainActivity.dateFormatter.format(calendar.getTime());
         long lastRefresh = 0;
         try {
-            lastRefresh = MainActivity.dateTimeFormatter.parse(date + "20:00").getTime();
+            lastRefresh = MainActivity.dateTimeFormatter.parse(date + " 20:00").getTime();
 
         } catch (ParseException e) {
             Log.i(MainActivity.TAG, "Problem while parsing in service class", e);
         }
 
-        if (System.currentTimeMillis() < lastRefresh) {
+        if (System.currentTimeMillis() <= lastRefresh) {
             // download file from server
             downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution");
 
@@ -56,9 +68,14 @@ public class RefreshService extends IntentService {
             List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
 
 
-            if (xmlResults.size() > 0 && databaseResults.size() > 0) {
-                if (xmlResults.get(0).getLastUpdated() > databaseResults.get(0).getLastUpdated()) {
+            if (xmlResults.size() > 0 && databaseResults.size() >= 0) {
+                if ((xmlResults.get(0).getLastUpdated() > databaseResults.get(0).getLastUpdated()) || databaseResults.size() == 0) {
                     databaseHandler.insertSubstitutionXmlResults(xmlResults);
+
+                    calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated());
+
+                    String updated = MainActivity.dateTimeFormatter.format(calendar.getTime());
 
                     // intent that opens the main activity when notification is clicked
                     Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -68,7 +85,7 @@ public class RefreshService extends IntentService {
                     NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     Notification notification = new Notification.Builder(this)
                             .setContentTitle("Neue Vertretungsstunden!")
-                            .setContentText("Hier klicken um App zu öffnen.")
+                            .setContentText("Hier klicken um App zu öffnen.\nAktualisiert: " + updated)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setAutoCancel(true)
                             .setContentIntent(notificationPendingIntent)
@@ -77,22 +94,32 @@ public class RefreshService extends IntentService {
                     notificationManager.notify(0, notification);
                 }
             }
-            databaseHandler.insertSubstitutionXmlResults(xmlResults);
+            Log.i(MainActivity.TAG, "things downloaded");
 
         } else {
             Intent alarmIntent = new Intent(this, RefreshService.class);
-            PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+            PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(alarmPendingIntent);
 
             // adds 10 hours (in milliseconds to the last refresh) which represents 6 am the next morning
             long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 10);
-            // set the new alarm which will start firing alarms every hour until 6 pm
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, nextDayRefresh, AlarmManager.INTERVAL_HOUR, alarmPendingIntent);
+            // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
+            alarmManager.setInexactRepeating(
+                    MainActivity.ALARM_TYPE,
+                    nextDayRefresh,
+                    MainActivity.ALARM_INTERVAL,
+                    alarmPendingIntent);
+
+            Log.i(MainActivity.TAG, "Alarm set");
+
+            mSharedPreferences.edit().putBoolean(MainActivity.ALARM_REGISTERED, true).apply();
         }
     }
 
-    public boolean checkIfAppIsRunning () {
+
+    // not yet implemented
+    public boolean checkIfAppIsRunning() {
         ActivityManager manager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
 
         List<ActivityManager.RunningAppProcessInfo> runningTaskInfos = manager.getRunningAppProcesses();
@@ -110,7 +137,7 @@ public class RefreshService extends IntentService {
 
             String fileName;
             switch (fileType) {
-                case "substituion":
+                case "substitution":
                     fileName = "substitution.xml";
                     break;
                 case "schedule":
@@ -136,12 +163,14 @@ public class RefreshService extends IntentService {
             bos.close();
 
         } catch (FileNotFoundException e) {
-            Log.i(Helper.TAG, "Datei konnte nicht gefunden werden", e);
+            Log.i(MainActivity.TAG, "Datei konnte nicht gefunden werden", e);
         } catch (MalformedURLException e) {
-            Log.i(Helper.TAG, "URL inkorrekt", e);
+            Log.i(MainActivity.TAG, "URL inkorrekt", e);
         } catch (IOException e) {
-            Log.i(Helper.TAG, "IOException", e);
+            Log.i(MainActivity.TAG, "IOException", e);
         }
 
     }
+
+
 }

@@ -11,7 +11,7 @@
     <item
         android:id="@+id/menu_donate"
         android:title="@string/menu_donate_title" />
-    <!--<item
+    <item
         android:id="@+id/menu_uber"
-        android:title="Über" /> -->
+        android:title="Über" />
 </menu>

@@ -15,13 +15,45 @@ import de.gymnasium_beetzendorf.vertretungsplan.util.Purchase;
 
 public class DonateActivity extends AppCompatActivity {
 
-    private Button mButton;
-    private IabHelper mHelper;
-    static String ITEM_SKU;
     static final String ITEM_DONATE_ONE = "de.gymnasium_beetzendorf.vertretungsplan.donate_one_euro";
     static final String ITEM_DONATE_TWO = "de.gymnasium_beetzendorf.vertretungsplan.donate_two_euro";
     static final String ITEM_DONATE_FIVE = "de.gymnasium_beetzendorf.vertretungsplan.donate_five_euro";
+    static String ITEM_SKU;
+    private Button mButton;
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+        @Override
+        public void onConsumeFinished(Purchase purchase, IabResult result) {
+            if (result.isSuccess()) {
+                // mButton.setEnabled(true);
+            } else {
+                Log.i(MainActivity.TAG, "something went wrong in consumefinishedlistener");
+            }
+        }
+    };
+    private IabHelper mHelper;
+    IabHelper.QueryInventoryFinishedListener mReceivedInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        @Override
+        public void onQueryInventoryFinished(IabResult result, Inventory inv) {
 
+            if (result.isFailure()) {
+                Log.i(MainActivity.TAG, "something went wrong in on queryinventoryfinished");
+            } else {
+                mHelper.consumeAsync(inv.getPurchase(ITEM_SKU), mConsumeFinishedListener);
+                // mButton.setEnabled(true);
+            }
+        }
+    };
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        @Override
+        public void onIabPurchaseFinished(IabResult result, Purchase info) {
+            if (result.isFailure()) {
+                Log.i(MainActivity.TAG, "something went wrong here while purchasing");
+            } else if (info.getSku().equals(ITEM_SKU)) {
+                consumeItem();
+                // mButton.setEnabled(true);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,51 +92,17 @@ public class DonateActivity extends AppCompatActivity {
         }
     }
 
-    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-        @Override
-        public void onIabPurchaseFinished(IabResult result, Purchase info) {
-            if (result.isFailure()) {
-                Log.i(MainActivity.TAG, "something went wrong here while purchasing");
-            } else if (info.getSku().equals(ITEM_SKU)) {
-                consumeItem();
-            }
-        }
-    };
-
-    IabHelper.QueryInventoryFinishedListener mReceivedInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-        @Override
-        public void onQueryInventoryFinished(IabResult result, Inventory inv) {
-
-            if (result.isFailure()) {
-                Log.i(MainActivity.TAG, "something went wrong in on queryinventoryfinished");
-            } else {
-                mHelper.consumeAsync(inv.getPurchase(ITEM_SKU), mConsumeFinishedListener);
-            }
-        }
-    };
-
-    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-        @Override
-        public void onConsumeFinished(Purchase purchase, IabResult result) {
-            if (result.isSuccess()) {
-                mButton.setEnabled(true);
-            } else {
-                Log.i(MainActivity.TAG, "something went wrong in consumefinishedlistener");
-            }
-        }
-    };
-
     public void donateOne(View view) {
         mButton = (Button) findViewById(R.id.donateOneButton);
         ITEM_SKU = ITEM_DONATE_ONE;
-        mButton.setEnabled(false);
+        // mButton.setEnabled(false);
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
     }
 
     public void donateTwo(View view) {
         mButton = (Button) findViewById(R.id.donateTwoButton);
         ITEM_SKU = ITEM_DONATE_TWO;
-        mButton.setEnabled(false);
+        // mButton.setEnabled(false);
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
 
     }
@@ -112,8 +110,7 @@ public class DonateActivity extends AppCompatActivity {
     public void donateFive(View view) {
         mButton = (Button) findViewById(R.id.donateFiveButton);
         ITEM_SKU = ITEM_DONATE_FIVE;
-        mButton.setEnabled(false);
-
+        // mButton.setEnabled(false);
         mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "purchase token");
     }
 

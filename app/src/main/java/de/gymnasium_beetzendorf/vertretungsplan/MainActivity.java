@@ -1,5 +1,6 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -16,6 +17,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,7 +32,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,19 +55,26 @@ public class MainActivity extends AppCompatActivity
     public static final String SERVER_SCHEDULE_DIRECTORY = "/stundenkl";
     public static final String SCHEDULE_QUERY_FILE = "/aktuell";
 
+    // date formatting variables - used all over the project
     public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
     public static final SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
     public static final SimpleDateFormat weekdayFormatter = new SimpleDateFormat("EE", Locale.GERMANY);
 
-    public String date = "";
+    // alarm constants
+    public static final long ALARM_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+    public static final int ALARM_TYPE = AlarmManager.RTC;
 
-    private SharedPreferences myPreferences;
-    private TabLayout mainTabLayout;
-    private ViewPager mainViewPager;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    public String mDate = "";
+
+    private SharedPreferences mSharedPreferences;
+    private TabLayout mMainTabLayout;
+    private ViewPager mMainViewPager;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private Toolbar mToolbar;
 
     // method to return the classes the school is
     // right now just returns a static result because classes are not dynamically receivable from the website
+    // will be added in a future release
     public static String[] getClasses() {
         List<String> classList = new ArrayList<>();
         classList.add("05 A");
@@ -107,79 +115,82 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         // activate boot receiver
+        // this will start the alarm that is responsible for refreshing data
         ComponentName receiver = new ComponentName(this, BootReceiver.class);
         PackageManager packageManager = this.getPackageManager();
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
         // instantiate preference
-        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // register alarm if it hasn't been done by the application after booting the device
-        if (!myPreferences.getBoolean(ALARM_REGISTERED, false)) {
+        if (!mSharedPreferences.getBoolean(ALARM_REGISTERED, false)) {
             // assign RefreshService class
             Intent alarmIntent = new Intent(this, RefreshService.class);
-            PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+            PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+
             // set the alarm
             // it starts at 6 am and repeats once an hour
             // elapsed_realtime is used to save ressources
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+            alarmManager.setInexactRepeating(
+                    ALARM_TYPE,
                     System.currentTimeMillis(),
-                    AlarmManager.INTERVAL_HOUR,
+                    ALARM_INTERVAL,
                     alarmPendingIntent);
-            myPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
+
+            // change prefs so it won't set alarm everytime the app opens
+            // unless the app is uninstalled/cache wiped the alarm will be handled by BootReceiver after the devices boots
+            mSharedPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
         }
 
         // set the main layout to be used by the activity
         setContentView(R.layout.activity_main);
 
-        // toolbar
-        // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-
-        // todays date
+        // todays mDate
         Calendar c = Calendar.getInstance();
-        date = dateFormatter.format(c.getTime());
+        mDate = dateFormatter.format(c.getTime());
 
         // define SwipeRefreshLayout
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 refresh();
-                swipeRefreshLayout.setRefreshing(false);
+                mSwipeRefreshLayout.setRefreshing(false);
+
             }
         });
 
-        swipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf);
-
-        // display the data that's in the database for far
-        displayData();
-
-        // try to refresh the data whenever the application is opened
-        if (checkConnection()) {
+        if (savedInstanceState == null) {
             refresh();
-        } else {
-            Toast.makeText(this, "Keine Verbindung.", Toast.LENGTH_LONG).show();
         }
 
-        //String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        myPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if (myPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
-            if (checkConnection()) {
-                swipeRefreshLayout.setRefreshing(true);
-                displayData();
-            } else {
-                displayData();
-                Toast.makeText(this, "Keine Verbindung. Offlinedaten geladen.", Toast.LENGTH_LONG).show();
-            }
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Log.i(TAG, "pref - changed: " + String.valueOf(mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)));
+        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
+            mSwipeRefreshLayout.setRefreshing(true);
+            refresh();
+            mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+        } else {
+            displayData();
         }
-        myPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+
+        if (isMyServiceRunning()) {
+            Toast.makeText(this, "Service running", Toast.LENGTH_LONG).show();
+        }
+
+        mSwipeRefreshLayout.setRefreshing(false);
+
 
     }
 
@@ -197,7 +208,7 @@ public class MainActivity extends AppCompatActivity
         switch (id) {
             case R.id.menu_refresh:
                 refresh();
-                swipeRefreshLayout.setRefreshing(false);
+                mSwipeRefreshLayout.setRefreshing(false);
                 break;
             case R.id.menu_settings:
                 i = new Intent(this, PreferenceActivity.class);
@@ -207,19 +218,21 @@ public class MainActivity extends AppCompatActivity
                 i = new Intent(this, DonateActivity.class);
                 startActivity(i);
                 break;
-            /*case R.id.menu_uber:
-                Toast.makeText(this, "Nocht nicht implementiert.", Toast.LENGTH_LONG).show();
-                break;*/
+            case R.id.menu_uber:
+                i = new Intent(this, AboutActivity.class);
+                startActivity(i);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
 
     // workaround for bug with SwipeRefreshLayout
     // it would refresh even if RecyclerView is not at the top
+    // interface call is from TabFragment
     @Override
     public void toggleRefreshing(boolean enabled) {
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setEnabled(enabled);
+        if (mSwipeRefreshLayout != null) {
+            mSwipeRefreshLayout.setEnabled(enabled);
         }
     }
 
@@ -230,104 +243,111 @@ public class MainActivity extends AppCompatActivity
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public void onCancelDownload() {
-        swipeRefreshLayout.setRefreshing(false);
-        Toast.makeText(this, "Fehler!", Toast.LENGTH_LONG).show();
-
+    public boolean isMyServiceRunning() {
+        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("de.gymnasium_beetzendorf.vertretungsplan".equals(serviceInfo.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    // main handler for refreshing data from the server and distributing it to database and to recycler
+    // takes care of data refreshing logic
+    // if internet connection is available it tries a full refresh
+    // else it just displays the current data
     public void refresh() {
+
+        mSwipeRefreshLayout.setRefreshing(true);
+
         if (checkConnection()) {
-            swipeRefreshLayout.setRefreshing(true);
             DownloadFileFromURL downloadFileFromURL = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
             downloadFileFromURL.execute(); // the rest will be executed in onPostExecute
 
+
             // notify to cancel refreshing
         } else {
-            Toast.makeText(this, "Keine Verbindung.", Toast.LENGTH_LONG).show();
-            swipeRefreshLayout.setRefreshing(false);
+            Toast.makeText(this, "Keine Verbindung. ", Toast.LENGTH_LONG).show();
+            //displayData();
         }
+
+        mSwipeRefreshLayout.setEnabled(false);
     }
 
     public void displayData() {
-        List<Schoolday> results;
-        mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
-        mainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+        List<Schoolday> databaseResults;
+        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
         String currentTabText = "";
         int currentTabCount = -1;
 
-        //mainViewPager.canScrollVertically(-1);
-
         // get needed results
         DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        results = databaseHandler.getAllSubstitutions();
-
-        // remove unnecessary items from results
-        long today = 0, temp;
-        try {
-            today = dateFormatter.parse(date).getTime(); // put todays date in a milliseconds value
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        for (int i = results.size() - 1; i >= 0; i--) {
-            temp = results.get(i).getDate(); // time of the results in milliseconds
-
-            if (temp < today) {
-                results.remove(i);
-            }
-        }
+        databaseResults = databaseHandler.getAllSubstitutions();
 
         // check if tabs are already there and store the current tab to reopen it
-        if (mainTabLayout.getTabCount() > 0) {
-            currentTabCount = mainTabLayout.getSelectedTabPosition();
+        if (mMainTabLayout.getTabCount() > 0) {
+            currentTabCount = mMainTabLayout.getSelectedTabPosition();
             try {
-                currentTabText = (String) mainTabLayout.getTabAt(currentTabCount).getText();
+                currentTabText = (String) mMainTabLayout.getTabAt(currentTabCount).getText();
             } catch (NullPointerException e) {
-                Log.i(TAG, "NullPointerException on setting currentTabText", e);
+                Log.i(TAG, "NullPointerException on getting currentTabText", e);
             }
         }
 
         // draw the tabs depending on the days from the file
-        mainTabLayout.removeAllTabs();
-        for (int n = 0; n < results.size(); n++) {
+        mMainTabLayout.removeAllTabs();
+        for (int n = 0; n < databaseResults.size(); n++) {
 
             // only create a tab if there's any information to show within that tab
-            if (results.get(n).getSubjects().size() > 0) {
+            if (databaseResults.get(n).getSubjects().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(results.get(n).getDate());
+                calendar.setTimeInMillis(databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
-                mainTabLayout.addTab(mainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
+
+                mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
             }
         }
 
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mainTabLayout.getTabCount(), results);
-        mainViewPager.setAdapter(pagerAdapter);
-        mainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mainTabLayout));
-        mainTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), databaseResults);
+        mMainViewPager.setAdapter(pagerAdapter);
+        mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mMainTabLayout) {
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                toggleRefreshing(state == ViewPager.SCROLL_STATE_IDLE);
+            }
+        });
+        mMainTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                mainViewPager.setCurrentItem(tab.getPosition());
+                mMainViewPager.setCurrentItem(tab.getPosition());
             }
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
+
             }
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
+
             }
         });
 
-        if (mainTabLayout.getTabCount() > 0) {
+
+        // if possible sets the tab before refreshing as the current one again
+        // moving the ViewPager is already taken care of (OnTabSelectedListener)
+        if (mMainTabLayout.getTabCount() > 0) {
+            String newTabText;
             try {
-                if (currentTabCount > -1 && currentTabCount < mainTabLayout.getTabCount()) {
-                    if (mainTabLayout.getTabAt(currentTabCount).getText() == currentTabText &&
-                            mainTabLayout.getSelectedTabPosition() == currentTabCount) {
-                        mainTabLayout.getTabAt(currentTabCount).select();
+                if (currentTabCount > -1 && currentTabCount < mMainTabLayout.getTabCount()) {
+                    for (int i = 0; i < mMainTabLayout.getTabCount(); i++) {
+                        newTabText = (String) mMainTabLayout.getTabAt(i).getText();
+                        if (newTabText.equals(currentTabText)) {
+                            mMainTabLayout.getTabAt(i).select();
+                        }
                     }
                 }
             } catch (NullPointerException e) {
@@ -335,11 +355,10 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        if (results.size() == 0) {
-            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
+        // add an empty tab if there are (for some reason) no results to display
+        if (databaseResults.size() == 0) {
+            mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
         }
-
-        swipeRefreshLayout.setRefreshing(false);
     }
 
     // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website
@@ -376,7 +395,6 @@ public class MainActivity extends AppCompatActivity
 
             } catch (FileNotFoundException e) {
                 Log.i(Helper.TAG, "Datei konnte nicht gefunden werden", e);
-                onCancelDownload();
             } catch (MalformedURLException e) {
                 Log.i(Helper.TAG, "URL inkorrekt", e);
             } catch (IOException e) {
@@ -392,19 +410,21 @@ public class MainActivity extends AppCompatActivity
 
             // get database
             DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+            // get the current results from db
             List<Schoolday> databaseResults = db_handler.getAllSubstitutions();
 
-
-            if (databaseResults.size() > 0 && xmlResults.size() > 0) {
-
-                if (databaseResults.get(0).getLastUpdated() >= xmlResults.get(0).getLastUpdated()) {
-                    Toast.makeText(getApplicationContext(), "Vertretungsplan aktuell.", Toast.LENGTH_LONG).show();
-                } else {
-                    // insert data into database
-                    db_handler.insertSubstitutionXmlResults(xmlResults);
-                    displayData();
-                }
+            // if the database is empty or if there's newer content available insert into the database
+            if ((databaseResults.size() == 0 || databaseResults.get(0).getLastUpdated() > xmlResults.get(0).getLastUpdated())
+                    && xmlResults.size() > 0) {
+                db_handler.insertSubstitutionXmlResults(xmlResults);
+                Toast.makeText(getApplicationContext(), "Daten aktualisiert.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Keine neuen Daten vorhanden.", Toast.LENGTH_SHORT).show();
             }
+
+            // displaying is independent of new data so we can call it either way
+            displayData();
+
         }
     }
 }

@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -29,12 +30,20 @@
             android:name=".DonateActivity"
             android:label="Spenden" />
 
-        <receiver android:name=".BootReceiver"
+        <activity android:name=".AboutActivity"
+            android:label="Über" />
+
+        <receiver
+            android:name=".BootReceiver"
             android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <service android:name=".RefreshService" />
+
+
     </application>
 
 </manifest>
