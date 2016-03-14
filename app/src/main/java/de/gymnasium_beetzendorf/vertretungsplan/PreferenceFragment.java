@@ -14,16 +14,25 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         addPreferencesFromResource(R.xml.preferences);
         PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
 
+        // assign the values of the ListPreference
+        // so far it's just a static array defined in MainActivity
         ListPreference classList = (ListPreference) findPreference("class_to_show");
         classList.setEntries(MainActivity.getClasses());
         classList.setEntryValues(MainActivity.getClasses());
-        classList.setDefaultValue(MainActivity.getClasses()[0]);
-        // Log.i(MainActivity.TAG, "value of the first class: " + MainActivity.getClasses()[0]);
+        classList.setDefaultValue(1);
+        classList.setTitle("Klasse - " + classList.getEntry());
+
+        /*ListPreference notificationInterval = (ListPreference) findPreference("notification_interval");
+        notificationInterval.setEntries(R.array.notification_types_entries);
+        notificationInterval.setEntryValues(R.array.notification_types_values);
+        notificationInterval.setDefaultValue(2);*/
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        ListPreference classList = (ListPreference) findPreference("class_to_show");
+        classList.setTitle("Klasse - " + classList.getEntry());
+
         sharedPreferences.edit().putBoolean("preferences_changed", true).apply();
     }
 }

@@ -5,7 +5,8 @@
     <color name="colorAccent">#03A9F4</color>
     <color name="textColorPrimary">#212121</color>
     <color name="black">#03751f</color>
-    <color name="textColorSecondary">@color/textColorPrimary</color> <!--- #727272  -->
+    <color name="textColorSecondary">@color/textColorPrimary</color>
+    <!--- #727272  -->
     <color name="backgroundColor">#FFFFFF</color>
     <color name="textColorPrimaryInverse">#DEDEDE</color>
     <color name="textColorSecondaryInverse">#8D8D8D</color>
@@ -31,5 +32,5 @@
     <color name="Rel">#AA00FF</color>
     <color name="freePeriod">#607D8B</color>
     <color name="defaultColor">#9E9E9E</color>
-    
+
 </resources>

@@ -19,7 +19,6 @@ public class DonateActivity extends AppCompatActivity {
     static final String ITEM_DONATE_TWO = "de.gymnasium_beetzendorf.vertretungsplan.donate_two_euro";
     static final String ITEM_DONATE_FIVE = "de.gymnasium_beetzendorf.vertretungsplan.donate_five_euro";
     static String ITEM_SKU;
-    private Button mButton;
     IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
         @Override
         public void onConsumeFinished(Purchase purchase, IabResult result) {
@@ -30,6 +29,7 @@ public class DonateActivity extends AppCompatActivity {
             }
         }
     };
+    private Button mButton;
     private IabHelper mHelper;
     IabHelper.QueryInventoryFinishedListener mReceivedInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
         @Override

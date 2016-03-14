@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class RefreshService extends IntentService {
@@ -32,10 +33,6 @@ public class RefreshService extends IntentService {
 
     public RefreshService() {
         super("RefreshService");
-    }
-
-    public RefreshService(String name) {
-        super(name);
     }
 
     @Override
@@ -48,62 +45,60 @@ public class RefreshService extends IntentService {
         String date = MainActivity.dateFormatter.format(calendar.getTime());
         long lastRefresh = 0;
         try {
-            lastRefresh = MainActivity.dateTimeFormatter.parse(date + " 20:00").getTime();
+            lastRefresh = MainActivity.dateTimeFormatter.parse(date + " 16:00").getTime();
 
         } catch (ParseException e) {
             Log.i(MainActivity.TAG, "Problem while parsing in service class", e);
         }
 
+        // download file from server
+        downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution");
+
+        // parse the results so we can use it
+        List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(this);
+
+        // instantiate the db handler
+        DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
+
         if (System.currentTimeMillis() <= lastRefresh) {
-            // download file from server
-            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution");
-
-            // parse the results so we can use it
-            List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(this);
-
-            // instantiate the db handler
-            DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-
-            //
-            List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
 
 
-            if (xmlResults.size() > 0 && databaseResults.size() >= 0) {
-                if ((xmlResults.get(0).getLastUpdated() > databaseResults.get(0).getLastUpdated()) || databaseResults.size() == 0) {
-                    databaseHandler.insertSubstitutionXmlResults(xmlResults);
 
-                    calendar = Calendar.getInstance();
-                    calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated());
+            if (!isUpToDate(xmlResults, databaseResults) && mSharedPreferences.getBoolean("enable_notifications", true)) {
+                databaseHandler.insertSubstitutionXmlResults(xmlResults);
 
-                    String updated = MainActivity.dateTimeFormatter.format(calendar.getTime());
+                calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated());
 
-                    // intent that opens the main activity when notification is clicked
-                    Intent notificationIntent = new Intent(this, MainActivity.class);
-                    PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, 0);
+                String updated = MainActivity.dateTimeFormatter.format(calendar.getTime());
 
-                    // build the notification and fire it to the user
-                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    Notification notification = new Notification.Builder(this)
-                            .setContentTitle("Neue Vertretungsstunden!")
-                            .setContentText("Hier klicken um App zu öffnen.\nAktualisiert: " + updated)
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            .setAutoCancel(true)
-                            .setContentIntent(notificationPendingIntent)
-                            .build();
+                // intent that opens the main activity when notification is clicked
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, 0);
 
-                    notificationManager.notify(0, notification);
-                }
+                // build the notification and fire it to the user
+                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle("Neue Vertretungsstunden!")
+                        .setContentText("Aktualisiert: " + updated)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setAutoCancel(true)
+                        .setContentIntent(notificationPendingIntent)
+                        .build();
+
+                notificationManager.notify(0, notification);
             }
-            Log.i(MainActivity.TAG, "things downloaded");
 
         } else {
             Intent alarmIntent = new Intent(this, RefreshService.class);
+            alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(alarmPendingIntent);
 
-            // adds 10 hours (in milliseconds to the last refresh) which represents 6 am the next morning
-            long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 10);
+            // adds 14 hours (in milliseconds to the last refresh) which represents 6 am the next morning
+            long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 14);
             // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
             alarmManager.setInexactRepeating(
                     MainActivity.ALARM_TYPE,
@@ -124,6 +119,28 @@ public class RefreshService extends IntentService {
 
         List<ActivityManager.RunningAppProcessInfo> runningTaskInfos = manager.getRunningAppProcesses();
         return true;
+    }
+
+    private boolean isUpToDate(List<Schoolday> xmlResults, List<Schoolday> databaseResults) {
+        long databaseLastUpdated, xmlLastUpdated;
+        try {
+            databaseLastUpdated = databaseResults.get(0).getLastUpdated();
+        } catch (IndexOutOfBoundsException e) {
+            Log.i(MainActivity.TAG, "IndexOutOfBoundsException: ", e);
+            return false;
+        }
+
+        try {
+            xmlLastUpdated = xmlResults.get(0).getLastUpdated();
+        } catch (IndexOutOfBoundsException e) {
+            Log.i(MainActivity.TAG, "IndexOutOfBoundsException: ", e);
+            return true;
+        }
+
+        Log.i(MainActivity.TAG, "db: " + MainActivity.dateTimeFormatter.format(new Date(databaseLastUpdated)) +
+                "\nxml: " + MainActivity.dateTimeFormatter.format(new Date(xmlLastUpdated)));
+
+        return databaseLastUpdated > xmlLastUpdated;
     }
 
     private void downloadFile(String QUERY_URL, String fileType) {
@@ -172,5 +189,11 @@ public class RefreshService extends IntentService {
 
     }
 
+
+    // interface to check if app is running in foreground or went to background
+    // needed to either push notification or don't do it because the user is in the app
+    /*public interface CheckIfAppIsOpened {
+        boolean isAppInForeground();
+    }*/
 
 }

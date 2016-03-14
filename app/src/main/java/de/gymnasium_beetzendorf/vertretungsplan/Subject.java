@@ -17,6 +17,7 @@ public class Subject {
 
     // getters
 
+    // probably useless - future release will show
     public static String convertSubjectsToLong(String shortSubject) {
         String longSubject = "";
         switch (shortSubject) {
@@ -78,6 +79,7 @@ public class Subject {
         return longSubject;
     }
 
+    // not yet implemented
     public static String convertTeachersToLong(String shortTeacher) {
         return shortTeacher;
     }
@@ -98,11 +100,12 @@ public class Subject {
         this.period = period;
     }
 
-    // setters
-
     public String getSubject() {
         return subject;
     }
+
+
+    // setters
 
     public void setSubject(String subject) {
         this.subject = subject;
@@ -124,8 +127,6 @@ public class Subject {
         this.room = room;
     }
 
-    // methods
-
     public String getInfo() {
         return info;
     }
@@ -133,4 +134,5 @@ public class Subject {
     public void setInfo(String info) {
         this.info = info;
     }
+
 }

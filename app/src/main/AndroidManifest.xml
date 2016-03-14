@@ -30,7 +30,8 @@
             android:name=".DonateActivity"
             android:label="Spenden" />
 
-        <activity android:name=".AboutActivity"
+        <activity
+            android:name=".AboutActivity"
             android:label="Über" />
 
         <receiver

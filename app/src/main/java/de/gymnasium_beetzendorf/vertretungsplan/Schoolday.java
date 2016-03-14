@@ -6,7 +6,6 @@ public class Schoolday {
 
     private long date; // Date of the school day
     private List<String> changes; //classes that are affected to a change
-    private String changesAsString;
     private List<Subject> subjects; //subjects that changed
     private long last_updated;
 
@@ -26,18 +25,6 @@ public class Schoolday {
 
     public void setChanges(List<String> changes) {
         this.changes = changes;
-    }
-
-    // might not be needed and removed in the future
-    public String getChangesAsString() {
-        for (int n = 0; n < this.getChanges().size(); n++) {
-            changesAsString += this.getChanges().get(n) + ",";
-        }
-        return changesAsString;
-    }
-
-    public void setChangesAsString(String changesAsString) {
-        this.changesAsString = changesAsString;
     }
 
     public List<Subject> getSubjects() {

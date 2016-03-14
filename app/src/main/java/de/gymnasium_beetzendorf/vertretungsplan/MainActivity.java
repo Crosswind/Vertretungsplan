@@ -1,11 +1,12 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -14,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +34,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Ref;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -61,10 +64,11 @@ public class MainActivity extends AppCompatActivity
     public static final SimpleDateFormat weekdayFormatter = new SimpleDateFormat("EE", Locale.GERMANY);
 
     // alarm constants
-    public static final long ALARM_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+    public static final long ALARM_INTERVAL = AlarmManager.INTERVAL_HALF_HOUR;
     public static final int ALARM_TYPE = AlarmManager.RTC;
 
-    public String mDate = "";
+    private String mDate = "";
+    private boolean mIsAppInForeground;
 
     private SharedPreferences mSharedPreferences;
     private TabLayout mMainTabLayout;
@@ -151,18 +155,25 @@ public class MainActivity extends AppCompatActivity
         Calendar c = Calendar.getInstance();
         mDate = dateFormatter.format(c.getTime());
 
-        // define SwipeRefreshLayout
+        // layout stuff
+        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+
+        // instantiate SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf);
+        if (mSwipeRefreshLayout != null) {
+            mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent, R.color.colorPrimary, R.color.Inf);
+        }
 
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 refresh();
-                mSwipeRefreshLayout.setRefreshing(false);
 
             }
         });
+
+        mSwipeRefreshLayout.setEnabled(true);
 
         if (savedInstanceState == null) {
             refresh();
@@ -174,6 +185,9 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("refresh_message"));
+
+        mIsAppInForeground = true;
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         Log.i(TAG, "pref - changed: " + String.valueOf(mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)));
@@ -184,14 +198,15 @@ public class MainActivity extends AppCompatActivity
         } else {
             displayData();
         }
+    }
 
-        if (isMyServiceRunning()) {
-            Toast.makeText(this, "Service running", Toast.LENGTH_LONG).show();
-        }
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-        mSwipeRefreshLayout.setRefreshing(false);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
 
-
+        mIsAppInForeground = false;
     }
 
     // overflow menu override methods
@@ -208,7 +223,6 @@ public class MainActivity extends AppCompatActivity
         switch (id) {
             case R.id.menu_refresh:
                 refresh();
-                mSwipeRefreshLayout.setRefreshing(false);
                 break;
             case R.id.menu_settings:
                 i = new Intent(this, PreferenceActivity.class);
@@ -243,14 +257,25 @@ public class MainActivity extends AppCompatActivity
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public boolean isMyServiceRunning() {
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("de.gymnasium_beetzendorf.vertretungsplan".equals(serviceInfo.service.getClassName())) {
-                return true;
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (!action.equals("")) {
+                switch (action) {
+                    case "new_data":
+                        displayData();
+                        break;
+                    case "no_new_data":
+                        Toast.makeText(context, "Keine neuen Daten vorhanden.", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
         }
-        return false;
+    };
+
+    public boolean isAppInForeground() {
+        return mIsAppInForeground;
     }
 
     // takes care of data refreshing logic
@@ -258,26 +283,20 @@ public class MainActivity extends AppCompatActivity
     // else it just displays the current data
     public void refresh() {
 
-        mSwipeRefreshLayout.setRefreshing(true);
+        if (!mSwipeRefreshLayout.isRefreshing()) {
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
 
         if (checkConnection()) {
             DownloadFileFromURL downloadFileFromURL = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
             downloadFileFromURL.execute(); // the rest will be executed in onPostExecute
-
-
-            // notify to cancel refreshing
         } else {
             Toast.makeText(this, "Keine Verbindung. ", Toast.LENGTH_LONG).show();
-            //displayData();
         }
-
-        mSwipeRefreshLayout.setEnabled(false);
     }
 
     public void displayData() {
         List<Schoolday> databaseResults;
-        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
-        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
         String currentTabText = "";
         int currentTabCount = -1;
@@ -313,12 +332,16 @@ public class MainActivity extends AppCompatActivity
 
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), databaseResults);
         mMainViewPager.setAdapter(pagerAdapter);
+
+        //mMainTabLayout.setupWithViewPager(mMainViewPager);
+
         mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mMainTabLayout) {
             @Override
             public void onPageScrollStateChanged(int state) {
                 toggleRefreshing(state == ViewPager.SCROLL_STATE_IDLE);
             }
         });
+
         mMainTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -359,6 +382,7 @@ public class MainActivity extends AppCompatActivity
         if (databaseResults.size() == 0) {
             mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
         }
+
     }
 
     // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website
@@ -425,6 +449,9 @@ public class MainActivity extends AppCompatActivity
             // displaying is independent of new data so we can call it either way
             displayData();
 
+            if (mSwipeRefreshLayout.isRefreshing()) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
         }
     }
 }
