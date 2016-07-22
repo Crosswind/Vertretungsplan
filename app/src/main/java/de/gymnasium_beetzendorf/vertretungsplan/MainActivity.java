@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
@@ -25,16 +24,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.sql.Ref;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -151,6 +140,13 @@ public class MainActivity extends AppCompatActivity
         // set the main layout to be used by the activity
         setContentView(R.layout.activity_main);
 
+        // set up the toolbar
+        mToolbar = (Toolbar) findViewById(R.id.mainToolbar);
+        setSupportActionBar(mToolbar);
+        if (mToolbar != null) {
+            Toast.makeText(this, "toolbar is there", Toast.LENGTH_LONG).show();
+        }
+
         // todays mDate
         Calendar c = Calendar.getInstance();
         mDate = dateFormatter.format(c.getTime());
@@ -169,7 +165,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onRefresh() {
                 refresh();
-
             }
         });
 
@@ -190,10 +185,9 @@ public class MainActivity extends AppCompatActivity
         mIsAppInForeground = true;
 
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        Log.i(TAG, "pref - changed: " + String.valueOf(mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)));
         if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
             mSwipeRefreshLayout.setRefreshing(true);
-            refresh();
+            displayData();
             mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
         } else {
             displayData();
@@ -204,6 +198,7 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
+        // unregister receiver to no longer receive broadcast but subsequently push a notification
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
 
         mIsAppInForeground = false;
@@ -248,6 +243,9 @@ public class MainActivity extends AppCompatActivity
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setEnabled(enabled);
         }
+
+        //mSwipeRefreshLayout.setEnabled(true);
+
     }
 
     // checks whether there's an active internet connection (WiFi/Data)
@@ -261,15 +259,12 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (!action.equals("")) {
-                switch (action) {
-                    case "new_data":
-                        displayData();
-                        break;
-                    case "no_new_data":
-                        Toast.makeText(context, "Keine neuen Daten vorhanden.", Toast.LENGTH_SHORT).show();
-                        break;
-                }
+            boolean new_update = intent.getBooleanExtra("new_update", false);
+
+            if (new_update) {
+                displayData();
+            } else {
+                Toast.makeText(getApplicationContext(), "Keine neuen Daten vorhanden.", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -288,8 +283,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (checkConnection()) {
-            DownloadFileFromURL downloadFileFromURL = new DownloadFileFromURL(SERVER_URL + SUBSTITUTION_QUERY_FILE);
-            downloadFileFromURL.execute(); // the rest will be executed in onPostExecute
+            Intent refreshServiceIntent = new Intent(this, RefreshService.class);
+            refreshServiceIntent.putExtra("manual_refresh", true);
+            startService(refreshServiceIntent);
         } else {
             Toast.makeText(this, "Keine Verbindung. ", Toast.LENGTH_LONG).show();
         }
@@ -381,77 +377,6 @@ public class MainActivity extends AppCompatActivity
         // add an empty tab if there are (for some reason) no results to display
         if (databaseResults.size() == 0) {
             mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
-        }
-
-    }
-
-    // inner class to download the timetable -> might be extended so it also downloads the whole timetable if made available on the website
-    private class DownloadFileFromURL extends AsyncTask<Void, Void, Void> {
-        private String QUERY_URL;
-
-        public DownloadFileFromURL(String Url) {
-            QUERY_URL = Url;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                // open connection and streams for writing the file
-                URL url = new URL(QUERY_URL);
-                URLConnection urlConnection = url.openConnection();
-
-                InputStream is = urlConnection.getInputStream();
-                BufferedInputStream bis = new BufferedInputStream(is);
-
-                FileOutputStream fos = openFileOutput("substitution.xml", MODE_PRIVATE);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-                // writing to file
-                byte data[] = new byte[1024];
-                int count;
-                while ((count = bis.read(data)) != -1) {
-                    bos.write(data, 0, count);
-                }
-
-                // close streams so the file does not get corrupted
-                bos.flush();
-                bos.close();
-
-            } catch (FileNotFoundException e) {
-                Log.i(Helper.TAG, "Datei konnte nicht gefunden werden", e);
-            } catch (MalformedURLException e) {
-                Log.i(Helper.TAG, "URL inkorrekt", e);
-            } catch (IOException e) {
-                Log.i(Helper.TAG, "IOException", e);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            // kick off the xml parsing
-            List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(getApplicationContext());
-
-            // get database
-            DatabaseHandler db_handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-            // get the current results from db
-            List<Schoolday> databaseResults = db_handler.getAllSubstitutions();
-
-            // if the database is empty or if there's newer content available insert into the database
-            if ((databaseResults.size() == 0 || databaseResults.get(0).getLastUpdated() > xmlResults.get(0).getLastUpdated())
-                    && xmlResults.size() > 0) {
-                db_handler.insertSubstitutionXmlResults(xmlResults);
-                Toast.makeText(getApplicationContext(), "Daten aktualisiert.", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "Keine neuen Daten vorhanden.", Toast.LENGTH_SHORT).show();
-            }
-
-            // displaying is independent of new data so we can call it either way
-            displayData();
-
-            if (mSwipeRefreshLayout.isRefreshing()) {
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
         }
     }
 }
