@@ -1,20 +1,25 @@
-package de.gymnasium_beetzendorf.vertretungsplan;
+package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.R;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
+
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         implements View.OnClickListener {
-
-    private static final String TAG = "RecyclerViewAdapter";
 
     private List<Subject> subjectList;
     private Context context;
@@ -128,28 +133,58 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         }
         itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
+
+        Log.i(Constants.TAG, currentSubject.getSubject().length() + " " + currentSubject.getTeacher());
+
         // differentiating between free period or not
-        if (currentSubject.getSubject().equals("---")
-                && currentSubject.getRoom().equals("---")) {
+        if (currentSubject.getSubject().equals("---")) {
             subjectTextView.setText("frei");
             roomTextView.setText("");
+            teacherTextView.setText("");
+
+            // center the subjectTextView vertically
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) subjectTextView.getLayoutParams();
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+
+            roomTextView.setVisibility(View.GONE);
+
         } else {
-            subjectTextView.setText(currentSubject.getSubject());
+            if (currentSubject.getTeacher().length() == 7) {
+                subjectTextView.setVisibility(View.INVISIBLE);
+            } else {
+                subjectTextView.setText(currentSubject.getSubject());
+            }
+
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) subjectTextView.getLayoutParams();
+
+            if (Build.VERSION.SDK_INT > 16) {
+                layoutParams.removeRule(RelativeLayout.CENTER_VERTICAL);
+            } else {
+                layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
+            }
+
             roomTextView.setText(currentSubject.getRoom());
+            roomTextView.setVisibility(View.VISIBLE);
+            teacherTextView.setText(currentSubject.getTeacher());
         }
 
         // setting the rest of the output
         courseTextView.setText(currentSubject.getCourse());
         periodTextView.setText(String.valueOf(currentSubject.getPeriod()) + ". Stunde");
-        teacherTextView.setText(currentSubject.getTeacher());
         infoTextView.setText(currentSubject.getInfo());
 
         // change visibility on onclick event
-        if (position == expandedPosition) {
+        if (position == expandedPosition)
+
+        {
             infoTextView.setVisibility(View.VISIBLE);
-        } else if (position == prev) {
+        } else if (position == prev)
+
+        {
             infoTextView.setVisibility(View.GONE);
-        } else {
+        } else
+
+        {
             infoTextView.setVisibility(View.GONE);
         }
     }

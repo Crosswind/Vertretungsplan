@@ -1,6 +1,8 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -17,6 +19,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
 
 public class XMLParser {
 
@@ -41,6 +47,9 @@ public class XMLParser {
     static final String rowScheduleTag = "zeile";
     static final String periodScheduleTag = "stunde";
     static final String dayScheduleTag = "tag";
+
+    // meta tags
+    static final String xmlStartTag = "?xml";
 
     public static String extractDateFromTitle(String title) {
         // needed to extract the mDate (format: dd:MM:yyyy)
@@ -67,6 +76,34 @@ public class XMLParser {
         return dateString;
     }
 
+
+    // extract the encoding from the first line of the xml doc
+    // if no encoding is set, utf-8 will be used by standard
+    private static String getFileEncoding(Context context, String filename) {
+        String encoding;
+
+        try {
+            FileInputStream fileInputStream = context.openFileInput(filename);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+
+            String firstLine = bufferedReader.readLine();
+
+            int start = firstLine.indexOf("encoding=") + 10; // +10 to actually start after the encoding string
+
+            encoding = firstLine.substring(start, firstLine.indexOf("\"", start));
+
+            bufferedReader.close();
+        } catch (FileNotFoundException e) {
+            Log.i(Constants.TAG, "Datei existiert nicht.");
+            encoding = "UTF-8";
+        } catch (IOException e) {
+            Log.i(Constants.TAG, "IOExcpetion. Leere Datei?");
+            encoding = "UTF-8";
+        }
+
+        return encoding;
+    }
+
     public static List<Schoolday> parseSubstitutionXml(Context context) {
         List<Schoolday> result;
         result = new ArrayList<>();
@@ -75,14 +112,19 @@ public class XMLParser {
         Subject currentSubject = new Subject();
         List<Subject> currentSubjectList = new ArrayList<>();
 
+        String filename = "substitution.xml";
+
+
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser xpp = factory.newPullParser();
 
             // open fis to the file to get the information
-            FileInputStream fis = context.openFileInput("substitution.xml");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, "ISO-8859-1")); // set enconding!!
+            FileInputStream fis = context.openFileInput(filename);
+
+            // after extracting the encoding start the actual parsing
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, getFileEncoding(context, filename)));
 
             // set input for the parser
             xpp.setInput(bufferedReader);
@@ -101,6 +143,8 @@ public class XMLParser {
                             currentSubjectList = new ArrayList<>();
                         } else if (tag.equalsIgnoreCase(changeTag)) {
                             currentSubject = new Subject();
+                        } else if (tag.equalsIgnoreCase(xmlStartTag)) {
+                            Log.i(Constants.TAG, xpp.getAttributeValue(null, "encoding"));
                         }
                         break;
                     case XmlPullParser.TEXT:
@@ -119,9 +163,9 @@ public class XMLParser {
                                 String dateString = extractDateFromTitle(text);
                                 long dateInMillis = 0;
                                 try {
-                                    dateInMillis = MainActivity.dateFormatter.parse(dateString).getTime();
+                                    dateInMillis = Constants.dateFormatter.parse(dateString).getTime();
                                 } catch (ParseException e) {
-                                    Log.i(MainActivity.TAG, "ParseException", e);
+                                    Log.i(Constants.TAG, "ParseException", e);
                                 }
                                 currentDay.setDate(dateInMillis);
                                 break;
@@ -135,12 +179,12 @@ public class XMLParser {
                                 // remove komma so parsing doesn't fail
                                 text = text.replace(",", "");
                                 try {
-                                    last_updated = MainActivity.dateTimeFormatter.parse(text).getTime();
+                                    last_updated = Constants.dateTimeFormatter.parse(text).getTime();
 
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 } catch (NullPointerException e) {
-                                    Log.i(MainActivity.TAG, "NullPointer on .getTime(): ", e);
+                                    Log.i(Constants.TAG, "NullPointer on .getTime(): ", e);
                                 }
                                 currentDay.setLastUpdated(last_updated);
                                 break;
@@ -203,14 +247,20 @@ public class XMLParser {
         Subject currentSubject = new Subject();
         List<Subject> currentSubjectList = new ArrayList<>();
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        String classToShow = sharedPreferences.getString(Constants.CLASS_TO_SHOW, "");
+
+        String filename = "aktuell" + classToShow + ".xml";
+
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser xpp = factory.newPullParser();
 
             // open fis to the file to get the information
-            FileInputStream fis = context.openFileInput("substitution.xml");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, "ISO-8859-1")); // set enconding!!
+            FileInputStream fis = context.openFileInput(filename);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, getFileEncoding(context, filename))); // set enconding!!
 
             // set input for the parser
             xpp.setInput(bufferedReader);
@@ -230,7 +280,7 @@ public class XMLParser {
                                 try {
                                     day = Integer.parseInt(tag.substring(3));
                                 } catch (NumberFormatException e) {
-                                    Log.e(MainActivity.TAG, "NumverFormatException when parsing day: ", e);
+                                    Log.e(Constants.TAG, "NumberFormatException when parsing day: ", e);
                                 }
                                 if (currentDayList.get(day - 1) == null) {
                                     currentDay = new Schoolday();
@@ -265,13 +315,13 @@ public class XMLParser {
             }
 
         } catch (XmlPullParserException e) {
-            Log.i(MainActivity.TAG, "XmlPullParserException in ScheduleParser", e);
+            Log.i(Constants.TAG, "XmlPullParserException in ScheduleParser", e);
         } catch (FileNotFoundException e) {
-            Log.i(MainActivity.TAG, "FileNotFoudException in ScheduleParser", e);
+            Log.i(Constants.TAG, "FileNotFoudException in ScheduleParser", e);
         } catch (UnsupportedEncodingException e) {
-            Log.i(MainActivity.TAG, "UnsopportedEncodingException in ScheduleParser", e);
+            Log.i(Constants.TAG, "UnsupportedEncodingException in ScheduleParser", e);
         } catch (IOException e) {
-            Log.i(MainActivity.TAG, "IOExcpetion in ScheduleParser", e);
+            Log.i(Constants.TAG, "IOException in ScheduleParser", e);
         }
 
         return currentDayList;

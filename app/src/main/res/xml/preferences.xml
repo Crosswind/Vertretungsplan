@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Allgemein">
+    <PreferenceCategory android:title="Vertretungsplan">
+        <ListPreference
+            android:key="school"
+            android:title="Schule" />
+        <Preference
+            android:key="refresh_substitution_plan"
+            android:summary="Letzter Plan vom: "
+            android:title="Vertretungsplan aktualisieren" />
         <SwitchPreference
             android:defaultValue="true"
             android:disableDependentsState="true"
@@ -12,16 +19,15 @@
             android:key="class_to_show"
             android:summary="Für welche Klasse soll der Plan angezeigt werden?"
             android:title="Klasse" />
+        <Preference
+            android:key="refresh_class_list"
+            android:summary="Zuletzt aktualisiert:"
+            android:title="Klassen aktualisieren" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Benachrichtigungen">
         <SwitchPreference
             android:defaultValue="true"
             android:key="enable_notifications"
             android:title="Benachrichtigungen" />
-        <!---<ListPreference
-            android:dependency="enable_notifications"
-            android:key="notification_interval"
-            android:summary="Wie oft soll auf Updates geprüft werden?"
-            android:title="Intervall" />-->
     </PreferenceCategory>
 </PreferenceScreen>

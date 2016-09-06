@@ -1,4 +1,4 @@
-package de.gymnasium_beetzendorf.vertretungsplan;
+package de.gymnasium_beetzendorf.vertretungsplan.data;
 
 import java.util.List;
 

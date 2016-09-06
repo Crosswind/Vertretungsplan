@@ -1,10 +1,13 @@
-package de.gymnasium_beetzendorf.vertretungsplan;
+package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.fragment.TabFragment;
 
 public class PagerAdapter extends FragmentStatePagerAdapter {
     int numberOfTabs;

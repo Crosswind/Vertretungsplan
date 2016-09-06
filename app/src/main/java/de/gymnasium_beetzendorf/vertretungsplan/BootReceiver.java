@@ -5,12 +5,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.text.ParseException;
 import java.util.Calendar;
+
+import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 
 public class BootReceiver extends BroadcastReceiver {
 
@@ -20,14 +21,14 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            Log.i(MainActivity.TAG, "boot received");
+            Log.i(Constants.TAG, "boot received");
             Calendar calendar = Calendar.getInstance();
-            String date = MainActivity.dateFormatter.format(calendar.getTime());
+            String date = Constants.dateFormatter.format(calendar.getTime());
 
             try {
-                mFirstRefresh = MainActivity.dateTimeFormatter.parse(date + " 6:00").getTime();
+                mFirstRefresh = Constants.dateTimeFormatter.parse(date + " 6:00").getTime();
             } catch (ParseException e) {
-                Log.i(MainActivity.TAG, "ParseException in RefreshService", e);
+                Log.i(Constants.TAG, "ParseException in BootReceiver", e);
             }
 
             if (System.currentTimeMillis() > mFirstRefresh) {
@@ -38,17 +39,16 @@ public class BootReceiver extends BroadcastReceiver {
             Intent alarmIntent = new Intent(context, RefreshService.class);
             PendingIntent alarmPendingIntent = PendingIntent.getService(context, alarmManagerRequestCode, alarmIntent, 0);
             // set the alarm
-            // it starts at 6 am and repeats once an hour
-            // elapsed_realtime is used to save ressources
+            // it starts at 6 am and repeats every 30 min
+
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.setInexactRepeating(
-                    MainActivity.ALARM_TYPE,
+                    Constants.ALARM_TYPE,
                     mFirstRefresh,
-                    MainActivity.ALARM_INTERVAL,
+                    Constants.ALARM_INTERVAL,
                     alarmPendingIntent);
         }
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        sharedPreferences.edit().putBoolean(MainActivity.ALARM_REGISTERED, true).apply();
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(Constants.ALARM_REGISTERED, true).apply();
     }
 }

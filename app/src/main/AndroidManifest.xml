@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,16 +23,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".PreferenceActivity"
-            android:label="Einstellungen" />
-        <activity
-            android:name=".DonateActivity"
-            android:label="Spenden" />
 
         <activity
-            android:name=".AboutActivity"
-            android:label="Über" />
+            android:name=".activity.PreferenceActivity"
+            android:label="Einstellungen"
+            android:parentActivityName=".activity.MainActivity" />
+
+        <activity
+            android:name=".activity.DonateActivity"
+            android:label="Spenden"
+            android:parentActivityName=".activity.MainActivity" />
+
+        <activity
+            android:name=".activity.AboutActivity"
+            android:label="Über"
+            android:parentActivityName=".activity.MainActivity" />
 
         <receiver
             android:name=".BootReceiver"

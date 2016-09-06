@@ -1,6 +1,5 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,12 +14,17 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
+
 public class DatabaseHandler extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHandler";
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 2;
+    public static int DATABASE_VERSION = 3;
 
     // table substitution_days
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
@@ -40,6 +44,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static String SR_ROOM = "room";
     private static String SR_INFO = "info";
 
+    // classlist
+    private static String TABLE_CLASSLIST = "classlist";
+    private static String CL_ID = "id";
+    private static String CL_NAME = "name";
+    private static String CL_URL = "url";
+
     // stuff
     private String query, date;
     private SharedPreferences sharedPreferences;
@@ -50,7 +60,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         Calendar c = Calendar.getInstance();
-        date = MainActivity.dateFormatter.format(c.getTime());
+        date = Constants.dateFormatter.format(c.getTime());
     }
 
     @Override
@@ -76,6 +86,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 SR_INFO + " TEXT" +
                 ");";
         db.execSQL(query);
+
+        // create classlist table
+        query = "CREATE TABLE " + TABLE_CLASSLIST + " (" +
+                CL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                CL_NAME + " TEXT, " +
+                CL_URL + " TEXT" +
+                ");";
+        db.execSQL(query);
     }
 
     @Override
@@ -83,6 +101,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_DAYS;
         db.execSQL(query);
         query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_ROWS;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
         db.execSQL(query);
         onCreate(db);
     }
@@ -107,9 +127,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         long time = 0;
         try {
-            time = MainActivity.dateFormatter.parse(date).getTime();
+            time = Constants.dateFormatter.parse(date).getTime();
         } catch (ParseException e) {
-            Log.i(MainActivity.TAG, "ParseException", e);
+            Log.i(Constants.TAG, "ParseException", e);
         }
 
         boolean after3Pm = after3Pm();
@@ -118,7 +138,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " > '" + time + "'";
 
         } else {
+            // original query for working app
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= '" + time + "'";
+            // demo query for testing
+            //query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " <= '" + time + " LIMIT(0,5)'";
+
         }
         cursor = db.rawQuery(query, null);
 
@@ -141,7 +165,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         cursor.close();
         db.close();
-        Log.i(MainActivity.TAG, "Größe der Liste: " + schooldayList.size());
+        Log.i(Constants.TAG, "Größe der Liste: " + schooldayList.size());
         return schooldayList;
     }
 
@@ -152,10 +176,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String classToShow, classToShowPrimary, classToShowSecondary;
 
         // specify the results needed depending on the settings
-        if (sharedPreferences.getBoolean(MainActivity.SHOW_WHOLE_PLAN, true)) {
+        if (sharedPreferences.getBoolean(Constants.SHOW_WHOLE_PLAN, true)) {
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
         } else {
-            classToShow = sharedPreferences.getString(MainActivity.CLASS_TO_SHOW, null);
+            classToShow = sharedPreferences.getString(Constants.CLASS_TO_SHOW, null);
             if (classToShow != null) {
                 classToShowPrimary = classToShow.substring(0, 2);
                 classToShowSecondary = classToShow.substring(3, 4);
@@ -245,7 +269,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.close();
         }
 
-        Log.i(MainActivity.TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
+        Log.i(Constants.TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
         db.close();
     }
 
@@ -255,13 +279,55 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         long afterSchoolTime = 0;
 
         try {
-            afterSchoolTime = MainActivity.dateTimeFormatter.parse(date + " 15:00").getTime();
+            afterSchoolTime = Constants.dateTimeFormatter.parse(date + " 15:00").getTime();
         } catch (ParseException e) {
             Log.i(TAG, "ParseException for afterSchoolTime", e);
         }
 
         // today no longer needs to be displayed
         return afterSchoolTime != 0 && currentTime > afterSchoolTime;
+    }
+
+    public void emptyClassListTable() {
+        SQLiteDatabase db = getWritableDatabase();
+
+        query = "DELETE FROM " + TABLE_CLASSLIST;
+        db.execSQL(query);
+    }
+
+    public void updateClassList(List<Class> classList) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        if (classList.size() > 0) {
+            emptyClassListTable();
+
+            for (int i = 0; i < classList.size(); i++) {
+                ContentValues values = new ContentValues();
+                values.put(CL_ID, i);
+                values.put(CL_NAME, classList.get(i).getName());
+                values.put(CL_URL, classList.get(i).getUrl());
+                db.insert(TABLE_CLASSLIST, null, values);
+            }
+        }
+
+        db.close();
+    }
+
+    public List<String> getClassList() {
+        SQLiteDatabase db = getWritableDatabase();
+
+        String query = "SELECT " + CL_NAME + " FROM " + TABLE_CLASSLIST;
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        List<String> classList = new ArrayList<>();
+        for(int i = 0; i < cursor.getCount(); i++) {
+            classList.add(cursor.getString(cursor.getColumnIndex(CL_NAME)).substring(7));
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+        return classList;
     }
 
     public boolean cleanDatabase() {

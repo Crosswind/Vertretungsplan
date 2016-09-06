@@ -1,7 +1,6 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -12,26 +11,31 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.InputStreamReader;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+
 public class RefreshService extends IntentService {
-
-    private SharedPreferences mSharedPreferences;
-
 
     public RefreshService() {
         super("RefreshService");
@@ -39,18 +43,18 @@ public class RefreshService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.i(MainActivity.TAG, "service call received");
+        Log.i(Constants.TAG, "RefreshService started");
 
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         Calendar calendar = Calendar.getInstance();
-        String date = MainActivity.dateFormatter.format(calendar.getTime());
+        String date = Constants.dateFormatter.format(calendar.getTime());
         long lastRefresh = 0;
         try {
-            lastRefresh = MainActivity.dateTimeFormatter.parse(date + " 16:00").getTime();
+            lastRefresh = Constants.dateTimeFormatter.parse(date + " 16:00").getTime();
 
         } catch (ParseException e) {
-            Log.i(MainActivity.TAG, "Problem while parsing in service class", e);
+            Log.i(Constants.TAG, "Problem while parsing in service class", e);
         }
 
         boolean manualRefresh = intent.getBooleanExtra("manual_refresh", false);
@@ -58,53 +62,12 @@ public class RefreshService extends IntentService {
         // only run if it's been send from the MainActivity or if it's earlier than the lastRefresh (4pm of today)
         if (manualRefresh || System.currentTimeMillis() <= lastRefresh) {
             // download file from server
-            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution");
-
-            // parse the results so we can use it
-            List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(this);
-
-            // instantiate the db handler
-            DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-            List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
-
-            boolean notifications_enabled = mSharedPreferences.getBoolean("enable_notifications", false);
-
-            boolean new_update = newUpdate(xmlResults, databaseResults);
-
-            boolean notifiyMainActivityResult = notifyMainActivityReturnResult(new_update);
-
-            if (new_update) {
-                databaseHandler.insertSubstitutionXmlResults(xmlResults);
-
-
-                // fire notification if broadcast is not received by MainActivity and notifications are enabled by the user
-                // if that's not the case the MainActivity handles the refreshing since it has received the broadcast --> no else required
-                if (!notifiyMainActivityResult && notifications_enabled && new_update) {
-
-                    calendar = Calendar.getInstance();
-                    calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated());
-
-                    String updated = MainActivity.dateTimeFormatter.format(calendar.getTime());
-
-                    // intent that opens the main activity when notification is clicked
-                    Intent notificationIntent = new Intent(this, MainActivity.class);
-                    PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, 0);
-
-                    // build the notification and fire it to the user
-                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    Notification notification = new Notification.Builder(this)
-                            .setContentTitle("Neue Vertretungsstunden!")
-                            .setContentText("Aktualisiert: " + updated)
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            .setAutoCancel(true)
-                            .setContentIntent(notificationPendingIntent)
-                            .build();
-
-                    notificationManager.notify(0, notification);
-                }
-            }
+            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "");
 
         } else {
+            // cancel the refreshing animation
+            notifyMainActivityReturnResult(false);
+
             Intent alarmIntent = new Intent(this, RefreshService.class);
             alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
@@ -115,14 +78,20 @@ public class RefreshService extends IntentService {
             long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 14);
             // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
             alarmManager.setInexactRepeating(
-                    MainActivity.ALARM_TYPE,
+                    Constants.ALARM_TYPE,
                     nextDayRefresh,
-                    MainActivity.ALARM_INTERVAL,
+                    Constants.ALARM_INTERVAL,
                     alarmPendingIntent);
 
-            Log.i(MainActivity.TAG, "Alarm set");
+            Log.i(Constants.TAG, "Alarm set");
 
-            mSharedPreferences.edit().putBoolean(MainActivity.ALARM_REGISTERED, true).apply();
+            mSharedPreferences.edit().putBoolean(Constants.ALARM_REGISTERED, true).apply();
+        }
+
+
+        if (intent.getBooleanExtra("refresh_class_list", false)) {
+
+            updateClassList();
         }
 
     }
@@ -136,87 +105,136 @@ public class RefreshService extends IntentService {
         return localBroadcastManager.sendBroadcast(messageIntent);
     }
 
-
-    // not yet implemented
-    private boolean checkIfAppIsRunning() {
-        ActivityManager manager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-
-        List<ActivityManager.RunningAppProcessInfo> runningTaskInfos = manager.getRunningAppProcesses();
-        return true;
-    }
-
     private boolean newUpdate(List<Schoolday> xmlResults, List<Schoolday> databaseResults) {
+
         long databaseLastUpdated, xmlLastUpdated;
-        try {
-            databaseLastUpdated = databaseResults.get(0).getLastUpdated();
-            Log.i(MainActivity.TAG, "db: " + MainActivity.dateTimeFormatter.format(new Date(databaseLastUpdated)));
-        } catch (IndexOutOfBoundsException e) {
-            Log.i(MainActivity.TAG, "IndexOutOfBoundsException: ", e);
-            return true;
-        }
 
         try {
             xmlLastUpdated = xmlResults.get(0).getLastUpdated();
-            Log.i(MainActivity.TAG, "xml: " + MainActivity.dateTimeFormatter.format(new Date(xmlLastUpdated)));
+            Log.i(Constants.TAG, "xml: " + Constants.dateTimeFormatter.format(new Date(xmlLastUpdated)));
         } catch (IndexOutOfBoundsException e) {
-            Log.i(MainActivity.TAG, "IndexOutOfBoundsException: ", e);
+            Log.i(Constants.TAG, "IndexOutOfBoundsException: ", e);
             return false;
         }
 
+        try {
+            databaseLastUpdated = databaseResults.get(0).getLastUpdated();
+            Log.i(Constants.TAG, "db: " + Constants.dateTimeFormatter.format(new Date(databaseLastUpdated)));
+        } catch (IndexOutOfBoundsException e) {
+            Log.i(Constants.TAG, "IndexOutOfBoundsException: ", e);
+            return true;
+        }
+
         return xmlLastUpdated > databaseLastUpdated;
+
     }
 
-    private void downloadFile(String QUERY_URL, String fileType) {
+    private void downloadFile(String url, String fileType, String schedClass) {
+        new DownloadXml(this, fileType, url, schedClass).execute();
+    }
+
+    public void callBackSubstitution() {
+
+        List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(this);
+
+        DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        boolean notifications_enabled = sharedPreferences.getBoolean("enable_notifications", false);
+
+        if (newUpdate(xmlResults, databaseResults)) {
+            databaseHandler.insertSubstitutionXmlResults(xmlResults);
+
+            Log.i(Constants.TAG, "xml: " + xmlResults.size() + " database: " + databaseResults.size());
+
+            //Log.i(Constants.TAG, String.valueOf(xmlResults.get(0).getLastUpdated()));
+            sharedPreferences.edit().putLong("last_substitution_plan_refresh", databaseResults.get(0).getLastUpdated()).apply();
+
+            // check if user is currently in the app
+            // if not - fire notification
+
+            boolean isUserInApp = notifyMainActivityReturnResult(true);
+
+            if (!isUserInApp && notifications_enabled) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated()); // use xml results because database hasn't been updated
+
+                String updated = Constants.dateTimeFormatter.format(calendar.getTime());
+
+                // intent that opens the main activity when notification is clicked
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, 0);
+
+                // build the notification and fire it to the user
+                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle("Neue Vertretung!")
+                        .setContentText("Aktualisiert: " + updated)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setAutoCancel(true)
+                        .setContentIntent(notificationPendingIntent)
+                        .build();
+
+                notificationManager.notify(0, notification);
+            }
+
+        } else {
+            notifyMainActivityReturnResult(false);
+        }
+
+
+    }
+
+    public void callBackSchedule(String schedClass) {
+    }
+
+
+    public void updateClassList() {
+        String url = "http://gymnasium-beetzendorf.de/stundenkl/default.html";
+
+        String username = "beetzendorf";
+        String password = "tafel";
+
+        String authorizationString = username + ":" + password;
+
+        String encodedString = Base64.encodeToString(authorizationString.getBytes(), Base64.DEFAULT);
+
         try {
-            // open connection and streams for writing the file
-            URL url = new URL(QUERY_URL);
-            URLConnection urlConnection = url.openConnection();
+            Document document = Jsoup.connect(url).header("Authorization", "Basic " + encodedString).post();
 
-            InputStream is = urlConnection.getInputStream();
-            BufferedInputStream bis = new BufferedInputStream(is);
+            Element div = document.getElementById("content");
+            Elements li = div.select("li");
 
-            String fileName;
-            switch (fileType) {
-                case "substitution":
-                    fileName = "substitution.xml";
-                    break;
-                case "schedule":
-                    fileName = "schedule_" + "class" + ".xml";
-                    break;
-                default:
-                    fileName = "temp.xml";
-                    break;
+            List<Class> classes = new ArrayList<>();
+            Class currentClass = new Class();
+
+            for (int i = 0; i < li.size(); i++) {
+                Elements a = li.get(i).select("a");
+                if (a.get(0) != null) {
+                    currentClass = new Class();
+                    if (a.get(0).text().length() < 4) {
+                        currentClass.setName("0" + a.get(0).text());
+                    } else {
+                        currentClass.setName(a.get(0).text());
+                    }
+                    currentClass.setUrl(a.get(0).attr("href"));
+                }
+                classes.add(currentClass);
             }
 
-            FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            DatabaseHandler handler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+            handler.updateClassList(classes);
 
-            // writing to file
-            byte data[] = new byte[1024];
-            int count;
-            while ((count = bis.read(data)) != -1) {
-                bos.write(data, 0, count);
-            }
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            sharedPreferences.edit().putLong("last_class_list_refresh", System.currentTimeMillis()).apply();
 
-            // close streams so the file does not get corrupted
-            bos.flush();
-            bos.close();
+            Toast.makeText(getApplicationContext(), "Klassen geupdated", Toast.LENGTH_SHORT).show();
 
-        } catch (FileNotFoundException e) {
-            Log.i(MainActivity.TAG, "Datei konnte nicht gefunden werden", e);
-        } catch (MalformedURLException e) {
-            Log.i(MainActivity.TAG, "URL inkorrekt", e);
         } catch (IOException e) {
-            Log.i(MainActivity.TAG, "IOException", e);
+            Log.e(Constants.TAG, "IOException when getting html", e);
         }
 
     }
-
-
-    // interface to check if app is running in foreground or went to background
-    // needed to either push notification or don't do it because the user is in the app
-    /*public interface CheckIfAppIsOpened {
-        boolean isAppInForeground();
-    }*/
-
 }

@@ -7,6 +7,9 @@
     <string name="title_activity_donate">DonateActivity</string>
 
     <string name="notification_type_default">INTERVAL_HALF_HOUR</string>
+    <string name="donation_description">Du nutzt meine App gerne und möchtest dafür etwas zurückgeben?\nDann bist Du hier genau richtig!\n\nEs ist natürlich kein Muss und jedem selbst überlassen. Ich würde mich jedoch sehr über einen kleine Spende für meine aufgebrachte Zeit und Arbeit freuen.</string>
+    <string name="version_number_not_found">Version kann nicht angezeigt werden.</string>
+    <string name="version_number">"Version: %1$s (%2$d)"</string>
     <string-array name="notification_types_entries">
         <item>15 min</item>
         <item>30 min</item>

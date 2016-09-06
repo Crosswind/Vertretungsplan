@@ -1,4 +1,4 @@
-package de.gymnasium_beetzendorf.vertretungsplan;
+package de.gymnasium_beetzendorf.vertretungsplan.data;
 
 public class Subject {
 
@@ -11,7 +11,7 @@ public class Subject {
 
     // constructors
 
-    Subject() {
+    public Subject() {
         this.info = null;
     }
 

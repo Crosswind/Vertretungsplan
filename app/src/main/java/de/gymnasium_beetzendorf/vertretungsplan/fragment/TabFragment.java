@@ -1,4 +1,4 @@
-package de.gymnasium_beetzendorf.vertretungsplan;
+package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -13,7 +13,12 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.R;
+import de.gymnasium_beetzendorf.vertretungsplan.adapter.RecyclerViewAdapter;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
+
 public class TabFragment extends Fragment {
+
     List<Subject> subjectsToDisplay = new ArrayList<>();
     OnSwipeRefreshListener mCallback;
 
