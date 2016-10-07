@@ -4,54 +4,55 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
+
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/itemCardView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="3dp"
+        android:background="@color/Mat"
         android:minHeight="0dp"
         android:minWidth="400dp"
         android:padding="3dp"
         app:cardElevation="4dp"
-        card_view:cardCornerRadius="1dp">
+        card_view:cardCornerRadius="1dp"
+        android:layout_marginBottom="3dp"
+        android:layout_marginTop="3dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:animateLayoutChanges="true"
+            android:background="@color/Mat"
+            android:orientation="horizontal"
             android:paddingLeft="5dp"
             android:paddingRight="5dp">
 
-
-            <TextView
-                android:id="@+id/periodTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="period"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
-            <TextView
-                android:id="@+id/courseTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:text="course"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
             <TextView
                 android:id="@+id/textView2"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/circle"
+                android:gravity="center"
+                android:text="DEU"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_marginLeft="25dp"
-                android:layout_marginStart="25dp"
-                android:layout_toEndOf="@+id/periodTextView"
-                android:layout_toRightOf="@+id/periodTextView"
-                android:text="Medium Text"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:paddingLeft="50dp"
+                android:paddingStart="50dp"
+                android:text="Frau Hardt"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        </RelativeLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="O03"
+                android:paddingLeft="30dp"
+                android:paddingStart="30dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"/>
+        </LinearLayout>
 
     </android.support.v7.widget.CardView>
 

@@ -21,22 +21,34 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
+import de.gymnasium_beetzendorf.vertretungsplan.data.School;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
 
-public class XMLParser {
+public class XmlParser implements Constants {
 
-    static final String TAG = ".vertretungsplan";
+    final String TAG = XmlParser.class.getSimpleName();
+
+    private String type;
+    private Context context;
+    private String filename;
+    private String classToShow;
+    private int school;
+    private FileInputStream fileInputStream = null;
+    private BufferedReader bufferedReader = null;
+    private BufferedReader tempBufferedReader = null;
 
     // schedule xml tags
     static final String headerTag = "kopf"; // header for timetable
     static final String dateTag = "titel"; // mDate needs to be extracted
+    static final String schoolTag = "schulname";
     static final String affectedClassesTag = "aenderungk"; // shows affected classes
     static final String lastUpdatedTag = "datum";
 
     static final String timetableTag = "haupt";
     static final String changeTag = "aktion"; // contains the timetable
-    static final String courseTag = "klasse"; // contains a change
+    static final String yearClassletterTag = "klasse"; // contains a change
     static final String periodTag = "stunde";
     static final String subjectTag = "fach";
     static final String teacherTag = "lehrer"; // new/changed room
@@ -51,7 +63,88 @@ public class XMLParser {
     // meta tags
     static final String xmlStartTag = "?xml";
 
-    public static String extractDateFromTitle(String title) {
+    static final String XMLPARSER_TYPE_SUBSTITUTION = "substitution";
+    static final String XMLPARSER_TYPE_SCHEDULE = "schedule";
+
+    public XmlParser(Context context, String type) {
+        this.context = context;
+        this.type = type;
+
+        init();
+    }
+
+
+    private void init() {
+
+        switch (type) {
+            case "schedule":
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+                this.classToShow = sharedPreferences.getString("class_to_show", "");
+                this.school = sharedPreferences.getInt("school", 0);
+                this.filename = "aktuell" + this.classToShow + ".xml";
+                break;
+            case "substitution":
+                this.filename = "substitution_" + String.valueOf(school) + ".xml";
+                break;
+        }
+
+        try {
+            fileInputStream = context.openFileInput(filename);
+            bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+            tempBufferedReader = bufferedReader;
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO: add method to try to redownload the missing file
+        }
+
+        setFileEncoding();
+    }
+
+
+    public void parse() {
+        switch (type) {
+            case "schedule":
+
+                break;
+            case "substitution":
+
+                break;
+        }
+
+        finish();
+    }
+
+
+    private void finish() {
+        try {
+            fileInputStream.close();
+            bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static int extractWeekdayCountFromTitle(String title) {
+
+        String[] weekdays = {"Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"};
+
+        String[] holder = title.split(",");
+
+        int weekday = 0;
+
+        for (int n = 0; n < weekdays.length; n++) {
+            if (holder[0].equalsIgnoreCase(weekdays[n])) {
+                weekday = n;
+                break;
+            }
+        }
+
+        return weekday + 1;
+    }
+
+
+    public long extractDateFromTitle(String title) {
         // needed to extract the mDate (format: dd:MM:yyyy)
         String dateString, dateStringHolder;
         String[] dateStringHolderSplit;
@@ -73,38 +166,193 @@ public class XMLParser {
             dateStringHolder = "0" + dateStringHolder;
         }
         dateString = dateStringHolder;
-        return dateString;
+
+        long dateInMillis = 0;
+        try {
+            dateFormatter.parse(dateString).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return dateInMillis;
     }
 
 
     // extract the encoding from the first line of the xml doc
     // if no encoding is set, utf-8 will be used by standard
-    private static String getFileEncoding(Context context, String filename) {
-        String encoding;
-
+    private void setFileEncoding() {
         try {
-            FileInputStream fileInputStream = context.openFileInput(filename);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-
+            bufferedReader = tempBufferedReader;
             String firstLine = bufferedReader.readLine();
-
             int start = firstLine.indexOf("encoding=") + 10; // +10 to actually start after the encoding string
+            String encoding = firstLine.substring(start, firstLine.indexOf("\"", start));
 
-            encoding = firstLine.substring(start, firstLine.indexOf("\"", start));
-
-            bufferedReader.close();
-        } catch (FileNotFoundException e) {
-            Log.i(Constants.TAG, "Datei existiert nicht.");
-            encoding = "UTF-8";
+            this.bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, encoding));
+            this.tempBufferedReader = bufferedReader;
         } catch (IOException e) {
-            Log.i(Constants.TAG, "IOExcpetion. Leere Datei?");
-            encoding = "UTF-8";
+            e.printStackTrace();
         }
-
-        return encoding;
     }
 
-    public static List<Schoolday> parseSubstitutionXml(Context context) {
+
+    public List<Lesson> parseReturnSubstitution() {
+        Lesson headerData = null, current = new Lesson();
+        List<Lesson> result = new ArrayList<>();
+
+        try {
+            XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+            XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
+            bufferedReader = new BufferedReader(new InputStreamReader(context.openFileInput(filename)));
+            xmlPullParser.setInput(bufferedReader);
+
+            int eventType = xmlPullParser.getEventType();
+
+            String text = "";
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tag = xmlPullParser.getName();
+                Log.i(TAG, "start parsing substitution - tag: " + tag);
+
+                switch (eventType) {
+
+                    case XmlPullParser.START_TAG:
+                        switch (tag) {
+                            case headerTag:
+                                Log.i(Constants.TAG, "parsing header");
+                                headerData = parseSubstitutionHeader();
+                                Log.i(Constants.TAG, "finished header parsing");
+                                break;
+                            case changeTag:
+                                current = headerData;
+                                break;
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        text = xmlPullParser.getText();
+                        break;
+
+                    case XmlPullParser.END_TAG:
+                        switch (tag) {
+                            case changeTag:
+                                result.add(current);
+                                break;
+                            case yearClassletterTag:
+                                current.setYear(text.substring(0, 2));
+                                current.setClassletter(text.substring(3));
+                                break;
+                            case periodTag:
+                                current.setPeriod(Integer.valueOf(text));
+                                break;
+                            case subjectTag:
+                                current.setSubject(text);
+                                break;
+                            case teacherTag:
+                                current.setTeacher(text);
+                                break;
+                            case roomTag:
+                                current.setRoom(text);
+                                break;
+                            case infoTag:
+                                current.setInfo(text);
+                                break;
+                        }
+                        break;
+                }
+                eventType = xmlPullParser.next();
+            }
+        } catch (IOException | XmlPullParserException e) {
+            Log.i(TAG, "Fehler beim Parsen/IO: ", e);
+        }
+
+        Log.i(TAG, "finished parsing, result size: " + String.valueOf(result.size()));
+        return result;
+    }
+
+
+    private Lesson parseSubstitutionHeader() {
+        Lesson result = new Lesson();
+
+        try {
+            XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+            xmlPullParserFactory.setNamespaceAware(true);
+            XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
+
+            bufferedReader = tempBufferedReader;
+            xmlPullParser.setInput(bufferedReader);
+
+
+            int eventType = xmlPullParser.getEventType();
+            // now actually loop through the data
+
+            String text = "";
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                String tag = xmlPullParser.getName();
+
+                switch (eventType) {
+
+                    case XmlPullParser.TEXT:
+                        text = xmlPullParser.getText();
+                        Log.i(Constants.TAG, "tag: " + tag + "\ntext: " + text);
+                        break;
+                    case XmlPullParser.END_TAG:
+                        switch (tag) {
+                            case dateTag:
+                                result.setType("substitution");
+                                result.setDay(extractWeekdayCountFromTitle(text));
+                                result.setValid_on(extractDateFromTitle(text));
+                                break;
+                            case schoolTag:
+                                try {
+                                    result.setSchool(School.findSchoolByName(text).getId());
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                    // TODO: add method to inform that the school hasn't been added
+                                }
+                                break;
+                        }
+                        break;
+                }
+                eventType = xmlPullParser.next();
+            }
+        } catch (XmlPullParserException | IOException e) {
+            Log.i(Constants.TAG, "exception in header parsing", e);
+            e.printStackTrace();
+        }
+
+        Log.i(Constants.TAG, "end of header parsing, result type: " + result.getType());
+
+        return result;
+    }
+
+
+    public List<Lesson> parseReturnSchedule() {
+        Lesson headerData = parseScheduleHeader();
+
+        return null;
+    }
+
+
+    private Lesson parseScheduleHeader() {
+        Lesson result = new Lesson();
+
+        try {
+            XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+            XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
+            bufferedReader = tempBufferedReader;
+            xmlPullParser.setInput(bufferedReader);
+
+            int eventType = xmlPullParser.getEventType();
+            // now actually loop through the data
+
+
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+
+    public List<Schoolday> parseSubstitutionXml(Context context) {
         List<Schoolday> result;
         result = new ArrayList<>();
 
@@ -112,19 +360,15 @@ public class XMLParser {
         Subject currentSubject = new Subject();
         List<Subject> currentSubjectList = new ArrayList<>();
 
-        String filename = "substitution.xml";
-
 
         try {
+
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(true);
             XmlPullParser xpp = factory.newPullParser();
 
-            // open fis to the file to get the information
-            FileInputStream fis = context.openFileInput(filename);
-
-            // after extracting the encoding start the actual parsing
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, getFileEncoding(context, filename)));
+            // reset the buffered reader because it might have been used before
+            bufferedReader = tempBufferedReader;
 
             // set input for the parser
             xpp.setInput(bufferedReader);
@@ -133,9 +377,9 @@ public class XMLParser {
             int eventType = xpp.getEventType();
 
             // go
-            String tag, text = "";
+            String text = "";
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                tag = xpp.getName();
+                String tag = xpp.getName();
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         if (tag.equalsIgnoreCase(headerTag)) {
@@ -144,7 +388,7 @@ public class XMLParser {
                         } else if (tag.equalsIgnoreCase(changeTag)) {
                             currentSubject = new Subject();
                         } else if (tag.equalsIgnoreCase(xmlStartTag)) {
-                            Log.i(Constants.TAG, xpp.getAttributeValue(null, "encoding"));
+                            Log.i(TAG, xpp.getAttributeValue(null, "encoding"));
                         }
                         break;
                     case XmlPullParser.TEXT:
@@ -160,14 +404,7 @@ public class XMLParser {
                                 result.add(currentDay);
                                 break;
                             case dateTag:
-                                String dateString = extractDateFromTitle(text);
-                                long dateInMillis = 0;
-                                try {
-                                    dateInMillis = Constants.dateFormatter.parse(dateString).getTime();
-                                } catch (ParseException e) {
-                                    Log.i(Constants.TAG, "ParseException", e);
-                                }
-                                currentDay.setDate(dateInMillis);
+
                                 break;
                             case affectedClassesTag:
                                 String[] affectedClasses = text.split(", ");
@@ -179,16 +416,16 @@ public class XMLParser {
                                 // remove komma so parsing doesn't fail
                                 text = text.replace(",", "");
                                 try {
-                                    last_updated = Constants.dateTimeFormatter.parse(text).getTime();
+                                    last_updated = dateTimeFormatter.parse(text).getTime();
 
                                 } catch (ParseException e) {
                                     e.printStackTrace();
                                 } catch (NullPointerException e) {
-                                    Log.i(Constants.TAG, "NullPointer on .getTime(): ", e);
+                                    Log.i(TAG, "NullPointer on .getTime(): ", e);
                                 }
                                 currentDay.setLastUpdated(last_updated);
                                 break;
-                            case courseTag:
+                            case yearClassletterTag:
                                 String temp;
                                 if (text.length() > 4) {
                                     temp = text.substring(0, 3);
@@ -227,8 +464,6 @@ public class XMLParser {
             }
         } catch (XmlPullParserException e) {
             Log.i(TAG, "PullParserException in ", e);
-        } catch (FileNotFoundException e) {
-            Log.i(TAG, "File not found", e);
         } catch (IOException e) {
             Log.i(TAG, "IOException", e);
         } catch (NullPointerException e) {
@@ -240,16 +475,13 @@ public class XMLParser {
 
 
     // not needed right now
-    public static List<Schoolday> parseScheduleXml(Context context) {
+    public List<Lesson> parseScheduleXml(Context context) {
 
-        Schoolday currentDay = new Schoolday();
-        List<Schoolday> currentDayList = new ArrayList<>();
-        Subject currentSubject = new Subject();
-        List<Subject> currentSubjectList = new ArrayList<>();
+        List<Lesson> results = new ArrayList<>();
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        String classToShow = sharedPreferences.getString(Constants.CLASS_TO_SHOW, "");
+        String classToShow = sharedPreferences.getString(CLASS_TO_SHOW, "");
 
         String filename = "aktuell" + classToShow + ".xml";
 
@@ -258,10 +490,6 @@ public class XMLParser {
             factory.setNamespaceAware(true);
             XmlPullParser xpp = factory.newPullParser();
 
-            // open fis to the file to get the information
-            FileInputStream fis = context.openFileInput(filename);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis, getFileEncoding(context, filename))); // set enconding!!
-
             // set input for the parser
             xpp.setInput(bufferedReader);
 
@@ -269,61 +497,98 @@ public class XMLParser {
             int eventType = xpp.getEventType();
 
             String tag, period, text = "";
-            int day = 0;
+
+            // get
+
+            final String schedTitleTag = "titel";
+            final String schedSchoolTag = "schulname";
+            final String schedValidFromTag = "gueltigab";
+
+            final String schedRowTag = "zeile";
+            final String schedPeriodTag = "stunde";
+
+            final String schedDayTag = "tag"; // tag follows a number indicating which day we on
+            final String schedSubjectTag = "fach";
+            final String schedYearClassTag = "klasse";
+            final String schedRoomTag = "raum";
+
+            String schedYear = "", schedClassletter = "";
+            long schedValidFrom = 0;
+            int schedDay, schedSchool = 0, schedPeriod = 0;
+
+            Lesson currentLesson = new Lesson();
 
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 tag = xpp.getName();
+
+
                 switch (eventType) {
+
+
                     case XmlPullParser.START_TAG:
                         switch (tag) {
-                            case dayScheduleTag + "{1,5}":
-                                try {
-                                    day = Integer.parseInt(tag.substring(3));
-                                } catch (NumberFormatException e) {
-                                    Log.e(Constants.TAG, "NumberFormatException when parsing day: ", e);
-                                }
-                                if (currentDayList.get(day - 1) == null) {
-                                    currentDay = new Schoolday();
-                                    currentSubjectList = new ArrayList<>();
-
-                                    currentDay.setSubjects(currentSubjectList);
-                                    currentDayList.add(day - 1, currentDay);
-
-                                    currentSubject = new Subject();
-
-                                }
+                            case schedDayTag + "{1,5}":
+                                schedDay = Integer.getInteger(tag.substring(3));
+                                currentLesson = new Lesson("schedule", schedYear, schedClassletter, schedSchool, schedValidFrom, schedDay);
+                                currentLesson.setPeriod(schedPeriod);
                                 break;
-
                         }
 
                         break;
 
+
                     case XmlPullParser.TEXT:
                         text = xpp.getText();
                         break;
+
+
                     case XmlPullParser.END_TAG:
                         switch (tag) {
-                            case periodScheduleTag:
-                                period = text;
+                            case schedPeriodTag:
+                                schedPeriod = Integer.getInteger(text);
                                 break;
-                            case dayScheduleTag + "{1,5}":
-                                currentSubjectList.add(currentSubject);
+                            case schedTitleTag:
+                                schedYear = text.substring(0, 2);
+                                schedClassletter = text.substring(3);
+                                break;
+                            case schedSchoolTag:
+                                School school = School.findSchoolByName(text); // check if data from enum exists
+                                if (school != null) {
+                                    schedSchool = school.getId();
+                                }
+                                break;
+                            case schedValidFromTag:
+                                schedValidFrom = dateFormatter.parse(text).getTime();
+                                break;
+                            case schedSubjectTag:
+                                currentLesson.setSubject(text);
+                                break;
+                            case schedRoomTag:
+                                currentLesson.setRoom(text);
+                                break;
+                            case schedDayTag + "{1,5}":
+                                results.add(currentLesson);
+                                break;
                         }
                         break;
                 }
                 eventType = xpp.next();
             }
-
         } catch (XmlPullParserException e) {
-            Log.i(Constants.TAG, "XmlPullParserException in ScheduleParser", e);
+            Log.i(TAG, "XmlPullParserException in ScheduleParser", e);
         } catch (FileNotFoundException e) {
-            Log.i(Constants.TAG, "FileNotFoudException in ScheduleParser", e);
+            Log.i(TAG, "FileNotFoudException in ScheduleParser", e);
         } catch (UnsupportedEncodingException e) {
-            Log.i(Constants.TAG, "UnsupportedEncodingException in ScheduleParser", e);
+            Log.i(TAG, "UnsupportedEncodingException in ScheduleParser", e);
         } catch (IOException e) {
-            Log.i(Constants.TAG, "IOException in ScheduleParser", e);
+            Log.i(TAG, "IOException in ScheduleParser", e);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            Log.e(TAG, "ParseException while parsing validFrom date from schedule", e);
         }
 
-        return currentDayList;
+
+        return results;
     }
 }

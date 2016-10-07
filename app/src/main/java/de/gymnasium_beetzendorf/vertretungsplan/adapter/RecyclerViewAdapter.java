@@ -16,10 +16,11 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
-        implements View.OnClickListener {
+        implements Constants, View.OnClickListener {
 
     private List<Subject> subjectList;
     private Context context;
@@ -30,6 +31,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public RecyclerViewAdapter(Context context, List<Subject> results) {
         subjectList = results;
         this.context = context;
+    }
+
+    public RecyclerViewAdapter(Context context, List<Lesson> results, String type) {
+
     }
 
     @Override
@@ -134,7 +139,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
 
-        Log.i(Constants.TAG, currentSubject.getSubject().length() + " " + currentSubject.getTeacher());
+        Log.i(TAG, currentSubject.getSubject().length() + " " + currentSubject.getTeacher());
 
         // differentiating between free period or not
         if (currentSubject.getSubject().equals("---")) {
@@ -168,9 +173,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             teacherTextView.setText(currentSubject.getTeacher());
         }
 
+
         // setting the rest of the output
         courseTextView.setText(currentSubject.getCourse());
-        periodTextView.setText(String.valueOf(currentSubject.getPeriod()) + ". Stunde");
+        periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), String.valueOf(currentSubject.getPeriod())));
         infoTextView.setText(currentSubject.getInfo());
 
         // change visibility on onclick event

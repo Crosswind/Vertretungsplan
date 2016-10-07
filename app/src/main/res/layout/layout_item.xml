@@ -60,6 +60,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentTop="true"
                 android:minWidth="40dp"
+                android:background="@drawable/circle"
                 android:text="subject"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 

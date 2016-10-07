@@ -8,6 +8,7 @@ public class Schoolday {
     private List<String> changes; //classes that are affected to a change
     private List<Subject> subjects; //subjects that changed
     private long last_updated;
+    private List<Lesson> lessons;
 
     // getters
     public long getDate() {
@@ -41,5 +42,21 @@ public class Schoolday {
 
     public void setLastUpdated(long last_updated) {
         this.last_updated = last_updated;
+    }
+
+    public long getLast_updated() {
+        return last_updated;
+    }
+
+    public void setLast_updated(long last_updated) {
+        this.last_updated = last_updated;
+    }
+
+    public List<Lesson> getLessons() {
+        return lessons;
+    }
+
+    public void setLessons(List<Lesson> lessons) {
+        this.lessons = lessons;
     }
 }

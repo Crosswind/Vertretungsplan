@@ -13,7 +13,7 @@ import java.util.Calendar;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 
-public class BootReceiver extends BroadcastReceiver {
+public class BootReceiver extends BroadcastReceiver implements Constants {
 
     public static final int alarmManagerRequestCode = 0;
     private long mFirstRefresh = 0;
@@ -21,14 +21,14 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            Log.i(Constants.TAG, "boot received");
+            Log.i(TAG, "boot received");
             Calendar calendar = Calendar.getInstance();
-            String date = Constants.dateFormatter.format(calendar.getTime());
+            String date = dateFormatter.format(calendar.getTime());
 
             try {
-                mFirstRefresh = Constants.dateTimeFormatter.parse(date + " 6:00").getTime();
+                mFirstRefresh = dateTimeFormatter.parse(date + " 6:00").getTime();
             } catch (ParseException e) {
-                Log.i(Constants.TAG, "ParseException in BootReceiver", e);
+                Log.i(TAG, "ParseException in BootReceiver", e);
             }
 
             if (System.currentTimeMillis() > mFirstRefresh) {
@@ -43,12 +43,12 @@ public class BootReceiver extends BroadcastReceiver {
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.setInexactRepeating(
-                    Constants.ALARM_TYPE,
+                    ALARM_TYPE,
                     mFirstRefresh,
-                    Constants.ALARM_INTERVAL,
+                    ALARM_INTERVAL,
                     alarmPendingIntent);
         }
 
-        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(Constants.ALARM_REGISTERED, true).apply();
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(ALARM_REGISTERED, true).apply();
     }
 }

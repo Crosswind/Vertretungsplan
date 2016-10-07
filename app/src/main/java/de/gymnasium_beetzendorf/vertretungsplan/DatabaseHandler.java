@@ -16,15 +16,17 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
 
-public class DatabaseHandler extends SQLiteOpenHelper {
+public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
-    private static final String TAG = "DatabaseHandler";
+    private static final String TAG = DatabaseHandler.class.getSimpleName();
+
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 3;
+    public static int DATABASE_VERSION = 4;
 
     // table substitution_days
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
@@ -50,9 +52,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static String CL_NAME = "name";
     private static String CL_URL = "url";
 
+    // lessons
+    private static String TABLE_LESSONS = "lessons";
+    private static String L_ID = "id";
+    private static String L_TYPE = "type";
+    private static String L_YEAR = "year";
+    private static String L_CLASSLETTER = "classletter";
+    private static String L_COURSE = "course";
+    private static String L_SCHOOL = "school";
+    private static String L_VALID_FROM = "valid_from";
+    private static String L_VALID_ON = "valid_on";
+    private static String L_DAY = "day";
+    private static String L_PERIOD = "period";
+    private static String L_SUBJECT = "subject";
+    private static String L_TEACHER = "teacher";
+    private static String L_ROOM = "room";
+    private static String L_INFO = "info";
+
     // stuff
     private String query, date;
     private SharedPreferences sharedPreferences;
+
 
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -60,7 +80,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         Calendar c = Calendar.getInstance();
-        date = Constants.dateFormatter.format(c.getTime());
+        date = dateFormatter.format(c.getTime());
+    }
+
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+
+        // TODO: implement method for cleaning up the database with old entries
     }
 
     @Override
@@ -73,6 +100,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 SD_PAST + " BOOLEAN" +
                 ");";
         db.execSQL(query);
+
+        query = "CREATE TABLE ";
 
         // creation of substitution rows
         query = "CREATE TABLE " + TABLE_SUBSTITUTION_ROWS + " (" +
@@ -94,6 +123,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 CL_URL + " TEXT" +
                 ");";
         db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_LESSONS + " (" +
+                L_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                L_YEAR + " TEXT, " +
+                L_CLASSLETTER + " TEXT, " +
+                L_COURSE + " TEXT, " +
+                L_SCHOOL + " INTEGER " +
+                L_VALID_FROM + " FLOAT, " +
+                L_VALID_ON + " FLOAT, " +
+                L_DAY + " INTEGER, " +
+                L_PERIOD + " INTEGER " +
+                L_SUBJECT + " TEXT, " +
+                L_TEACHER + " TEXT, " +
+                L_ROOM + " TEXT, " +
+                L_INFO + " TEXT" +
+                ");";
+        db.execSQL(query);
     }
 
     @Override
@@ -104,8 +150,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL(query);
         query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
         db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_LESSONS;
+        db.execSQL(query);
         onCreate(db);
     }
+
+    public List<Schoolday> getFullSchedule() {
+        return null;
+    }
+
+    private List<Lesson> getScheduleLessonsByDay () {
+         return null;
+    }
+
+
+
 
     public boolean isUpToDate(String date, Long last_updated) {
         SQLiteDatabase db = getReadableDatabase();
@@ -127,9 +186,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         long time = 0;
         try {
-            time = Constants.dateFormatter.parse(date).getTime();
+            time = dateFormatter.parse(date).getTime();
         } catch (ParseException e) {
-            Log.i(Constants.TAG, "ParseException", e);
+            Log.i(TAG, "ParseException", e);
         }
 
         boolean after3Pm = after3Pm();
@@ -165,7 +224,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         cursor.close();
         db.close();
-        Log.i(Constants.TAG, "Größe der Liste: " + schooldayList.size());
+        Log.i(TAG, "Größe der Liste: " + schooldayList.size());
         return schooldayList;
     }
 
@@ -176,10 +235,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String classToShow, classToShowPrimary, classToShowSecondary;
 
         // specify the results needed depending on the settings
-        if (sharedPreferences.getBoolean(Constants.SHOW_WHOLE_PLAN, true)) {
+        if (sharedPreferences.getBoolean(SHOW_WHOLE_PLAN, true)) {
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
         } else {
-            classToShow = sharedPreferences.getString(Constants.CLASS_TO_SHOW, null);
+            classToShow = sharedPreferences.getString(CLASS_TO_SHOW, null);
             if (classToShow != null) {
                 classToShowPrimary = classToShow.substring(0, 2);
                 classToShowSecondary = classToShow.substring(3, 4);
@@ -269,7 +328,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.close();
         }
 
-        Log.i(Constants.TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
+        Log.i(TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
         db.close();
     }
 
@@ -279,7 +338,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         long afterSchoolTime = 0;
 
         try {
-            afterSchoolTime = Constants.dateTimeFormatter.parse(date + " 15:00").getTime();
+            afterSchoolTime = dateTimeFormatter.parse(date + " 15:00").getTime();
         } catch (ParseException e) {
             Log.i(TAG, "ParseException for afterSchoolTime", e);
         }
@@ -321,22 +380,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         cursor.moveToFirst();
 
         List<String> classList = new ArrayList<>();
-        for(int i = 0; i < cursor.getCount(); i++) {
+        for (int i = 0; i < cursor.getCount(); i++) {
             classList.add(cursor.getString(cursor.getColumnIndex(CL_NAME)).substring(7));
             cursor.moveToNext();
         }
 
         cursor.close();
         return classList;
-    }
-
-    public boolean cleanDatabase() {
-        // TODO: implement method to delete all rows older than 30 days
-        return true;
-    }
-
-    public boolean markAsPast() {
-        // TODO: implement method to mark all past days to avoid using them again
-        return true;
     }
 }

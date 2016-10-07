@@ -1,5 +1,6 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -12,17 +13,14 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.List;
@@ -34,24 +32,51 @@ import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.PagerAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
-import de.gymnasium_beetzendorf.vertretungsplan.fragment.TabFragment;
+import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 
-public class MainActivity extends AppCompatActivity
-        implements TabFragment.OnSwipeRefreshListener {
-
-    // server related
-    public static final String SERVER_URL = "http://vplankl.gymnasium-beetzendorf.de";
-    public static final String SUBSTITUTION_QUERY_FILE = "/Vertretungsplan_Klassen.xml";
+public class MainActivity extends BaseActivity
+        implements Constants, BaseTabFragment.OnSwipeRefreshListener {
 
     private SharedPreferences mSharedPreferences;
     private TabLayout mMainTabLayout;
     private ViewPager mMainViewPager;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private Context mContext;
+    private DatabaseHandler mDatabaseHandler;
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean new_update = intent.getBooleanExtra("new_update", false);
+
+            if (mSwipeRefreshLayout.isRefreshing()) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+
+            if (new_update) {
+                displayData();
+                makeSnackbar("Aktualisiert.");
+            }
+        }
+    };
+
+    @Override
+    protected Toolbar getToolbar() {
+        return (Toolbar) findViewById(R.id.mainToolbar);
+    }
 
     // activity override methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // finish if an instance of this app is already running
+        if (mContext != null) {
+            ((Activity) mContext).finish();
+            mContext = this;
+        }
+
+        // check if all settings are set
+
 
         // activate boot receiver
         // this will start the alarm that is responsible for refreshing data
@@ -60,7 +85,7 @@ public class MainActivity extends AppCompatActivity
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
         // instantiate preference
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mSharedPreferences = getSharedPreferences();
 
         if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
             Intent intent = new Intent(this, RefreshService.class);
@@ -77,7 +102,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // register alarm if it hasn't been done by the application after booting the device
-        if (!mSharedPreferences.getBoolean(Constants.ALARM_REGISTERED, false)) {
+        if (!mSharedPreferences.getBoolean(ALARM_REGISTERED, false)) {
             // assign RefreshService class
             Intent alarmIntent = new Intent(this, RefreshService.class);
             PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
@@ -87,26 +112,15 @@ public class MainActivity extends AppCompatActivity
             // elapsed_realtime is used to save ressources
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
             alarmManager.setInexactRepeating(
-                    Constants.ALARM_TYPE,
+                    ALARM_TYPE,
                     System.currentTimeMillis(),
-                    Constants.ALARM_INTERVAL,
+                    ALARM_INTERVAL,
                     alarmPendingIntent);
 
             // change prefs so it won't set alarm everytime the app opens
             // unless the app is uninstalled/cache wiped the alarm will be handled by BootReceiver after the devices boots
-            mSharedPreferences.edit().putBoolean(Constants.ALARM_REGISTERED, true).apply();
+            mSharedPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
         }
-
-        // set the main layout to be used by the activity
-        setContentView(R.layout.activity_main);
-
-        // set up the toolbar
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.mainToolbar);
-        setSupportActionBar(mToolbar);
-
-        // layout stuff
-        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
-        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
         // instantiate SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
@@ -121,8 +135,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        if (databaseHandler.getAllSubstitutions().size() == 0) {
+        mDatabaseHandler = getDatabaseHandler();
+        if (mDatabaseHandler.getAllSubstitutions().size() == 0) {
             refresh();
         } else {
             // definitely show the data that's already been loaded at some point
@@ -136,10 +150,9 @@ public class MainActivity extends AppCompatActivity
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("refresh_message"));
 
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if (mSharedPreferences.getBoolean(Constants.PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
+        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
             displayData();
-            mSharedPreferences.edit().putBoolean(Constants.PREFERENCES_CHANGED, false).apply(); // reset prefs
+            mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
         }
     }
 
@@ -180,7 +193,7 @@ public class MainActivity extends AppCompatActivity
 
     // workaround for bug with SwipeRefreshLayout
     // it would refresh even if RecyclerView is not at the top
-    // interface call is from TabFragment
+    // interface call is from SubstitutionTabFragment
     @Override
     public void toggleRefreshing(boolean enabled) {
         if (mSwipeRefreshLayout != null) {
@@ -194,22 +207,6 @@ public class MainActivity extends AppCompatActivity
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
     }
-
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            boolean new_update = intent.getBooleanExtra("new_update", false);
-
-            if (mSwipeRefreshLayout.isRefreshing()) {
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
-
-            if (new_update) {
-                displayData();
-                Toast.makeText(getApplicationContext(), "Aktualisiert.", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
 
     // takes care of data refreshing logic
     // if internet connection is available it tries a full refresh
@@ -225,19 +222,27 @@ public class MainActivity extends AppCompatActivity
             refreshServiceIntent.putExtra("manual_refresh", true);
             startService(refreshServiceIntent);
         } else {
-            Toast.makeText(this, "Keine Verbindung.", Toast.LENGTH_LONG).show();
+            makeSnackbar(String.valueOf(getResources().getText(R.string.no_connection)));
+            mSwipeRefreshLayout.setRefreshing(false);
         }
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
     }
 
     public void displayData() {
         List<Schoolday> databaseResults;
 
+        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+
         String currentTabText = "";
         int currentTabCount = -1;
 
         // get needed results
-        DatabaseHandler databaseHandler = new DatabaseHandler(getApplicationContext(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        databaseResults = databaseHandler.getAllSubstitutions();
+        databaseResults = mDatabaseHandler.getAllSubstitutions();
 
         // check if tabs are already there and store the current tab to reopen it
         if (mMainTabLayout.getTabCount() > 0) {
@@ -247,7 +252,7 @@ public class MainActivity extends AppCompatActivity
                 //noinspection ConstantConditions
                 currentTabText = (String) mMainTabLayout.getTabAt(currentTabCount).getText();
             } catch (NullPointerException e) {
-                Log.i(Constants.TAG, "NullPointerException on getting currentTabText", e);
+                Log.i(TAG, "NullPointerException on getting currentTabText", e);
             }
         }
 
@@ -259,15 +264,15 @@ public class MainActivity extends AppCompatActivity
             if (databaseResults.get(n).getSubjects().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
-                String tempDate = Constants.dateFormatter.format(calendar.getTime());
-                String tempWeekday = Constants.weekdayFormatter.format(calendar.getTime());
+                String tempDate = dateFormatter.format(calendar.getTime());
+                String tempWeekday = weekdayFormatter.format(calendar.getTime());
 
                 mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
             }
         }
 
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), databaseResults);
-        mMainViewPager.setAdapter(pagerAdapter);
+        //PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), databaseResults);
+        //mMainViewPager.setAdapter(pagerAdapter);
 
         //mMainTabLayout.setupWithViewPager(mMainViewPager);
 
@@ -300,6 +305,7 @@ public class MainActivity extends AppCompatActivity
         // moving the ViewPager is already taken care of (OnTabSelectedListener)
         if (mMainTabLayout.getTabCount() > 0) {
             String newTabText;
+
             try {
                 if (currentTabCount > -1 && currentTabCount < mMainTabLayout.getTabCount()) {
                     for (int i = 0; i < mMainTabLayout.getTabCount(); i++) {
@@ -309,12 +315,12 @@ public class MainActivity extends AppCompatActivity
                                 mMainTabLayout.getTabAt(i).select();
                             }
                         } catch (NullPointerException e) {
-                            Log.i(Constants.TAG, "NullPointer", e);
+                            Log.i(TAG, "NullPointer", e);
                         }
                     }
                 }
             } catch (NullPointerException e) {
-                Log.i(Constants.TAG, "NullPointerException on setting currentTabText", e);
+                Log.i(TAG, "NullPointerException on setting currentTabText", e);
             }
         }
 

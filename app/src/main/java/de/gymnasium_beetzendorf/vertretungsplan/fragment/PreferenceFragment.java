@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.util.Calendar;
 import java.util.List;
@@ -17,7 +18,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.School;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
+        implements Constants, SharedPreferences.OnSharedPreferenceChangeListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,9 +39,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         String[] schoolListArray = new String[schoolList.size()];
         schoolListPreference.setEntries(schoolList.toArray(schoolListArray));
         schoolListPreference.setEntryValues(schoolList.toArray(schoolListArray));
+        schoolListPreference.setEnabled(true);
+
 
         if (schoolList.size() <= 1) {
-            schoolListPreference.setDefaultValue(1);
+            schoolListPreference.setDefaultValue("Gymnasium Beetzendorf");
             schoolListPreference.setTitle(schoolListPreference.getEntry());
         }
 
@@ -68,7 +71,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             summary += "nie";
         } else {
             calendar.setTimeInMillis(last_class_list_refresh);
-            summary += Constants.dateTimeFormatter.format(calendar.getTime());
+            summary += dateTimeFormatter.format(calendar.getTime());
         }
         refreshClassListPreferenceButton.setSummary(summary);
         refreshClassListPreferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -87,7 +90,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         long last_substitution_plan_refresh = sharedPreferences.getLong("last_substitution_plan_refresh", 0);
         calendar.setTimeInMillis(last_substitution_plan_refresh);
 
-        refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + Constants.dateTimeFormatter.format(calendar.getTime()));
+        refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
         refreshSubstitutionPreferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
@@ -109,11 +112,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         Preference refreshClassListPreferenceButton = findPreference("refresh_class_list");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(sharedPreferences.getLong("last_class_list_refresh", 0));
-        refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + Constants.dateTimeFormatter.format(calendar.getTime()));
+        refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + dateTimeFormatter.format(calendar.getTime()));
 
         Preference refreshSubstitutionPreferenceButton = findPreference("refresh_substitution_plan");
         calendar.setTimeInMillis(sharedPreferences.getLong("last_substitution_plan_refresh", 0));
-        refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + Constants.dateTimeFormatter.format(calendar.getTime()));
+        refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
 
     }
 }

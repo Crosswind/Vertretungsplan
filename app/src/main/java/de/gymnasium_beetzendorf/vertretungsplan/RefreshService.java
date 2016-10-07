@@ -20,10 +20,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,9 +30,10 @@ import java.util.List;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 
-public class RefreshService extends IntentService {
+public class RefreshService extends IntentService implements Constants {
 
     public RefreshService() {
         super("RefreshService");
@@ -43,18 +41,18 @@ public class RefreshService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.i(Constants.TAG, "RefreshService started");
+        Log.i(TAG, "RefreshService started");
 
         SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         Calendar calendar = Calendar.getInstance();
-        String date = Constants.dateFormatter.format(calendar.getTime());
+        String date = dateFormatter.format(calendar.getTime());
         long lastRefresh = 0;
         try {
-            lastRefresh = Constants.dateTimeFormatter.parse(date + " 16:00").getTime();
+            lastRefresh = dateTimeFormatter.parse(date + " 16:00").getTime();
 
         } catch (ParseException e) {
-            Log.i(Constants.TAG, "Problem while parsing in service class", e);
+            Log.i(TAG, "Problem while parsing in service class", e);
         }
 
         boolean manualRefresh = intent.getBooleanExtra("manual_refresh", false);
@@ -62,7 +60,7 @@ public class RefreshService extends IntentService {
         // only run if it's been send from the MainActivity or if it's earlier than the lastRefresh (4pm of today)
         if (manualRefresh || System.currentTimeMillis() <= lastRefresh) {
             // download file from server
-            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "");
+            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "", 0);
 
         } else {
             // cancel the refreshing animation
@@ -78,14 +76,14 @@ public class RefreshService extends IntentService {
             long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 14);
             // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
             alarmManager.setInexactRepeating(
-                    Constants.ALARM_TYPE,
+                    ALARM_TYPE,
                     nextDayRefresh,
-                    Constants.ALARM_INTERVAL,
+                    ALARM_INTERVAL,
                     alarmPendingIntent);
 
-            Log.i(Constants.TAG, "Alarm set");
+            Log.i(TAG, "Alarm set");
 
-            mSharedPreferences.edit().putBoolean(Constants.ALARM_REGISTERED, true).apply();
+            mSharedPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
         }
 
 
@@ -111,17 +109,17 @@ public class RefreshService extends IntentService {
 
         try {
             xmlLastUpdated = xmlResults.get(0).getLastUpdated();
-            Log.i(Constants.TAG, "xml: " + Constants.dateTimeFormatter.format(new Date(xmlLastUpdated)));
+            Log.i(TAG, "xml: " + dateTimeFormatter.format(new Date(xmlLastUpdated)));
         } catch (IndexOutOfBoundsException e) {
-            Log.i(Constants.TAG, "IndexOutOfBoundsException: ", e);
+            Log.i(TAG, "IndexOutOfBoundsException: ", e);
             return false;
         }
 
         try {
             databaseLastUpdated = databaseResults.get(0).getLastUpdated();
-            Log.i(Constants.TAG, "db: " + Constants.dateTimeFormatter.format(new Date(databaseLastUpdated)));
+            Log.i(TAG, "db: " + dateTimeFormatter.format(new Date(databaseLastUpdated)));
         } catch (IndexOutOfBoundsException e) {
-            Log.i(Constants.TAG, "IndexOutOfBoundsException: ", e);
+            Log.i(TAG, "IndexOutOfBoundsException: ", e);
             return true;
         }
 
@@ -129,13 +127,14 @@ public class RefreshService extends IntentService {
 
     }
 
-    private void downloadFile(String url, String fileType, String schedClass) {
-        new DownloadXml(this, fileType, url, schedClass).execute();
+    private void downloadFile(String url, String fileType, String schedClass, int school) {
+        new DownloadXml(this, fileType, url, schedClass, school).execute();
     }
 
     public void callBackSubstitution() {
 
-        List<Schoolday> xmlResults = XMLParser.parseSubstitutionXml(this);
+        XmlParser parser = new XmlParser(this, XmlParser.XMLPARSER_TYPE_SUBSTITUTION);
+        List<Lesson> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
         List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
@@ -144,13 +143,13 @@ public class RefreshService extends IntentService {
 
         boolean notifications_enabled = sharedPreferences.getBoolean("enable_notifications", false);
 
-        if (newUpdate(xmlResults, databaseResults)) {
+        /*if (newUpdate(xmlResults, databaseResults)) {
             databaseHandler.insertSubstitutionXmlResults(xmlResults);
 
-            Log.i(Constants.TAG, "xml: " + xmlResults.size() + " database: " + databaseResults.size());
+            Log.i(TAG, "xml: " + xmlResults.size() + " database: " + databaseResults.size());
 
-            //Log.i(Constants.TAG, String.valueOf(xmlResults.get(0).getLastUpdated()));
-            sharedPreferences.edit().putLong("last_substitution_plan_refresh", databaseResults.get(0).getLastUpdated()).apply();
+            //Log.i(TAG, String.valueOf(xmlResults.get(0).getLastUpdated()));
+            sharedPreferences.edit().putLong("last_substitution_plan_refresh", xmlResults.get(0).getLastUpdated()).apply();
 
             // check if user is currently in the app
             // if not - fire notification
@@ -161,7 +160,7 @@ public class RefreshService extends IntentService {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated()); // use xml results because database hasn't been updated
 
-                String updated = Constants.dateTimeFormatter.format(calendar.getTime());
+                String updated = dateTimeFormatter.format(calendar.getTime());
 
                 // intent that opens the main activity when notification is clicked
                 Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -182,7 +181,7 @@ public class RefreshService extends IntentService {
 
         } else {
             notifyMainActivityReturnResult(false);
-        }
+        } */
 
 
     }
@@ -233,7 +232,7 @@ public class RefreshService extends IntentService {
             Toast.makeText(getApplicationContext(), "Klassen geupdated", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
-            Log.e(Constants.TAG, "IOException when getting html", e);
+            Log.e(TAG, "IOException when getting html", e);
         }
 
     }

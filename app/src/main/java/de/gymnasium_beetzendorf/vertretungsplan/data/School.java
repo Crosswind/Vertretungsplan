@@ -1,6 +1,5 @@
 package de.gymnasium_beetzendorf.vertretungsplan.data;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +56,16 @@ public enum School {
             }
         }
         return schoolListNames;
+    }
+
+    public static School findSchoolByName(String name) throws IllegalAccessException {
+        for(School school : schoolList()) {
+            if((school.getName()).equalsIgnoreCase(name)) {
+                return school;
+            }
+        }
+
+        throw new IllegalAccessException("No school with this name(" + name + ") found.");
     }
 
     public static School findSchoolById(int id) throws IllegalAccessException {

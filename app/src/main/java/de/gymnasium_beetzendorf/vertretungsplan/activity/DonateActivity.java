@@ -15,14 +15,13 @@ import de.gymnasium_beetzendorf.vertretungsplan.util.IabResult;
 import de.gymnasium_beetzendorf.vertretungsplan.util.Inventory;
 import de.gymnasium_beetzendorf.vertretungsplan.util.Purchase;
 
-public class DonateActivity extends AppCompatActivity {
+public class DonateActivity extends BaseActivity implements Constants {
 
     static final String ITEM_DONATE_ONE = "de.gymnasium_beetzendorf.vertretungsplan.donate_one_euro";
     static final String ITEM_DONATE_TWO = "de.gymnasium_beetzendorf.vertretungsplan.donate_two_euro";
     static final String ITEM_DONATE_FIVE = "de.gymnasium_beetzendorf.vertretungsplan.donate_five_euro";
     static String ITEM_SKU;
 
-    Toolbar mToolbar;
     private IabHelper mHelper;
 
 
@@ -32,7 +31,7 @@ public class DonateActivity extends AppCompatActivity {
             if (result.isSuccess()) {
                 // mButton.setEnabled(true);
             } else {
-                Log.i(Constants.TAG, "something went wrong in consumefinishedlistener");
+                Log.i(TAG, "something went wrong in consumefinishedlistener");
             }
         }
     };
@@ -42,7 +41,7 @@ public class DonateActivity extends AppCompatActivity {
         public void onQueryInventoryFinished(IabResult result, Inventory inv) {
 
             if (result.isFailure()) {
-                Log.i(Constants.TAG, "something went wrong in on queryinventoryfinished");
+                Log.i(TAG, "something went wrong in on queryinventoryfinished");
             } else {
                 mHelper.consumeAsync(inv.getPurchase(ITEM_SKU), mConsumeFinishedListener);
                 // mButton.setEnabled(true);
@@ -54,7 +53,7 @@ public class DonateActivity extends AppCompatActivity {
         @Override
         public void onIabPurchaseFinished(IabResult result, Purchase info) {
             if (result.isFailure()) {
-                Log.i(Constants.TAG, "something went wrong here while purchasing");
+                Log.i(TAG, "something went wrong here while purchasing");
             } else if (info.getSku().equals(ITEM_SKU)) {
                 consumeItem();
                 // mButton.setEnabled(true);
@@ -63,29 +62,30 @@ public class DonateActivity extends AppCompatActivity {
     };
 
     @Override
+    protected int getLayoutId() {
+        return R.layout.activity_donate;
+    }
+
+    @Override
+    protected Toolbar getToolbar() {
+        return (Toolbar) findViewById(R.id.mainToolbar);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_donate);
 
         String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwq6nvTxbdANQu4J1ru2fEx3DGB3xbEuHP6PcWl6zcLNwhPwjhZeu6Dvgpj/f1NxvehaT0c4US5BEu9XBC16k9hTf/FFHw/9OHr+hC9UtAsMlq07705pdreNVj/J9SYISPFWWMcoMAaRUyFj2ujLdTvs//bI5TO5lgxHqOcK4FeTGTLw4d4LyX10sz+CtDhFukbAqQG7PwkSON+wRJm/9NzXutXkWyFtMFmpsj+dHoQfbLwF82VYej135aZMPRmpd4f2+aScU2BKolJKq3uxYT2RCohmcqj1ZWYGf0mnl3yKi5o9Jnj9uDkeO6u+H7YUKGZMWHw54KlNIZX/OLGSe+QIDAQAB";
 
-
-        mToolbar = (Toolbar) findViewById(R.id.mainToolbar);
-        setSupportActionBar(mToolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-
         mHelper = new IabHelper(this, base64EncodedPublicKey);
-        mHelper.enableDebugLogging(true, Constants.TAG);
+        mHelper.enableDebugLogging(true, TAG);
         mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             @Override
             public void onIabSetupFinished(IabResult result) {
                 if (!result.isSuccess()) {
-                    Log.i(Constants.TAG, "IAP setup failed: " + result);
+                    Log.i(TAG, "IAP setup failed: " + result);
                 } else {
-                    Log.i(Constants.TAG, "IAP setup successful");
+                    Log.i(TAG, "IAP setup successful");
                 }
             }
         });
