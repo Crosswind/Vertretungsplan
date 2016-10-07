@@ -26,7 +26,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.School;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
 
-public class XmlParser implements Constants {
+class XmlParser implements Constants {
 
     final String TAG = XmlParser.class.getSimpleName();
 
@@ -66,7 +66,7 @@ public class XmlParser implements Constants {
     static final String XMLPARSER_TYPE_SUBSTITUTION = "substitution";
     static final String XMLPARSER_TYPE_SCHEDULE = "schedule";
 
-    public XmlParser(Context context, String type) {
+    XmlParser(Context context, String type) {
         this.context = context;
         this.type = type;
 
@@ -144,7 +144,7 @@ public class XmlParser implements Constants {
     }
 
 
-    public long extractDateFromTitle(String title) {
+    private long extractDateFromTitle(String title) {
         // needed to extract the mDate (format: dd:MM:yyyy)
         String dateString, dateStringHolder;
         String[] dateStringHolderSplit;
@@ -194,7 +194,7 @@ public class XmlParser implements Constants {
     }
 
 
-    public List<Lesson> parseReturnSubstitution() {
+    List<Lesson> parseReturnSubstitution() {
         Lesson headerData = null, current = new Lesson();
         List<Lesson> result = new ArrayList<>();
 
