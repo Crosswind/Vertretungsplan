@@ -8,7 +8,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,7 +54,6 @@ public class SubstitutionXmlParser implements Constants {
     }
 
     /* public methods */
-
 
 
     /* private methods */
