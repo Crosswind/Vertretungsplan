@@ -1,4 +1,4 @@
-package de.gymnasium_beetzendorf.vertretungsplan.data;
+package de.gymnasium_beetzendorf.vertretungsplan.data1;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ public enum School {
     private int id;
     private String name, substitutionUrl, scheduleOverviewUrl, scheduleDirectoryUrl;
 
-    School (int id, String name, String substitutionUrl, String scheduleOverviewUrl, String scheduleDirectoryUrl) {
+    School(int id, String name, String substitutionUrl, String scheduleOverviewUrl, String scheduleDirectoryUrl) {
         this.id = id;
         this.name = name;
         this.substitutionUrl = substitutionUrl;

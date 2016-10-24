@@ -73,8 +73,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private String query, date;
     private SharedPreferences sharedPreferences;
 
-
-
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -82,6 +80,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
     }
+
+
 
     @Override
     public void onOpen(SQLiteDatabase db) {
