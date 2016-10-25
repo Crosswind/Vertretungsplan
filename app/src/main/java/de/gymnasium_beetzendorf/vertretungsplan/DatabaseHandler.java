@@ -70,17 +70,17 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private static String L_INFO = "info";
 
     // stuff
+    private Context context;
     private String query, date;
     private SharedPreferences sharedPreferences;
+    private long dateInMillis;
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.context = context;
 
-        Calendar c = Calendar.getInstance();
-        date = dateFormatter.format(c.getTime());
+        init();
     }
-
 
 
     @Override
@@ -155,15 +155,19 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         onCreate(db);
     }
 
+    private void init() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Calendar c = Calendar.getInstance();
+        date = dateFormatter.format(c.getTime());
+    }
+
     public List<Schoolday> getFullSchedule() {
         return null;
     }
 
-    private List<Lesson> getScheduleLessonsByDay () {
-         return null;
+    private List<Lesson> getScheduleLessonsByDay() {
+        return null;
     }
-
-
 
 
     public boolean isUpToDate(String date, Long last_updated) {
