@@ -39,6 +39,8 @@ public enum Subject {
         this.subject_long = subject_long;
     }
 
+    Subject() {}
+
     private int getId() {
         return id;
     }
@@ -60,7 +62,7 @@ public enum Subject {
         return null;
     }
 
-    String getSubjectShortById(int id) {
+    static String getSubjectShortById(int id) {
         for (Subject subject : values()) {
             if (subject.getId() == id) {
                 return subject.getSubject_short();
@@ -69,7 +71,7 @@ public enum Subject {
         return "";
     }
 
-    String getSubjectLongById(int id) {
+    static String getSubjectLongById(int id) {
         for (Subject subject : values()) {
             if (subject.getId() == id) {
                 return subject.getSubject_long();
@@ -78,7 +80,7 @@ public enum Subject {
         return "";
     }
 
-    int getSchoolIdBySubjectShort(String subject_short) {
+    public static int getSubjectIdBySubjectShort(String subject_short) {
         for (Subject subject : values()) {
             if (subject.getSubject_short().equalsIgnoreCase(subject_short)) {
                 return subject.getId();

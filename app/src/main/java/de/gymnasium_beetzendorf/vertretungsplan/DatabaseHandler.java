@@ -16,64 +16,74 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
+
 
 public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
-
     private static final String TAG = DatabaseHandler.class.getSimpleName();
 
     // databse
     public static String DATABASE_NAME = "database.db";
     public static int DATABASE_VERSION = 4;
 
-    // table substitution_days
+    // substitution table / coloumn names
+    private static String TABLE_SUBSTITUTION = "substitution";
+
+    private static String S_ID = "s_id";
+    private static String S_ID_DAY = "s_id_day";
+    private static String S_CLASS_YEAR = "s_class_year";
+    private static String S_CLASS_LETTER = "s_class_letter";
+    private static String S_CLASS_TYPE = "s_class_type";
+    private static String S_PERIOD = "s_period";
+    private static String S_SUBJECT = "s_subject";
+    private static String S_TEACHER = "s_teacher";
+    private static String S_ROOM = "s_room";
+    private static String S_INO = "s_info";
+
+    // substitution days table / coloumn names
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
-    private static String SD_ID = "id";
-    private static String SD_DATE = "Date";
-    private static String SD_LAST_UPDATED = "last_updated";
-    private static String SD_PAST = "past";
 
-    // table substitutions_rows
-    private static String TABLE_SUBSTITUTION_ROWS = "substitution_rows";
-    private static String SR_ID = "id";
-    private static String SR_DAY = "day";
-    private static String SR_COURSE = "course";
-    private static String SR_PERIOD = "period";
-    private static String SR_SUBJECT = "subject";
-    private static String SR_TEACHER = "teacher";
-    private static String SR_ROOM = "room";
-    private static String SR_INFO = "info";
+    private static String SD_ID = "sd_id";
+    private static String SD_DATE = "sd_date";
+    private static String SD_UPDATED = "sd_updated";
+    private static String SD_SCHOOL = "sd_school";
 
-    // classlist
-    private static String TABLE_CLASSLIST = "classlist";
-    private static String CL_ID = "id";
-    private static String CL_NAME = "name";
-    private static String CL_URL = "url";
+    // lesson table / coloum names
+    private static String TABLE_LESSON = "lesson";
 
-    // lessons
-    private static String TABLE_LESSONS = "lessons";
-    private static String L_ID = "id";
-    private static String L_TYPE = "type";
-    private static String L_YEAR = "year";
-    private static String L_CLASSLETTER = "classletter";
-    private static String L_COURSE = "course";
-    private static String L_SCHOOL = "school";
-    private static String L_VALID_FROM = "valid_from";
-    private static String L_VALID_ON = "valid_on";
-    private static String L_DAY = "day";
-    private static String L_PERIOD = "period";
-    private static String L_SUBJECT = "subject";
-    private static String L_TEACHER = "teacher";
-    private static String L_ROOM = "room";
-    private static String L_INFO = "info";
+    private static String L_ID = "l_id";
+    private static String L_ID_DAY = "l_id_day";
+    private static String L_CLASS_TYPE = "l_class_type";
+    private static String L_PERIOD = "l_period";
+    private static String L_SUBJECT = "l_subject";
+    private static String L_TEACHER = "l_teacher";
+    private static String L_ROOM = "l_room";
+
+    // lesson days table / coloum names
+    private static String TABLE_LESSON_DAYS = "lesson_days";
+
+    private static String LD_ID = "ld_id";
+    private static String LD_CLASS_YEAR_LETTER = "ld_class_year_letter";
+    private static String LD_VALID = "ld_valid";
+
+    // classlist table / coloum names
+    private static String TABLE_CLASSLIST = "table_classlist";
+
+    private static String CL_ID = "cl_id";
+    private static String CL_NAME = "cl_name";
+    private static String CL_URL = "cl_url";
+
 
     // stuff
     private Context context;
     private String query, date;
     private SharedPreferences sharedPreferences;
-    private long dateInMillis;
+    private long dateInMillis, todayInMillis;
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -82,83 +92,130 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         init();
     }
 
-
-    @Override
-    public void onOpen(SQLiteDatabase db) {
-        super.onOpen(db);
-
-        // TODO: implement method for cleaning up the database with old entries
-    }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // creation of substitution days
+        // substitution table
+        query = "CREATE TABLE " + TABLE_SUBSTITUTION + " (" +
+                S_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                S_ID_DAY + " INTEGER, " +
+                S_CLASS_YEAR + " INTEGER, " +
+                S_CLASS_LETTER + " TEXT, " +
+                S_CLASS_TYPE + " TEXT, " +
+                S_PERIOD + " INTEGER, " +
+                S_SUBJECT + " INTEGER, " +
+                S_TEACHER + " INTEGER, " +
+                S_ROOM + " TEXT, " +
+                S_INO + " TEXT " +
+                ");";
+        db.execSQL(query);
+
+        // substitution days table
         query = "CREATE TABLE " + TABLE_SUBSTITUTION_DAYS + " (" +
                 SD_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 SD_DATE + " FLOAT, " +
-                SD_LAST_UPDATED + " FLOAT, " +
-                SD_PAST + " BOOLEAN" +
+                SD_UPDATED + " FLOAT, " +
+                SD_SCHOOL + " INTEGER " +
                 ");";
         db.execSQL(query);
 
-        query = "CREATE TABLE ";
-
-        // creation of substitution rows
-        query = "CREATE TABLE " + TABLE_SUBSTITUTION_ROWS + " (" +
-                SR_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                SR_DAY + " INTEGER, " +
-                SR_COURSE + " TEXT, " +
-                SR_PERIOD + " INTEGER, " +
-                SR_SUBJECT + " TEXT, " +
-                SR_TEACHER + " TEXT, " +
-                SR_ROOM + " TEXT, " +
-                SR_INFO + " TEXT" +
+        // lesson table
+        query = "CREATE TABLE " + TABLE_LESSON + " (" +
+                L_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                L_ID_DAY + " INTEGER, " +
+                L_CLASS_TYPE + " TEXT, " +
+                L_PERIOD + " INTEGER " +
+                L_SUBJECT + " INTEGER, " +
+                L_TEACHER + " INTEGER, " +
+                L_ROOM + " TEXT, " +
                 ");";
         db.execSQL(query);
 
-        // create classlist table
+        // lesson day table
+        query = "CREATE TABLE " + TABLE_LESSON_DAYS + " (" +
+                LD_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                LD_CLASS_YEAR_LETTER + " TEXT, " +
+                LD_VALID + " FLOAT " +
+                ");";
+        db.execSQL(query);
+
+        // classlist table
         query = "CREATE TABLE " + TABLE_CLASSLIST + " (" +
                 CL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 CL_NAME + " TEXT, " +
                 CL_URL + " TEXT" +
                 ");";
         db.execSQL(query);
-
-        query = "CREATE TABLE " + TABLE_LESSONS + " (" +
-                L_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                L_YEAR + " TEXT, " +
-                L_CLASSLETTER + " TEXT, " +
-                L_COURSE + " TEXT, " +
-                L_SCHOOL + " INTEGER " +
-                L_VALID_FROM + " FLOAT, " +
-                L_VALID_ON + " FLOAT, " +
-                L_DAY + " INTEGER, " +
-                L_PERIOD + " INTEGER " +
-                L_SUBJECT + " TEXT, " +
-                L_TEACHER + " TEXT, " +
-                L_ROOM + " TEXT, " +
-                L_INFO + " TEXT" +
-                ");";
-        db.execSQL(query);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_DAYS;
-        db.execSQL(query);
-        query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_ROWS;
-        db.execSQL(query);
-        query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
-        db.execSQL(query);
-        query = "DROP TABLE IF EXISTS " + TABLE_LESSONS;
-        db.execSQL(query);
-        onCreate(db);
+        switch (newVersion) {
+            case 5:
+                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_DAYS;
+                db.execSQL(query);
+                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
+                db.execSQL(query);
+                query = "DROP TABLE IF EXISTS " + TABLE_LESSON;
+                db.execSQL(query);
+                query = "DROP TABLE IF EXISTS " + TABLE_LESSON_DAYS;
+                db.execSQL(query);
+                query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
+                db.execSQL(query);
+                onCreate(db);
+        }
     }
 
     private void init() {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
+
+
+    }
+
+    public List<SubstitutionDay> getSubstitutionDayList (int school, int classYear, String classLetter) {
+        query = "SELECT * FROM " + TABLE_LESSON_DAYS + " WHERE " + SD_DATE + " >= " + date;
+
+        return null;
+
+    }
+
+    private List<Substitution> getSubstitutionListForDayId (int dayId, int classYear, String classLetter, String... classTypes) {
+        query = "SELECT * FROM " + TABLE_SUBSTITUTION + " WHERE " + S_ID_DAY + " = '" + dayId + "' ";
+        if (classYear != 0 || classLetter != "") {
+            query += ", " + S_CLASS_YEAR + " = '" + classYear + "', " + S_CLASS_LETTER + " = '" + classLetter + "'";
+        }
+        if (classTypes.length > 0) {
+            query += " " + L_CLASS_TYPE + " IN(";
+            for (String classType : classTypes){
+                query += "'" + classType + "', ";
+            }
+            query = query.substring(0, query.length()-1); // delete last comma
+            query += ")";
+        }
+        query += ";";
+        Log.i(TAG, "query string for getSubstitutionList: " + query);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            List<Substitution> result = new ArrayList();
+            do {
+                Substitution substitution = new Substitution();
+                substitution.setClassYearLetter(cursor.getInt(3) + " " + cursor.getString(4));
+                substitution.setClassCourse(cursor.getString(5));
+                substitution.setPeriod(cursor.getInt(6));
+                substitution.setSubject(Subject.getSubjectIdBySubjectShort(cursor.getString(7)));
+                substitution.setTeacher(Teacher.getTeacherIdByTeacherShort(cursor.getString(8)));
+                substitution.setRoom(cursor.getString(9));
+                substitution.setInfo(cursor.getString(10));
+                result.add(substitution);
+            } while (cursor.moveToNext());
+
+            return result;
+        }
+        return null;
     }
 
     public List<Schoolday> getFullSchedule() {
@@ -170,6 +227,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     }
 
 
+    /*
     public boolean isUpToDate(String date, Long last_updated) {
         SQLiteDatabase db = getReadableDatabase();
         Boolean is_up_to_date;
@@ -350,6 +408,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         // today no longer needs to be displayed
         return afterSchoolTime != 0 && currentTime > afterSchoolTime;
     }
+
+    */
 
     public void emptyClassListTable() {
         SQLiteDatabase db = getWritableDatabase();

@@ -7,19 +7,21 @@ package de.gymnasium_beetzendorf.vertretungsplan.data1;
 
 public class Substitution {
 
-    private String course;
+    private String classYearLetter;
+    private String classCourse;
     private int period;
     private int subject;
     private int teacher;
     private String room;
     private String info;
 
-    public String getCourse() {
-        return course;
+
+    public String getClassYearLetter() {
+        return classYearLetter;
     }
 
-    public void setCourse(String course) {
-        this.course = course;
+    public void setClassYearLetter(String classYearLetter) {
+        this.classYearLetter = classYearLetter;
     }
 
     public int getPeriod() {
@@ -60,5 +62,13 @@ public class Substitution {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public String getClassCourse() {
+        return classCourse;
+    }
+
+    public void setClassCourse(String classCourse) {
+        this.classCourse = classCourse;
     }
 }

@@ -29,4 +29,13 @@ public enum Teacher {
     public String getTeacher_long() {
         return teacher_long;
     }
+
+    public static int getTeacherIdByTeacherShort (String teacher_short) {
+        for (Teacher teacher : values()) {
+            if (teacher.getTeacher_short().equalsIgnoreCase(teacher_short)) {
+                return teacher.getId();
+            }
+        }
+        return 0;
+    }
 }
