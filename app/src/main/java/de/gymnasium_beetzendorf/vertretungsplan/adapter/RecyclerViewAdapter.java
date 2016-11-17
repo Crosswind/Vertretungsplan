@@ -5,7 +5,6 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,24 +15,25 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Subject;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         implements Constants, View.OnClickListener {
 
-    private List<Subject> subjectList;
+    private List<Substitution> substitutionList;
     private Context context;
 
     private int expandedPosition = -1;
     private int prev = -1;
 
-    public RecyclerViewAdapter(Context context, List<Subject> results) {
-        subjectList = results;
+    public RecyclerViewAdapter(Context context, List<Substitution> results) {
+        substitutionList = results;
         this.context = context;
     }
 
-    public RecyclerViewAdapter(Context context, List<Lesson> results, String type) {
+    public RecyclerViewAdapter(Context context, List<Substitution> results, String type) {
 
     }
 
@@ -58,7 +58,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(RecyclerViewAdapter.ViewHolder holder, int position) {
-        Subject currentSubject = subjectList.get(position);
+        Substitution currentSubstitution = substitutionList.get(position);
 
         // reference textviews in layout_item
         TextView courseTextView = holder.courseTextView;
@@ -70,79 +70,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         CardView itemCardView = holder.itemCardView;
 
-        int color = R.color.defaultColor;
-        switch (currentSubject.getSubject()) {
-            case "BSB":
-                color = R.color.defaultColor;
-                break;
-            case "DLI":
-                color = R.color.defaultColor;
-                break;
-            case "---":
-                if (currentSubject.getRoom().equalsIgnoreCase("---")) color = R.color.freePeriod;
-                break;
-            case "Mat":
-                color = R.color.Mat;
-                break;
-            case "Eng":
-                color = R.color.Eng;
-                break;
-            case "Che":
-                color = R.color.Che;
-                break;
-            case "Deu":
-                color = R.color.Deu;
-                break;
-            case "Bio":
-                color = R.color.Bio;
-                break;
-            case "Phy":
-                color = R.color.Phy;
-                break;
-            case "Phi":
-                color = R.color.Phi;
-                break;
-            case "Spo":
-                color = R.color.Spo;
-                break;
-            case "Kun":
-                color = R.color.Kun;
-                break;
-            case "Mus":
-                color = R.color.Mus;
-                break;
-            case "Soz":
-                color = R.color.Soz;
-                break;
-            case "Inf":
-                color = R.color.Inf;
-                break;
-            case "Ges":
-                color = R.color.Ges;
-                break;
-            case "Ast":
-                color = R.color.Ast;
-                break;
-            case "Frz":
-                color = R.color.foreignLanguage;
-                break;
-            case "Rus":
-                color = R.color.foreignLanguage;
-                break;
-            case "Lat":
-                color = R.color.foreignLanguage;
-                break;
-            default:
-                color = R.color.defaultColor;
-                break;
-        }
+        int color = context.getResources().getIdentifier(Subject.getSubjectShortById(currentSubstitution.getSubject()), "color", null);
         itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
 
-        Log.i(TAG, currentSubject.getSubject().length() + " " + currentSubject.getTeacher());
-
         // differentiating between free period or not
-        if (currentSubject.getSubject().equals("---")) {
+        if (Subject.getSubjectShortById(currentSubstitution.getSubject()).equals("---")) {
             subjectTextView.setText("frei");
             roomTextView.setText("");
             teacherTextView.setText("");
@@ -154,10 +87,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             roomTextView.setVisibility(View.GONE);
 
         } else {
-            if (currentSubject.getTeacher().length() == 7) {
+            if (Teacher.getTeacher_shortById(currentSubstitution.getTeacher()).length() == 7) {
                 subjectTextView.setVisibility(View.INVISIBLE);
             } else {
-                subjectTextView.setText(currentSubject.getSubject());
+                subjectTextView.setText(currentSubstitution.getSubject());
             }
 
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) subjectTextView.getLayoutParams();
@@ -168,16 +101,16 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
             }
 
-            roomTextView.setText(currentSubject.getRoom());
+            roomTextView.setText(currentSubstitution.getRoom());
             roomTextView.setVisibility(View.VISIBLE);
-            teacherTextView.setText(currentSubject.getTeacher());
+            teacherTextView.setText(currentSubstitution.getTeacher());
         }
 
 
         // setting the rest of the output
-        courseTextView.setText(currentSubject.getCourse());
-        periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), String.valueOf(currentSubject.getPeriod())));
-        infoTextView.setText(currentSubject.getInfo());
+        courseTextView.setText(currentSubstitution.getClassYearLetter());
+        periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), String.valueOf(currentSubstitution.getPeriod())));
+        infoTextView.setText(currentSubstitution.getInfo());
 
         // change visibility on onclick event
         if (position == expandedPosition)
@@ -219,20 +152,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public int getItemCount() {
-        return subjectList.size();
+        return substitutionList.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView courseTextView;
-        public TextView periodTextView;
-        public TextView teacherTextView;
-        public TextView subjectTextView;
-        public TextView infoTextView;
-        public TextView roomTextView;
-        public CardView itemCardView;
+        TextView courseTextView;
+        TextView periodTextView;
+        TextView teacherTextView;
+        TextView subjectTextView;
+        TextView infoTextView;
+        TextView roomTextView;
+        CardView itemCardView;
 
-        public ViewHolder(View layoutItemView) {
+        ViewHolder(View layoutItemView) {
             super(layoutItemView);
             courseTextView = (TextView) layoutItemView.findViewById(R.id.courseTextView);
             periodTextView = (TextView) layoutItemView.findViewById(R.id.periodTextView);

@@ -125,7 +125,7 @@ class XmlParser implements Constants {
     }
 
 
-    public static int extractWeekdayCountFromTitle(String title) {
+    private static int extractWeekdayCountFromTitle(String title) {
 
         String[] weekdays = {"Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"};
 
@@ -201,7 +201,7 @@ class XmlParser implements Constants {
         try {
             XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
-            bufferedReader = new BufferedReader(new InputStreamReader(context.openFileInput(filename)));
+            //bufferedReader = new BufferedReader(new InputStreamReader(context.openFileInput(filename)));
             xmlPullParser.setInput(bufferedReader);
 
             int eventType = xmlPullParser.getEventType();

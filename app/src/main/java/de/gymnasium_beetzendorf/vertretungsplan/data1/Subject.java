@@ -62,7 +62,7 @@ public enum Subject {
         return null;
     }
 
-    static String getSubjectShortById(int id) {
+    public static String getSubjectShortById(int id) {
         for (Subject subject : values()) {
             if (subject.getId() == id) {
                 return subject.getSubject_short();

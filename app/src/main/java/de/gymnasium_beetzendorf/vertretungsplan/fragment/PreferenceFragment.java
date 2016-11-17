@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import java.util.Calendar;
 import java.util.List;
@@ -15,7 +14,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.School;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
         implements Constants, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -31,7 +30,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
         DatabaseHandler databaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
 
-        ListPreference schoolListPreference = (ListPreference) findPreference("school");
+        ListPreference schoolListPreference = (ListPreference) findPreference("schoolName");
         // disable this as long as multiple school support has not been implemented
         schoolListPreference.setEnabled(false);
 
@@ -104,19 +103,31 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        ListPreference classList = (ListPreference) findPreference("class_to_show");
-        classList.setTitle("Klasse - " + classList.getEntry());
-
         sharedPreferences.edit().putBoolean("preferences_changed", true).apply();
-
-        Preference refreshClassListPreferenceButton = findPreference("refresh_class_list");
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(sharedPreferences.getLong("last_class_list_refresh", 0));
-        refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + dateTimeFormatter.format(calendar.getTime()));
 
-        Preference refreshSubstitutionPreferenceButton = findPreference("refresh_substitution_plan");
-        calendar.setTimeInMillis(sharedPreferences.getLong("last_substitution_plan_refresh", 0));
-        refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
+        switch (key) {
+            case "schoolName":
+                ListPreference schoolList = (ListPreference) findPreference(key);
+                schoolList.setSummary(schoolList.getEntry());
 
+                // change the actual settings value
+                sharedPreferences.edit().putInt("school", School.findSchoolIdByName(sharedPreferences.getString(key, ""))).apply();
+                break;
+            case "class_to_show":
+                ListPreference classList = (ListPreference) findPreference("class_to_show");
+                classList.setTitle("Klasse - " + classList.getEntry());
+                break;
+            case "refresh_class_list":
+                Preference refreshClassListPreferenceButton = findPreference(key);
+                calendar.setTimeInMillis(sharedPreferences.getLong("last_class_list_refresh", 0));
+                refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + dateTimeFormatter.format(calendar.getTime()));
+                break;
+            case "refresh_substitution_plan":
+                Preference refreshSubstitutionPreferenceButton = findPreference(key);
+                calendar.setTimeInMillis(sharedPreferences.getLong("last_substitution_plan_refresh", 0));
+                refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
+                break;
+        }
     }
 }

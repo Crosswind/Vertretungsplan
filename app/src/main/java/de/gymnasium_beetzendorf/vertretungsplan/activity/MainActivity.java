@@ -32,6 +32,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.PagerAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 
 public class MainActivity extends BaseActivity
@@ -58,6 +59,10 @@ public class MainActivity extends BaseActivity
             }
         }
     };
+
+    private int mSchool;
+    private int mClassYear;
+    private String mClassLetter;
 
     @Override
     protected Toolbar getToolbar() {
@@ -94,11 +99,15 @@ public class MainActivity extends BaseActivity
         }
 
         if (mSharedPreferences.getLong("last_substitution_plan_refresh", 0) == 0) {
-            DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-            List<Schoolday> list = databaseHandler.getAllSubstitutions();
+            mDatabaseHandler = getDatabaseHandler();
+            List<SubstitutionDay> list = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
             if (list.size() > 0) {
-                mSharedPreferences.edit().putLong("last_substitution_plan_refresh", list.get(0).getLastUpdated()).apply();
+                mSharedPreferences.edit().putLong("last_substitution_plan_refresh", list.get(0).getUpdated()).apply();
             }
+        }
+
+        if (mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").equalsIgnoreCase("")) {
+            mSharedPreferences.edit().putString(PREFERENCE_CLASS_YEAR_LETTER, "05 A").apply();
         }
 
         // register alarm if it hasn't been done by the application after booting the device
@@ -136,7 +145,7 @@ public class MainActivity extends BaseActivity
         });
 
         mDatabaseHandler = getDatabaseHandler();
-        if (mDatabaseHandler.getAllSubstitutions().size() == 0) {
+        if (mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter).size() == 0) {
             refresh();
         } else {
             // definitely show the data that's already been loaded at some point
@@ -153,6 +162,10 @@ public class MainActivity extends BaseActivity
         if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
             displayData();
             mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+
+            mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
+            mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+            mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
         }
     }
 
@@ -233,7 +246,7 @@ public class MainActivity extends BaseActivity
     }
 
     public void displayData() {
-        List<Schoolday> databaseResults;
+        List<SubstitutionDay> databaseResults;
 
         mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
@@ -242,7 +255,7 @@ public class MainActivity extends BaseActivity
         int currentTabCount = -1;
 
         // get needed results
-        databaseResults = mDatabaseHandler.getAllSubstitutions();
+        databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
 
         // check if tabs are already there and store the current tab to reopen it
         if (mMainTabLayout.getTabCount() > 0) {
@@ -261,7 +274,7 @@ public class MainActivity extends BaseActivity
         for (int n = 0; n < databaseResults.size(); n++) {
 
             // only create a tab if there's any information to show within that tab
-            if (databaseResults.get(n).getSubjects().size() > 0) {
+            if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
@@ -271,10 +284,9 @@ public class MainActivity extends BaseActivity
             }
         }
 
-        //PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), databaseResults);
-        //mMainViewPager.setAdapter(pagerAdapter);
-
-        //mMainTabLayout.setupWithViewPager(mMainViewPager);
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), "substitution", databaseResults);
+        mMainViewPager.setAdapter(pagerAdapter);
+        mMainTabLayout.setupWithViewPager(mMainViewPager);
 
         mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mMainTabLayout) {
             @Override

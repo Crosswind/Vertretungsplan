@@ -13,6 +13,10 @@ public interface Constants {
 
 
     // identifiers used with SharedPreferences
+    String PREFERENCE_SCHOOL = "school";
+
+    String PREFERENCE_CLASS_YEAR_LETTER = "class_year_letter";
+
     String SCHOOL = "school";
     // boolean, if false then use CLASS_TO_SHOW
     String SHOW_WHOLE_PLAN = "show_whole_plan";

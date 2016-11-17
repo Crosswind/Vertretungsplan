@@ -29,7 +29,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 4;
+    public static int DATABASE_VERSION = 5;
 
     // substitution table / coloumn names
     private static String TABLE_SUBSTITUTION = "substitution";
@@ -123,10 +123,10 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 L_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 L_ID_DAY + " INTEGER, " +
                 L_CLASS_TYPE + " TEXT, " +
-                L_PERIOD + " INTEGER " +
+                L_PERIOD + " INTEGER, " +
                 L_SUBJECT + " INTEGER, " +
                 L_TEACHER + " INTEGER, " +
-                L_ROOM + " TEXT, " +
+                L_ROOM + " TEXT" +
                 ");";
         db.execSQL(query);
 
@@ -139,7 +139,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         db.execSQL(query);
 
         // classlist table
-        query = "CREATE TABLE " + TABLE_CLASSLIST + " (" +
+        query = "CREATE TABLE IF NOT EXISTS " + TABLE_CLASSLIST + " (" +
                 CL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 CL_NAME + " TEXT, " +
                 CL_URL + " TEXT" +
@@ -169,24 +169,42 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
+        try {
+            dateInMillis = dateFormatter.parse(date).getTime();
+        } catch (ParseException e) {
+            Log.e(TAG, "ParseException in init():", e);
+        }
 
 
     }
 
     public List<SubstitutionDay> getSubstitutionDayList (int school, int classYear, String classLetter) {
-        query = "SELECT * FROM " + TABLE_LESSON_DAYS + " WHERE " + SD_DATE + " >= " + date;
+        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        List<SubstitutionDay> result = new ArrayList<>();
 
-        return null;
+        if (cursor.moveToFirst()) {
+            do {
+                SubstitutionDay substitutionDay = new SubstitutionDay();
+                substitutionDay.setDate(cursor.getLong(2));
+                substitutionDay.setUpdated(cursor.getLong(3));
+                substitutionDay.setSubstitutionList(getSubstitutionListForDayId(cursor.getInt(1), classYear, classLetter));
+                substitutionDay.setSchool(school);
+            } while (cursor.moveToNext());
+        }
+
+        return result;
 
     }
 
     private List<Substitution> getSubstitutionListForDayId (int dayId, int classYear, String classLetter, String... classTypes) {
         query = "SELECT * FROM " + TABLE_SUBSTITUTION + " WHERE " + S_ID_DAY + " = '" + dayId + "' ";
-        if (classYear != 0 || classLetter != "") {
-            query += ", " + S_CLASS_YEAR + " = '" + classYear + "', " + S_CLASS_LETTER + " = '" + classLetter + "'";
+        if (classYear != 0 || !classLetter.equalsIgnoreCase("")) {
+            query += ", " + S_CLASS_YEAR + " = '" + classYear + "' AND " + S_CLASS_LETTER + " = '" + classLetter + "'";
         }
         if (classTypes.length > 0) {
-            query += " " + L_CLASS_TYPE + " IN(";
+            query += " AND " + L_CLASS_TYPE + " IN(";
             for (String classType : classTypes){
                 query += "'" + classType + "', ";
             }
@@ -198,9 +216,9 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
+        List<Substitution> result = new ArrayList<>();
 
         if (cursor.moveToFirst()) {
-            List<Substitution> result = new ArrayList();
             do {
                 Substitution substitution = new Substitution();
                 substitution.setClassYearLetter(cursor.getInt(3) + " " + cursor.getString(4));
@@ -212,10 +230,10 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 substitution.setInfo(cursor.getString(10));
                 result.add(substitution);
             } while (cursor.moveToNext());
-
-            return result;
         }
-        return null;
+
+        cursor.close();
+        return result;
     }
 
     public List<Schoolday> getFullSchedule() {
@@ -411,14 +429,14 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     */
 
-    public void emptyClassListTable() {
+    void emptyClassListTable() {
         SQLiteDatabase db = getWritableDatabase();
 
         query = "DELETE FROM " + TABLE_CLASSLIST;
         db.execSQL(query);
     }
 
-    public void updateClassList(List<Class> classList) {
+    void updateClassList(List<Class> classList) {
         SQLiteDatabase db = getWritableDatabase();
 
         if (classList.size() > 0) {

@@ -69,6 +69,15 @@ public enum School {
         throw new IllegalAccessException("No school with this name(" + name + ") found.");
     }
 
+    public static int findSchoolIdByName(String name) {
+        for (School school : schoolList()) {
+            if (school.getName().equalsIgnoreCase(name)) {
+                return school.getId();
+            }
+        }
+        return 0;
+    }
+
     public static School findSchoolById(int id) throws IllegalAccessException {
         for(School school : schoolList()) {
             if (school.getId() == id) {

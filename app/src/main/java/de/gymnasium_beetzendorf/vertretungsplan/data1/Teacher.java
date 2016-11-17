@@ -6,31 +6,42 @@ package de.gymnasium_beetzendorf.vertretungsplan.data1;
  */
 
 public enum Teacher {
-    ;
+    Huppertz(0, "HUP", "Huppertz", "Martin");
 
     private int id;
     private String teacher_short;
-    private String teacher_long;
+    private String teacher_long_last;
+    private String teacher_long_first;
 
-    Teacher(int id, String teacher_short, String teacher_long) {
+    Teacher(int id, String teacher_short, String teacher_long_last, String teacher_long_first) {
         this.id = id;
         this.teacher_short = teacher_short;
-        this.teacher_long = teacher_long;
+        this.teacher_long_last = teacher_long_last;
+        this.teacher_long_first = teacher_long_first;
     }
 
     public int getId() {
         return id;
     }
 
-    public String getTeacher_short() {
+    private String getTeacher_short() {
         return teacher_short;
     }
 
-    public String getTeacher_long() {
-        return teacher_long;
+    public static String getTeacher_shortById(int id) {
+        for (Teacher teacher : values()) {
+            if (teacher.id == id) {
+                return teacher.teacher_short;
+            }
+        }
+        return "";
     }
 
-    public static int getTeacherIdByTeacherShort (String teacher_short) {
+    public String getTeacher_long_last() {
+        return teacher_long_last;
+    }
+
+    public static int getTeacherIdByTeacherShort(String teacher_short) {
         for (Teacher teacher : values()) {
             if (teacher.getTeacher_short().equalsIgnoreCase(teacher_short)) {
                 return teacher.getId();

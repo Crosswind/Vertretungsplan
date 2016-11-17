@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Vertretungsplan">
         <ListPreference
-            android:key="school"
+            android:key="schoolName"
             android:title="Schule" />
         <Preference
             android:key="refresh_substitution_plan"

@@ -15,7 +15,7 @@ import java.net.URLConnection;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 
-public class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
+class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
 
     private RefreshService refreshService;
     String fileType;

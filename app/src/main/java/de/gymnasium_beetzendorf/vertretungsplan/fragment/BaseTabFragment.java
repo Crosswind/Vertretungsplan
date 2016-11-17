@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.RecyclerViewAdapter;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 
 
 public abstract class BaseTabFragment extends Fragment {
@@ -37,7 +37,7 @@ public abstract class BaseTabFragment extends Fragment {
         final View customView = inflater.inflate(getLayoutId(), container, false);
         final RecyclerView recyclerView = (RecyclerView) customView.findViewById(getRecyclerViewId());
 
-        RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(getContext(), getLessonsToDisplay(), getListType());
+        RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(getContext(), getSubstitutionsToDisplay(), getListType());
         recyclerView.setAdapter(recyclerViewAdapter);
 
         final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
@@ -58,7 +58,7 @@ public abstract class BaseTabFragment extends Fragment {
 
     protected abstract int getRecyclerViewId();
 
-    protected abstract List<Lesson> getLessonsToDisplay();
+    protected abstract List<Substitution> getSubstitutionsToDisplay();
 
     protected abstract String getListType();
 

@@ -32,6 +32,8 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
 
@@ -39,11 +41,19 @@ public class RefreshService extends IntentService implements Constants {
         super("RefreshService");
     }
 
+    private int mSchool;
+    private int mClassYear;
+    private String mClassLetter;
+
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.i(TAG, "RefreshService started");
 
         SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
+        Log.i(TAG, mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, ""));
+        mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+        mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
 
         Calendar calendar = Calendar.getInstance();
         String date = dateFormatter.format(calendar.getTime());
@@ -137,7 +147,7 @@ public class RefreshService extends IntentService implements Constants {
         List<Lesson> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        List<Schoolday> databaseResults = databaseHandler.getAllSubstitutions();
+        List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 

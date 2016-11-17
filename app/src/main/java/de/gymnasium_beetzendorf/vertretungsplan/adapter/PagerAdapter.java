@@ -7,15 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ScheduleTabFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.SubstitutionTabFragment;
 
 public class PagerAdapter extends FragmentStatePagerAdapter {
-    int numberOfTabs;
-    List<Schoolday> resultsToDisplay = new ArrayList<>();
-    String type;
+    private int numberOfTabs;
+    private List<SubstitutionDay> resultsToDisplay = new ArrayList<>();
+    private String type;
 
-    public PagerAdapter(FragmentManager fragmentManager, int numberOfTabs, String type, List<Schoolday> resultsToDisplay) {
+    public PagerAdapter(FragmentManager fragmentManager, int numberOfTabs, String type, List<SubstitutionDay> resultsToDisplay) {
         super(fragmentManager);
         this.numberOfTabs = numberOfTabs;
         this.resultsToDisplay = resultsToDisplay;
@@ -27,7 +28,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         switch (type) {
             case "substitution":
                 SubstitutionTabFragment substitutionTabFragment = new SubstitutionTabFragment();
-                substitutionTabFragment.setLessonsToDisplay(resultsToDisplay.get(position).getLessons());
+                substitutionTabFragment.setLessonsToDisplay(resultsToDisplay.get(position).getSubstitutionList());
                 return substitutionTabFragment;
             case "schedule":
                 ScheduleTabFragment scheduleTabFragment = new ScheduleTabFragment();

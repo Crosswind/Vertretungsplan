@@ -5,13 +5,14 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 
 public class SubstitutionTabFragment extends BaseTabFragment {
 
-    List<Lesson> lessonsToDisplay = new ArrayList<>();
+    List<Substitution> substitutionsToDisplay = new ArrayList<>();
 
-    public void setLessonsToDisplay(List<Lesson> lessonsToDisplay) {
-        this.lessonsToDisplay = lessonsToDisplay;
+    public void setLessonsToDisplay(List<Substitution> substitutionsToDisplay) {
+        this.substitutionsToDisplay = substitutionsToDisplay;
     }
 
     @Override
@@ -25,8 +26,8 @@ public class SubstitutionTabFragment extends BaseTabFragment {
     }
 
     @Override
-    protected List<Lesson> getLessonsToDisplay() {
-        return lessonsToDisplay;
+    protected List<Substitution> getSubstitutionsToDisplay() {
+        return substitutionsToDisplay;
     }
 
     @Override
