@@ -12,6 +12,8 @@ public class Lesson {
     private int teacher;
     private String room;
     private String course;
+    // string that contains which fields have been changed. format: field1|field2|
+    private String change;
 
     public int getPeriod() {
         return period;
@@ -51,5 +53,13 @@ public class Lesson {
 
     public void setCourse(String course) {
         this.course = course;
+    }
+
+    public String getChange() {
+        return change;
+    }
+
+    public void setChange(String change) {
+        this.change = change;
     }
 }

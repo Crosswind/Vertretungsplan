@@ -31,7 +31,6 @@ import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.PagerAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 

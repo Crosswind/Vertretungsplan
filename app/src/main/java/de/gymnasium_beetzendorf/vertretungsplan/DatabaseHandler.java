@@ -17,10 +17,10 @@ import java.util.List;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
 
 
@@ -43,7 +43,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private static String S_SUBJECT = "s_subject";
     private static String S_TEACHER = "s_teacher";
     private static String S_ROOM = "s_room";
-    private static String S_INO = "s_info";
+    private static String S_INFO = "s_info";
+    private static String S_CHANGE = "s_change";
 
     // substitution days table / coloumn names
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
@@ -105,7 +106,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 S_SUBJECT + " INTEGER, " +
                 S_TEACHER + " INTEGER, " +
                 S_ROOM + " TEXT, " +
-                S_INO + " TEXT " +
+                S_INFO + " TEXT " +
+                S_CHANGE + " TEXT " +
                 ");";
         db.execSQL(query);
 
@@ -162,6 +164,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
                 db.execSQL(query);
                 onCreate(db);
+            case 6:
+                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
+                db.execSQL(query);
+            default:
+                break;
         }
     }
 
@@ -178,8 +185,12 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     }
 
-    public List<SubstitutionDay> getSubstitutionDayList (int school, int classYear, String classLetter) {
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
+    public List<SubstitutionDay> getSubstitutionDayList(int school, int classYear, String classLetter) {
+        if (classYear == 0 && classLetter.equalsIgnoreCase("")) {
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_SCHOOL + " = " + school;
+        } else {
+            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
+        }
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         List<SubstitutionDay> result = new ArrayList<>();
@@ -189,26 +200,27 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 SubstitutionDay substitutionDay = new SubstitutionDay();
                 substitutionDay.setDate(cursor.getLong(2));
                 substitutionDay.setUpdated(cursor.getLong(3));
-                substitutionDay.setSubstitutionList(getSubstitutionListForDayId(cursor.getInt(1), classYear, classLetter));
+                substitutionDay.setSubstitutionList(getSubstitutionListByDayId(cursor.getInt(1), classYear, classLetter));
                 substitutionDay.setSchool(school);
             } while (cursor.moveToNext());
         }
 
+        cursor.close();
         return result;
 
     }
 
-    private List<Substitution> getSubstitutionListForDayId (int dayId, int classYear, String classLetter, String... classTypes) {
+    private List<Substitution> getSubstitutionListByDayId(int dayId, int classYear, String classLetter, String... classTypes) {
         query = "SELECT * FROM " + TABLE_SUBSTITUTION + " WHERE " + S_ID_DAY + " = '" + dayId + "' ";
         if (classYear != 0 || !classLetter.equalsIgnoreCase("")) {
             query += ", " + S_CLASS_YEAR + " = '" + classYear + "' AND " + S_CLASS_LETTER + " = '" + classLetter + "'";
         }
         if (classTypes.length > 0) {
             query += " AND " + L_CLASS_TYPE + " IN(";
-            for (String classType : classTypes){
+            for (String classType : classTypes) {
                 query += "'" + classType + "', ";
             }
-            query = query.substring(0, query.length()-1); // delete last comma
+            query = query.substring(0, query.length() - 1); // delete last comma
             query += ")";
         }
         query += ";";
@@ -242,6 +254,14 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     private List<Lesson> getScheduleLessonsByDay() {
         return null;
+    }
+
+    public void insertSubstitutionResults(int school, List<SubstitutionDay> results) {
+
+    }
+
+    private void cleanSubstitutionDatabase() {
+
     }
 
 

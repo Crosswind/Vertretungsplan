@@ -87,7 +87,7 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
                 refreshService.callBackSubstitution();
                 break;
             case "schedule":
-                refreshService.callBackSchedule(schedClass);
+                //refreshService.callBackSchedule(schedClass);
                 break;
 
         }

@@ -3,8 +3,6 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -32,7 +30,6 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
@@ -144,7 +141,7 @@ public class RefreshService extends IntentService implements Constants {
     public void callBackSubstitution() {
 
         XmlParser parser = new XmlParser(this, XmlParser.XMLPARSER_TYPE_SUBSTITUTION);
-        List<Lesson> xmlResults = parser.parseReturnSubstitution();
+        List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
         List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
@@ -196,10 +193,6 @@ public class RefreshService extends IntentService implements Constants {
 
     }
 
-    public void callBackSchedule(String schedClass) {
-    }
-
-
     public void updateClassList() {
         String url = "http://gymnasium-beetzendorf.de/stundenkl/default.html";
 
@@ -244,6 +237,5 @@ public class RefreshService extends IntentService implements Constants {
         } catch (IOException e) {
             Log.e(TAG, "IOException when getting html", e);
         }
-
     }
 }

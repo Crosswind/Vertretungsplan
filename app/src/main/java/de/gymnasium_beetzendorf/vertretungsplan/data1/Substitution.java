@@ -15,6 +15,8 @@ public class Substitution {
     private String room;
     private String info;
 
+    private String changes;
+
 
     public String getClassYearLetter() {
         return classYearLetter;
@@ -70,5 +72,13 @@ public class Substitution {
 
     public void setClassCourse(String classCourse) {
         this.classCourse = classCourse;
+    }
+
+    public String getChanges() {
+        return changes;
+    }
+
+    public void setChanges(String changes) {
+        this.changes = changes;
     }
 }
