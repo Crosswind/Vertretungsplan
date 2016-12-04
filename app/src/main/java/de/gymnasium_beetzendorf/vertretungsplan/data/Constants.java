@@ -11,23 +11,16 @@ public interface Constants {
     // string used for debugging as a filter
     String TAG = "Vertretungsplan";
 
-
     // identifiers used with SharedPreferences
     String PREFERENCE_SCHOOL = "school";
-
     String PREFERENCE_CLASS_YEAR_LETTER = "class_year_letter";
-
-    String SCHOOL = "school";
-    // boolean, if false then use CLASS_TO_SHOW
-    String SHOW_WHOLE_PLAN = "show_whole_plan";
-    // string that represents the class the user wants to see
-    String CLASS_TO_SHOW = "class_to_show";
+    String PREFERENCE_SHOW_WHOLE_PLAN = "show_whole_plan";
 
     // boolean to determine wheter the view should update itsself after leaving the preference screen
     String PREFERENCES_CHANGED = "preferences_changed";
 
     // boolean, if false it immediately registers a new alarm to handle refreshing the data
-    String ALARM_REGISTERED = "alarm_registered";
+    String PREFERENCE_ALARM_REGISTERED = "alarm_registered";
 
 
     // date formatting variables - used all over the project

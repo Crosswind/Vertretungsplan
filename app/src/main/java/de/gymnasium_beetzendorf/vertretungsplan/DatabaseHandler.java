@@ -335,7 +335,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         String classToShow, classToShowPrimary, classToShowSecondary;
 
         // specify the results needed depending on the settings
-        if (sharedPreferences.getBoolean(SHOW_WHOLE_PLAN, true)) {
+        if (sharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, true)) {
             query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
         } else {
             classToShow = sharedPreferences.getString(CLASS_TO_SHOW, null);

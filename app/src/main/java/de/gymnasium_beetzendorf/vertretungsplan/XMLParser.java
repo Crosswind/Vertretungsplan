@@ -48,21 +48,21 @@ class XmlParser implements Constants {
     XmlParser(Context context, String type) {
         this.context = context;
         this.type = type;
-
         init();
     }
 
 
     private void init() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.school = sharedPreferences.getInt("school", 1);
 
         switch (type) {
             case "schedule":
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                 this.classToShow = sharedPreferences.getString("class_to_show", "");
-                this.school = sharedPreferences.getInt("school", 0);
                 this.filename = "aktuell" + this.classToShow + ".xml";
                 break;
             case "substitution":
+                Log.i(TAG, "Schule: " + String.valueOf(school));
                 this.filename = "substitution_" + String.valueOf(school) + ".xml";
                 break;
         }
@@ -72,8 +72,7 @@ class XmlParser implements Constants {
             bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
             tempBufferedReader = bufferedReader;
         } catch (IOException e) {
-            e.printStackTrace();
-            // TODO: add method to try to redownload the missing file
+            Log.e(TAG, "missing file here: ", e);
         }
 
         setFileEncoding();
@@ -116,10 +115,10 @@ class XmlParser implements Constants {
             int start = firstLine.indexOf("encoding=") + 10; // +10 to actually start after the encoding string
             String encoding = firstLine.substring(start, firstLine.indexOf("\"", start));
 
-            this.bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, encoding));
+            this.bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
             this.tempBufferedReader = bufferedReader;
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "problem with file encoding ", e);
         }
     }
 
@@ -134,6 +133,7 @@ class XmlParser implements Constants {
             XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(bufferedReader);
+
             int eventType = xmlPullParser.getEventType();
 
             while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -145,6 +145,9 @@ class XmlParser implements Constants {
 
                 tag = xmlPullParser.getName();
                 switch (eventType) {
+                    case XmlPullParser.TEXT:
+                        text = xmlPullParser.getText();
+                        break;
                     case XmlPullParser.START_TAG:
                         if (xmlPullParser.getAttributeCount() > 0) {
                             attributeName = xmlPullParser.getAttributeName(0);
@@ -176,14 +179,17 @@ class XmlParser implements Constants {
                                 break;
                         }
                         break;
-                    case XmlPullParser.TEXT:
-                        text = xmlPullParser.getText();
-                        break;
+
                     case XmlPullParser.END_TAG:
                         switch (tag) {
                             // all data stored as header data
                             case "titel":
                                 tempStringArray = text.split("[,(]");
+                                String log = "";
+                                for (String aTempStringArray : tempStringArray) {
+                                    log += " --- " + aTempStringArray;
+                                }
+                                Log.i(TAG, log + "text: " + text);
                                 String weekString = tempStringArray[2].substring(0, 1);
 
                                 String dateString = tempStringArray[1].trim();

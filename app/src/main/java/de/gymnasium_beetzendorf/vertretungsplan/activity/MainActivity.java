@@ -10,8 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
@@ -43,6 +41,9 @@ public class MainActivity extends BaseActivity
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private Context mContext;
     private DatabaseHandler mDatabaseHandler;
+    private int mSchool;
+    private int mClassYear;
+    private String mClassLetter;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -59,9 +60,11 @@ public class MainActivity extends BaseActivity
         }
     };
 
-    private int mSchool;
-    private int mClassYear;
-    private String mClassLetter;
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
+    }
 
     @Override
     protected Toolbar getToolbar() {
@@ -79,8 +82,15 @@ public class MainActivity extends BaseActivity
             mContext = this;
         }
 
-        // check if all settings are set
+        // instantiate preference
+        mSharedPreferences = getSharedPreferences();
 
+        // check if all settings are set
+        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
+        mClassLetter = "A";
+        mClassYear = 12;
+        //mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+        //mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
 
         // activate boot receiver
         // this will start the alarm that is responsible for refreshing data
@@ -88,8 +98,7 @@ public class MainActivity extends BaseActivity
         PackageManager packageManager = this.getPackageManager();
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
-        // instantiate preference
-        mSharedPreferences = getSharedPreferences();
+
 
         if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
             Intent intent = new Intent(this, RefreshService.class);
@@ -105,12 +114,8 @@ public class MainActivity extends BaseActivity
             }
         }
 
-        if (mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").equalsIgnoreCase("")) {
-            mSharedPreferences.edit().putString(PREFERENCE_CLASS_YEAR_LETTER, "05 A").apply();
-        }
-
         // register alarm if it hasn't been done by the application after booting the device
-        if (!mSharedPreferences.getBoolean(ALARM_REGISTERED, false)) {
+        if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
             // assign RefreshService class
             Intent alarmIntent = new Intent(this, RefreshService.class);
             PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
@@ -127,7 +132,7 @@ public class MainActivity extends BaseActivity
 
             // change prefs so it won't set alarm everytime the app opens
             // unless the app is uninstalled/cache wiped the alarm will be handled by BootReceiver after the devices boots
-            mSharedPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
+            mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
         }
 
         // instantiate SwipeRefreshLayout
@@ -142,6 +147,7 @@ public class MainActivity extends BaseActivity
                 refresh();
             }
         });
+
 
         mDatabaseHandler = getDatabaseHandler();
         if (mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter).size() == 0) {
@@ -213,13 +219,6 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    // checks whether there's an active internet connection (WiFi/Data)
-    public boolean checkConnection() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
-    }
-
     // takes care of data refreshing logic
     // if internet connection is available it tries a full refresh
     // else it just displays the current data
@@ -229,7 +228,7 @@ public class MainActivity extends BaseActivity
             mSwipeRefreshLayout.setRefreshing(true);
         }
 
-        if (checkConnection()) {
+        if (hasInternetAccess()) {
             Intent refreshServiceIntent = new Intent(this, RefreshService.class);
             refreshServiceIntent.putExtra("manual_refresh", true);
             startService(refreshServiceIntent);
@@ -239,10 +238,6 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    @Override
-    protected int getLayoutId() {
-        return R.layout.activity_main;
-    }
 
     public void displayData() {
         List<SubstitutionDay> databaseResults;

@@ -28,7 +28,6 @@ import java.util.List;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
@@ -48,9 +47,8 @@ public class RefreshService extends IntentService implements Constants {
 
         SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-        Log.i(TAG, mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, ""));
-        mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-        mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
+        //mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+        //mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
 
         Calendar calendar = Calendar.getInstance();
         String date = dateFormatter.format(calendar.getTime());
@@ -67,7 +65,7 @@ public class RefreshService extends IntentService implements Constants {
         // only run if it's been send from the MainActivity or if it's earlier than the lastRefresh (4pm of today)
         if (manualRefresh || System.currentTimeMillis() <= lastRefresh) {
             // download file from server
-            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "", 0);
+            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "", 1);
 
         } else {
             // cancel the refreshing animation
@@ -90,12 +88,11 @@ public class RefreshService extends IntentService implements Constants {
 
             Log.i(TAG, "Alarm set");
 
-            mSharedPreferences.edit().putBoolean(ALARM_REGISTERED, true).apply();
+            mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
         }
 
 
         if (intent.getBooleanExtra("refresh_class_list", false)) {
-
             updateClassList();
         }
 
@@ -144,7 +141,7 @@ public class RefreshService extends IntentService implements Constants {
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
+        //List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 

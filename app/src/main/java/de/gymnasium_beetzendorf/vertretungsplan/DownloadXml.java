@@ -23,7 +23,7 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
     String schedClass;
     int school;
 
-    public DownloadXml(RefreshService refreshService, String fileType, String url, String schedClass, int school) {
+    DownloadXml(RefreshService refreshService, String fileType, String url, String schedClass, int school) {
         this.refreshService = refreshService;
         this.fileType = fileType;
         this.url = url;
@@ -38,15 +38,14 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
             URL url = new URL(this.url);
             URLConnection urlConnection = url.openConnection();
 
-            //String encoding = getFileEncoding(urlConnection);
-            //Log.i(TAG, "encoding: " + encoding);
-
             InputStream inputStream = urlConnection.getInputStream();
             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
 
             String filename;
             switch (fileType) {
                 case "substitution":
+                    Log.i(TAG, "Schule(DownloadXML): " + String.valueOf(school));
+
                     filename = "substitution_" + String.valueOf(school) + ".xml";
                     break;
                 case "schedule":

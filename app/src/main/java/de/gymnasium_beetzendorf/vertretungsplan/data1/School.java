@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum School {
-    Gymnasium_Beetzendorf (0,
+    Gymnasium_Beetzendorf (1,
             "Gymnasium Beetzendorf",
             "http://gymnasium-beetzendorf.de/vplankl/Vertretungsplan_Klassen.xml",
             "http://gymnasium-beetzendorf.de/stundenkl/default.html",

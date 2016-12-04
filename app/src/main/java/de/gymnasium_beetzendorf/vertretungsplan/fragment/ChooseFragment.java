@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,14 +55,25 @@ public abstract class ChooseFragment extends Fragment {
         button.setOnClickListener(getNextButtonOnclickListener());
     }
 
+    protected SharedPreferences getSharedPreferences(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context);
+    }
+
     protected abstract String getNextButtonText();
 
     protected abstract View.OnClickListener getNextButtonOnclickListener();
 
-    protected abstract class ChooseFragmentOnclickListener {
+    protected String getResourceString(int id) {
+        if (activity != null) {
+            return activity.getResources().getString(id);
+        }
+        return null;
+    }
+
+    protected abstract class ChooseFragmentOnclickListener implements View.OnClickListener {
         Activity activity;
 
-        public ChooseFragmentOnclickListener(Context context) {
+        ChooseFragmentOnclickListener(Context context) {
             activity = (Activity) context;
         }
 

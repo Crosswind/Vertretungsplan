@@ -49,6 +49,6 @@ public class BootReceiver extends BroadcastReceiver implements Constants {
                     alarmPendingIntent);
         }
 
-        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(ALARM_REGISTERED, true).apply();
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
     }
 }

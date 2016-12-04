@@ -1,10 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimaryDark"
+    android:paddingTop="10dp"
     tools:context=".activity.WelcomeActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:paddingBottom="?actionBarSize">
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            android:src="@drawable/web_hi_res_512" />
+
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="?actionBarSize"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:paddingTop="168dp"
+        android:scrollbarStyle="outsideOverlay">
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/welcome_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="?actionBarSize"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:minHeight="20dp"
+            android:paddingBottom="16dp"
+            android:paddingTop="16dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp">
+
+            <include layout="@layout/welcome_school_fragment" />
+        </android.support.v7.widget.CardView>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,11 +61,13 @@
             style="?android:borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:text="Weiter"
+            android:text="@string/welcome_next"
             android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:textSize="25sp" />
 
     </LinearLayout>
+
 </FrameLayout>
 
 
