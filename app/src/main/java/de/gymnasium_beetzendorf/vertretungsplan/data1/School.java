@@ -9,7 +9,12 @@ public enum School {
             "Gymnasium Beetzendorf",
             "http://gymnasium-beetzendorf.de/vplankl/Vertretungsplan_Klassen.xml",
             "http://gymnasium-beetzendorf.de/stundenkl/default.html",
-            "http://gymnasium-beetzendorf.de/stundenkl/");
+            "http://gymnasium-beetzendorf.de/stundenkl/"),
+    Jahn_Gymnasium(1,
+            "Jahn Gymnasium Salzwedel",
+            "",
+            "",
+            "");
 
 
     private int id;

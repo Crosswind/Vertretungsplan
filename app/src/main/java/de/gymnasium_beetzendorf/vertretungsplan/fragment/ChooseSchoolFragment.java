@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
+import de.gymnasium_beetzendorf.vertretungsplan.adapter.CustomListAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
 
@@ -74,18 +76,26 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
         View view = inflater.inflate(R.layout.welcome_school_fragment, container, false);
 
         final List<String> schools = School.schoolListNames();
-        schools.add("[Schule]");
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_item, schools) {
-            @Override
-            public int getCount() {
-                return schools.size();
-            }
-        };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        mSpinner = (Spinner) view.findViewById(R.id.schoolDropdown);
-        mSpinner.setAdapter(adapter);
+        schools.add(schools.get(0));
+        schools.add(schools.get(0));
+        schools.add(schools.get(0));
+        schools.add(schools.get(0));
+        schools.add(schools.get(1));
+        schools.add(schools.get(1));
+        schools.add(schools.get(1));
+        schools.add(schools.get(1));
+        schools.add(schools.get(1));
 
+        ListView listView = (ListView) view.findViewById(R.id.schoolListView);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        Log.i(TAG, "Menge der schulen: " + String.valueOf(schools.size()));
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, schools);
+        listView.setAdapter(arrayAdapter);
+        CustomListAdapter adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
+        //listView.setAdapter(adapter);
 
         return view;
     }
