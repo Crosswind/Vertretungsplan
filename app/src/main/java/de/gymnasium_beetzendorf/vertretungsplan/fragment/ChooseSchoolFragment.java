@@ -90,11 +90,13 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
         ListView listView = (ListView) view.findViewById(R.id.schoolListView);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
-        Log.i(TAG, "Menge der schulen: " + String.valueOf(schools.size()));
+        ViewGroup.LayoutParams layoutParams = listView.getLayoutParams();
+        layoutParams.height = (schools.size() * 70);
+        listView.setLayoutParams(layoutParams);
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, schools);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, schools);
         listView.setAdapter(arrayAdapter);
-        CustomListAdapter adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
+        //CustomListAdapter adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
         //listView.setAdapter(adapter);
 
         return view;
