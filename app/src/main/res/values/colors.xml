@@ -7,6 +7,7 @@
     <color name="black">#03751f</color>
     <color name="textColorSecondary">@color/textColorPrimary</color>
     <!--- #727272  -->
+    <color name="appWhite">#FFFEFEFE</color>
     <color name="backgroundColor">#FFFFFF</color>
     <color name="textColorPrimaryInverse">#DEDEDE</color>
     <color name="textColorSecondaryInverse">#8D8D8D</color>

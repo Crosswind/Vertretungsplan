@@ -1,6 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,14 +9,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.sql.Ref;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
+import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.CustomListAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
@@ -28,7 +30,10 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
 
     private final String TAG = ChooseSchoolFragment.class.getSimpleName();
     SharedPreferences mSharedPreferences;
-    Spinner mSpinner;
+    ListView listView;
+    CustomListAdapter adapter;
+    int selected = -1;
+
 
     @Override
     protected String getNextButtonText() {
@@ -36,19 +41,19 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
     }
 
     @Override
-    protected View.OnClickListener getNextButtonOnclickListener() {
+    protected ChooseFragmentOnclickListener getNextButtonOnclickListener() {
         return new ChooseFragmentOnclickListener(activity) {
             @Override
             public void onClick(View v) {
-                if (mSpinner != null) {
-                    Log.i(TAG, "schule ausgewählt: " + mSpinner.getSelectedItem().toString());
-                    if (mSpinner.getSelectedItemPosition() != Spinner.INVALID_POSITION && !mSpinner.getSelectedItem().toString().equalsIgnoreCase("[Schule]")) {
-                        mSharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, mSpinner.getSelectedItemPosition() + 1).apply();  // +1 because school start with 1 and the first index in spinner is 0
-                        doNext();
-                    } else {
-                        Toast.makeText(activity, "Bitte wähle deine Schule aus!", Toast.LENGTH_LONG).show();
-                        //doFinish();
-                    }
+                if (selected >= 0) {
+                    mSharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, selected).apply();
+                    Intent intent = new Intent(activity, RefreshService.class);
+                    intent.putExtra("refresh_class_list", true);
+                    activity.startService(intent);
+
+                    doNext();
+                } else {
+                    Toast.makeText(getActivity(), "Bitte Schule auswählen.", Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -60,12 +65,12 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
         int school;
 
         try {
-            school = mSharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, 0);
+            school = mSharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, -1);
         } catch (NullPointerException e) {
             Log.e(TAG, "school not set yet", e);
             return true;
         }
-        return school <= 0;
+        return school < 0;
     }
 
 
@@ -76,28 +81,19 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
         View view = inflater.inflate(R.layout.welcome_school_fragment, container, false);
 
         final List<String> schools = School.schoolListNames();
+        adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
 
-        schools.add(schools.get(0));
-        schools.add(schools.get(0));
-        schools.add(schools.get(0));
-        schools.add(schools.get(0));
-        schools.add(schools.get(1));
-        schools.add(schools.get(1));
-        schools.add(schools.get(1));
-        schools.add(schools.get(1));
-        schools.add(schools.get(1));
+        listView = (ListView) view.findViewById(R.id.schoolListView);
 
-        ListView listView = (ListView) view.findViewById(R.id.schoolListView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selected = position;
+            }
+        });
+
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-
-        ViewGroup.LayoutParams layoutParams = listView.getLayoutParams();
-        layoutParams.height = (schools.size() * 70);
-        listView.setLayoutParams(layoutParams);
-
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, schools);
-        listView.setAdapter(arrayAdapter);
-        //CustomListAdapter adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
-        //listView.setAdapter(adapter);
+        listView.setAdapter(adapter);
 
         return view;
     }

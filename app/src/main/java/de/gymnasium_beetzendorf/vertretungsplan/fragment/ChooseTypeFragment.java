@@ -1,7 +1,6 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.content.Context;
-import android.view.View;
 
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 
@@ -15,7 +14,7 @@ public class ChooseTypeFragment extends ChooseFragment implements WelcomeActivit
     }
 
     @Override
-    protected View.OnClickListener getNextButtonOnclickListener() {
+    protected ChooseFragmentOnclickListener getNextButtonOnclickListener() {
         return null;
     }
 

@@ -1,11 +1,12 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Checkable;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 /**
  * Created by davidfrenzel on 07/12/2016.
@@ -21,21 +22,21 @@ public class CustomListItem extends LinearLayout implements Checkable {
     }
 
     private boolean checked = false;
-
-    private ImageView checkmark;
+    private TextView textView;
+    private ObjectAnimator objectAnimator;
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        checkmark = (ImageView) findViewById(R.id.checkmark);
+        textView = (TextView) findViewById(R.id.listViewText);
     }
 
     @Override
     public void setChecked(boolean checked) {
         this.checked = checked;
-        if (checkmark.getVisibility() == View.GONE) {
-            checkmark.setImageResource((checked) ? R.drawable.ic_checkmark : 0);
-        }
+        int color = checked ? R.color.colorAccent : R.color.appWhite;
+
+        textView.setBackgroundColor(ContextCompat.getColor(getContext(), color));
     }
 
     @Override
@@ -46,6 +47,5 @@ public class CustomListItem extends LinearLayout implements Checkable {
     @Override
     public void toggle() {
         setChecked(!checked);
-
     }
 }

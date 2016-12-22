@@ -61,7 +61,7 @@ public abstract class ChooseFragment extends Fragment {
 
     protected abstract String getNextButtonText();
 
-    protected abstract View.OnClickListener getNextButtonOnclickListener();
+    protected abstract ChooseFragmentOnclickListener getNextButtonOnclickListener();
 
     protected String getResourceString(int id) {
         if (activity != null) {

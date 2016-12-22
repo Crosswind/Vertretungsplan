@@ -14,6 +14,7 @@
     <string name="period_description">%1$s. Stunde</string>
     <string name="welcome_next">Weiter</string>
     <string name="welcome_choose_school">Wähle deine Schule aus:</string>
+    <string name="welcome_choose_class">Wähle deine Klasse aus:</string>
     <string-array name="notification_types_entries">
         <item>15 min</item>
         <item>30 min</item>
