@@ -27,9 +27,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
         addPreferencesFromResource(R.xml.preferences);
         PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
-
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         DatabaseHandler databaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
 
         ListPreference schoolListPreference = (ListPreference) findPreference("schoolName");
@@ -44,6 +42,13 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
         // set the correct school in the list preference.
         schoolListPreference.setValueIndex(sharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, 0));
+        String school;
+        try {
+            school = School.findSchoolById(sharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, 0)).getName();
+        } catch (IllegalAccessException e) {
+            school = String.valueOf(sharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, 0));
+        }
+        schoolListPreference.setSummary(school);
 
         // classes to chose from
         ListPreference classListPreference = (ListPreference) findPreference("class_to_show");
@@ -105,30 +110,29 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         sharedPreferences.edit().putBoolean("preferences_changed", true).apply();
         Calendar calendar = Calendar.getInstance();
 
+        Toast.makeText(getActivity(), "key: " + key, Toast.LENGTH_SHORT).show();
         switch (key) {
             case "schoolName":
                 ListPreference schoolList = (ListPreference) findPreference(key);
                 schoolList.setSummary(schoolList.getEntry());
 
-                Toast.makeText(getActivity(), School.findSchoolIdByName(schoolList.getValue()), Toast.LENGTH_LONG).show();
-
                 // change the actual settings value
                 sharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, School.findSchoolIdByName(schoolList.getValue())).apply();
-                break;
+
             case "class_to_show":
                 ListPreference classList = (ListPreference) findPreference("class_to_show");
                 classList.setTitle("Klasse - " + classList.getEntry());
-                break;
-            case "refresh_class_list":
-                Preference refreshClassListPreferenceButton = findPreference(key);
+
+            case "last_class_list_refresh":
+                Preference refreshClassListPreferenceButton = findPreference("refresh_class_list");
                 calendar.setTimeInMillis(sharedPreferences.getLong("last_class_list_refresh", 0));
                 refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + dateTimeFormatter.format(calendar.getTime()));
-                break;
+
             case "refresh_substitution_plan":
                 Preference refreshSubstitutionPreferenceButton = findPreference(key);
                 calendar.setTimeInMillis(sharedPreferences.getLong("last_substitution_plan_refresh", 0));
                 refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
-                break;
+
         }
     }
 }

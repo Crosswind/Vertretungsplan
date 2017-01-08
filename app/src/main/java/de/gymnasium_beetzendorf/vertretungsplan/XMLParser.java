@@ -75,7 +75,7 @@ class XmlParser implements Constants {
             Log.e(TAG, "missing file here: ", e);
         }
 
-        setFileEncoding();
+        //setFileEncoding();
     }
 
     private void finish() {
@@ -148,6 +148,7 @@ class XmlParser implements Constants {
                     case XmlPullParser.TEXT:
                         text = xmlPullParser.getText();
                         break;
+
                     case XmlPullParser.START_TAG:
                         if (xmlPullParser.getAttributeCount() > 0) {
                             attributeName = xmlPullParser.getAttributeName(0);
@@ -180,16 +181,13 @@ class XmlParser implements Constants {
                         }
                         break;
 
+
                     case XmlPullParser.END_TAG:
                         switch (tag) {
                             // all data stored as header data
                             case "titel":
                                 tempStringArray = text.split("[,(]");
-                                String log = "";
-                                for (String aTempStringArray : tempStringArray) {
-                                    log += " --- " + aTempStringArray;
-                                }
-                                Log.i(TAG, log + "text: " + text);
+                                Log.i(TAG, "text: " + text + "\narray[1]: " + tempStringArray[0]);
                                 String weekString = tempStringArray[2].substring(0, 1);
 
                                 String dateString = tempStringArray[1].trim();
@@ -270,6 +268,7 @@ class XmlParser implements Constants {
                                 break;
                         }
                         break;
+
                 }
                 eventType = xmlPullParser.next();
             }
@@ -282,7 +281,7 @@ class XmlParser implements Constants {
         }
 
         Log.i(TAG, "finished parsing, result size: " + String.valueOf(results.size()));
-        finish();
+        //finish();
         return results;
     }
 

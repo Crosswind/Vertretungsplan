@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
@@ -229,7 +230,14 @@ public class RefreshService extends IntentService implements Constants {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             sharedPreferences.edit().putLong("last_class_list_refresh", System.currentTimeMillis()).apply();
 
-            Toast.makeText(getApplicationContext(), "Klassen geupdated", Toast.LENGTH_SHORT).show();
+            Handler mHandler = new Handler(getMainLooper());
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), "Klassen geupdated", Toast.LENGTH_SHORT).show();
+
+                }
+            });
 
         } catch (IOException e) {
             Log.e(TAG, "IOException when getting html", e);

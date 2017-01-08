@@ -8,13 +8,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
-import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 
 /**
  * Created by David on 19.09.16.
@@ -57,6 +58,10 @@ public abstract class ChooseFragment extends Fragment {
 
     protected SharedPreferences getSharedPreferences(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
+    }
+
+    protected CoordinatorLayout getCoordinatorLayout() {
+        return (CoordinatorLayout) activity.findViewById(R.id.welcome_coordinator);
     }
 
     protected abstract String getNextButtonText();

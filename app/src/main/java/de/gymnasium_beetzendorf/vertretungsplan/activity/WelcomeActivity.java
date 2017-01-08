@@ -18,9 +18,6 @@ import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseSchoolFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseTypeFragment;
 
-/**
- * Created by David on 19.09.16.
- */
 public class WelcomeActivity extends AppCompatActivity implements ChooseFragment.ChooseFragmentContainer {
 
     private final String TAG = WelcomeActivity.class.getSimpleName();
@@ -30,7 +27,7 @@ public class WelcomeActivity extends AppCompatActivity implements ChooseFragment
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_choose);
+        setContentView(R.layout.activity_choose_coord);
 
         mWelcomeFragment = getWelcomeFragment(this);
 

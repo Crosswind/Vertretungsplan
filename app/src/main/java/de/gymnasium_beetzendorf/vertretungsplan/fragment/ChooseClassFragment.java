@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
                     mSharedPreferences.edit().putString(Constants.PREFERENCE_CLASS_YEAR_LETTER, classes.get(selected)).apply();
                     doNext();
                 } else {
-                    Toast.makeText(getActivity(), "Bitte Klasse auswählen.", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(getCoordinatorLayout(), "Bitte Klasse auswählen", Snackbar.LENGTH_SHORT).setAction("Action", null).show();
 
                 }
             }
