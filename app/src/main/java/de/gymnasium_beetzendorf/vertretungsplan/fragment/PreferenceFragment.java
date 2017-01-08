@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.List;
@@ -18,6 +19,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
         implements Constants, SharedPreferences.OnSharedPreferenceChangeListener {
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,11 +42,8 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         schoolListPreference.setEntryValues(schoolList.toArray(schoolListArray));
         schoolListPreference.setEnabled(true);
 
-
-        if (schoolList.size() <= 1) {
-            schoolListPreference.setDefaultValue("Gymnasium Beetzendorf");
-            schoolListPreference.setTitle(schoolListPreference.getEntry());
-        }
+        // set the correct school in the list preference.
+        schoolListPreference.setValueIndex(sharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, 0));
 
         // classes to chose from
         ListPreference classListPreference = (ListPreference) findPreference("class_to_show");
@@ -111,8 +110,10 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
                 ListPreference schoolList = (ListPreference) findPreference(key);
                 schoolList.setSummary(schoolList.getEntry());
 
+                Toast.makeText(getActivity(), School.findSchoolIdByName(schoolList.getValue()), Toast.LENGTH_LONG).show();
+
                 // change the actual settings value
-                sharedPreferences.edit().putInt("school", School.findSchoolIdByName(sharedPreferences.getString(key, ""))).apply();
+                sharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, School.findSchoolIdByName(schoolList.getValue())).apply();
                 break;
             case "class_to_show":
                 ListPreference classList = (ListPreference) findPreference("class_to_show");

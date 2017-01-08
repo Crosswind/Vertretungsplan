@@ -36,20 +36,18 @@ public class CustomListAdapter extends ArrayAdapter<String> {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         ViewHolder holder;
 
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.welcome_list_item, parent, false);
-            holder = new ViewHolder(convertView);
-            convertView.setTag(holder);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
-        }
+
+        convertView = inflater.inflate(R.layout.welcome_list_item, parent, false);
+        holder = new ViewHolder(convertView);
+        convertView.setTag(holder);
+
 
         holder.getRowText().setText(list.get(position));
 
         return convertView;
     }
 
-    private class ViewHolder {
+    private static class ViewHolder {
         private View row;
         private TextView rowTextView;
 

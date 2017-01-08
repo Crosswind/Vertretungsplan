@@ -12,6 +12,7 @@
         android:id="@+id/selectTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
         android:text="@string/welcome_choose_school" />
 
     <ListView

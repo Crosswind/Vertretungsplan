@@ -19,7 +19,7 @@
         <item>15 min</item>
         <item>30 min</item>
         <item>60 min</item>
-        </string-array>
+    </string-array>
     <string-array name="notification_types_values">
         <item>INTERVAL_FIFTEEN_MINUTES</item>
         <item>INTERVAL_HALF_HOUR</item>

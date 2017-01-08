@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?xml-stylesheet type="text/xsl" href="vplank.xsl"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><?xml-stylesheet type="text/xsl" href="vplank.xsl"?>
 <vp>
     <kopf>
         <datei>Vertretungsplan_Klassen.xml</datei>
-        <titel>Montag, 28. November 2016 (A-Woche) </titel>
+        <titel>Montag, 28. November 2016 (A-Woche)</titel>
         <schulname></schulname>
         <datum>24.11.2016, 13:50</datum>
         <kopfinfo>
@@ -12,8 +11,7 @@
             <aenderungk>05 D, 09 C, 11 A, 11 B, 11 C</aenderungk>
         </kopfinfo>
     </kopf>
-    <freietage>
-    </freietage>
+    <freietage></freietage>
     <haupt>
         <aktion>
             <klasse>05 D</klasse>
@@ -21,7 +19,7 @@
             <fach fageaendert="ae">Bio</fach>
             <lehrer legeaendert="ae">SCH</lehrer>
             <raum rageaendert="ae">E03</raum>
-            <info>für Mat SMN </info>
+            <info>für Mat SMN</info>
         </aktion>
         <aktion>
             <klasse>09 C</klasse>
@@ -50,7 +48,7 @@
     </haupt>
     <kopf>
         <datei>Vertretungsplan_Klassen.xml</datei>
-        <titel>Dienstag, 29. November 2016 (A-Woche) </titel>
+        <titel>Dienstag, 29. November 2016 (A-Woche)</titel>
         <schulname></schulname>
         <datum>24.11.2016, 13:50</datum>
         <kopfinfo>
@@ -59,7 +57,7 @@
     </kopf>
     <kopf>
         <datei>Vertretungsplan_Klassen.xml</datei>
-        <titel>Mittwoch, 30. November 2016 (A-Woche) </titel>
+        <titel>Mittwoch, 30. November 2016 (A-Woche)</titel>
         <schulname></schulname>
         <datum>24.11.2016, 13:50</datum>
         <kopfinfo>
@@ -76,7 +74,7 @@
             <fach fageaendert="ae">Ges</fach>
             <lehrer legeaendert="ae">BER</lehrer>
             <raum rageaendert="ae">O04</raum>
-            <info>für Mat BIL </info>
+            <info>für Mat BIL</info>
         </aktion>
         <aktion>
             <klasse>05 A</klasse>
@@ -84,7 +82,7 @@
             <fach fageaendert="ae">Eng</fach>
             <lehrer legeaendert="ae">TUR</lehrer>
             <raum rageaendert="ae">O04</raum>
-            <info>für Mat BIL </info>
+            <info>für Mat BIL</info>
         </aktion>
         <aktion>
             <klasse>05 C</klasse>
@@ -92,7 +90,7 @@
             <fach>Spo</fach>
             <lehrer legeaendert="ae">MEH</lehrer>
             <raum>Sp1</raum>
-            <info>für Spo BIL </info>
+            <info>für Spo BIL</info>
         </aktion>
         <aktion>
             <klasse>06 A</klasse>
@@ -116,7 +114,7 @@
             <fach fageaendert="ae">Kun</fach>
             <lehrer legeaendert="ae">STR</lehrer>
             <raum rageaendert="ae">Ku2</raum>
-            <info>für Deu HAT </info>
+            <info>für Deu HAT</info>
         </aktion>
         <aktion>
             <klasse>10 A</klasse>
@@ -132,7 +130,7 @@
             <fach>Ges</fach>
             <lehrer>WEI</lehrer>
             <raum>H03</raum>
-            <info>Vortrag </info>
+            <info>Vortrag</info>
         </aktion>
         <aktion>
             <klasse>10 C</klasse>
@@ -145,7 +143,7 @@
     </haupt>
     <kopf>
         <datei>Vertretungsplan_Klassen.xml</datei>
-        <titel>Donnerstag, 1. Dezember 2016 (A-Woche) </titel>
+        <titel>Donnerstag, 1. Dezember 2016 (A-Woche)</titel>
         <schulname></schulname>
         <datum>24.11.2016, 13:50</datum>
         <kopfinfo>
@@ -161,18 +159,19 @@
             <fach fageaendert="ae">Geo</fach>
             <lehrer legeaendert="ae">LAN</lehrer>
             <raum rageaendert="ae">O14</raum>
-            <info>für Kun STR </info>
+            <info>für Kun STR</info>
         </aktion>
     </haupt>
     <kopf>
         <datei>Vertretungsplan_Klassen.xml</datei>
-        <titel>Freitag, 2. Dezember 2016 (A-Woche) </titel>
+        <titel>Freitag, 2. Dezember 2016 (A-Woche)</titel>
         <schulname></schulname>
         <datum>24.11.2016, 13:50</datum>
         <kopfinfo>
             <abwesendl>BER, GHA, STR, WEI</abwesendl>
             <abwesendk>10 A, 10 B, 10 C</abwesendk>
-            <aenderungl>BEH, BOC, FST, HAT, HEL, KRÜ, MEH, MIL, PRI, RET, SMN, STA, TAU, TUR</aenderungl>
+            <aenderungl>BEH, BOC, FST, HAT, HEL, KRÜ, MEH, MIL, PRI, RET, SMN, STA, TAU, TUR
+            </aenderungl>
             <aenderungk>05 D, 06 A, 06 B, 08 A, 08 B, 08 C, 11 C, 12 A, 12 C</aenderungk>
         </kopfinfo>
     </kopf>
@@ -183,7 +182,7 @@
             <fach fageaendert="ae">Mat</fach>
             <lehrer legeaendert="ae">SMN</lehrer>
             <raum rageaendert="ae">H06</raum>
-            <info>für Kun STR </info>
+            <info>für Kun STR</info>
         </aktion>
         <aktion>
             <klasse>06 A</klasse>
@@ -199,7 +198,7 @@
             <fach fageaendert="ae">Geo</fach>
             <lehrer legeaendert="ae">KRÜ</lehrer>
             <raum rageaendert="ae">O14</raum>
-            <info>für Kun STR </info>
+            <info>für Kun STR</info>
         </aktion>
         <aktion>
             <klasse>08 A-08 C</klasse>
@@ -215,7 +214,7 @@
             <fach fageaendert="ae">Mat</fach>
             <lehrer legeaendert="ae">BOC</lehrer>
             <raum>O03</raum>
-            <info>für Deu BER </info>
+            <info>für Deu BER</info>
         </aktion>
         <aktion>
             <klasse>11 C/ ges3</klasse>
@@ -223,7 +222,7 @@
             <fach fageaendert="ae">Deu</fach>
             <lehrer legeaendert="ae">HAT</lehrer>
             <raum rageaendert="ae">O04</raum>
-            <info>für Ges WEI </info>
+            <info>für Ges WEI</info>
         </aktion>
         <aktion>
             <klasse>12 A/ ges1</klasse>

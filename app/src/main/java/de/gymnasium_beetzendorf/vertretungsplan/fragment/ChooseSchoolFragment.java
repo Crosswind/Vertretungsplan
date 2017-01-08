@@ -13,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.sql.Ref;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
@@ -23,9 +22,6 @@ import de.gymnasium_beetzendorf.vertretungsplan.adapter.CustomListAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
 
-/**
- * Created by David on 27.09.16.
- */
 public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActivity.WelcomeActivityContent {
 
     private final String TAG = ChooseSchoolFragment.class.getSimpleName();

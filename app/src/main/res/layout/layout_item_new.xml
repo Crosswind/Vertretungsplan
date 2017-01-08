@@ -13,8 +13,8 @@
         android:layout_marginTop="3dp"
         android:background="@color/Mat"
         android:padding="3dp"
-        app:cardElevation="4dp"
-        app:cardCornerRadius="1dp">
+        app:cardCornerRadius="1dp"
+        app:cardElevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,13 +37,13 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
+                android:id="@+id/textView4"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Frau Hardt"
+                android:layout_weight="1"
                 android:paddingLeft="5dp"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:id="@+id/textView4" />
+                android:text="Frau Hardt"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
                 android:id="@+id/textView3"
