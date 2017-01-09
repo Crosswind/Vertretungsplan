@@ -46,9 +46,8 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
                 if (selected >= 0) {
                     mSharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, selected+1).apply();
                     Intent intent = new Intent(activity, RefreshService.class);
-                    intent.putExtra("refresh_class_list", true);
+                    intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
                     activity.startService(intent);
-
                     doNext();
                 } else {
                     Snackbar.make(getCoordinatorLayout(), "Bitte Schule auswählen", Snackbar.LENGTH_SHORT).setAction("Action", null).show();

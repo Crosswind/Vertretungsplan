@@ -42,8 +42,8 @@ class XmlParser implements Constants {
     // meta tags
     static final String xmlStartTag = "?xml";
 
-    static final String XMLPARSER_TYPE_SUBSTITUTION = "substitution";
-    static final String XMLPARSER_TYPE_SCHEDULE = "schedule";
+    static final String SUBSTITUTION = "substitution";
+    static final String SCHEDULE = "schedule";
 
     XmlParser(Context context, String type) {
         this.context = context;
@@ -57,11 +57,11 @@ class XmlParser implements Constants {
         this.school = sharedPreferences.getInt("school", 1);
 
         switch (type) {
-            case "schedule":
+            case SCHEDULE:
                 this.classToShow = sharedPreferences.getString("class_to_show", "");
                 this.filename = "aktuell" + this.classToShow + ".xml";
                 break;
-            case "substitution":
+            case SUBSTITUTION:
                 Log.i(TAG, "Schule: " + String.valueOf(school));
                 this.filename = "substitution_" + String.valueOf(school) + ".xml";
                 break;

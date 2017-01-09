@@ -102,7 +102,7 @@ public class MainActivity extends BaseActivity
 
         if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
             Intent intent = new Intent(this, RefreshService.class);
-            intent.putExtra("refresh_class_list", true);
+            intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
             startService(intent);
         }
 
@@ -230,6 +230,8 @@ public class MainActivity extends BaseActivity
 
         if (hasInternetAccess()) {
             Intent refreshServiceIntent = new Intent(this, RefreshService.class);
+            // TODO: Remove next line after implementing RefreshService correctly
+            refreshServiceIntent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
             refreshServiceIntent.putExtra("manual_refresh", true);
             startService(refreshServiceIntent);
         } else {

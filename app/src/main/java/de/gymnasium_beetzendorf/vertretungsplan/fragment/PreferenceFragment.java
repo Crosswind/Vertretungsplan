@@ -8,6 +8,7 @@ import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
+import java.sql.Ref;
 import java.util.Calendar;
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 Intent intent = new Intent(getActivity(), RefreshService.class);
-                intent.putExtra("refresh_class_list", true);
+                intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
                 getActivity().startService(intent);
                 return true;
             }
@@ -98,7 +99,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 Intent intent = new Intent(getActivity(), RefreshService.class);
+                // TODO: Remove next line after implementing RefreshService correctly
                 intent.putExtra("manual_refresh", true);
+                intent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
                 getActivity().startService(intent);
                 return true;
             }

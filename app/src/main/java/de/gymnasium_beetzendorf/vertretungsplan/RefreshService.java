@@ -1,6 +1,5 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
@@ -26,10 +25,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
@@ -38,65 +37,65 @@ public class RefreshService extends IntentService implements Constants {
         super("RefreshService");
     }
 
+    public static final String INSTRUCTION = "instruction";
+    public static final int NO_REFRESH = -1;
+    public static final int SUBSTITUTION_REFRESH = 0;
+    public static final int SCHEDULE_REFRESH = 1;
+    public static final int CLASSLIST_REFRESH = 2;
+    public static final int SET_ALARM = 3;
+
+    private SharedPreferences mSharedPreferences;
     private int mSchool;
-    private int mClassYear;
-    private String mClassLetter;
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.i(TAG, "RefreshService started");
 
-        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-        //mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-        //mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
-
+        int instructions = intent.getIntExtra("instructions", -1);
         Calendar calendar = Calendar.getInstance();
         String date = dateFormatter.format(calendar.getTime());
-        long lastRefresh = 0;
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
+
+        String substitutionUrl;
         try {
-            lastRefresh = dateTimeFormatter.parse(date + " 16:00").getTime();
+            substitutionUrl = School.findSchoolById(mSchool).getSubstitutionUrl();
+        } catch (IllegalAccessException e) {
+            // Just set this as a default to avoid weird things to happen. might change this in the future
+            substitutionUrl = School.Gymnasium_Beetzendorf.getSubstitutionUrl();
+            mSchool = School.Gymnasium_Beetzendorf.getId();
+        }
+
+        long lastRefreshOfDay;
+        try {
+            lastRefreshOfDay = dateTimeFormatter.parse(date + " 16:00").getTime();
 
         } catch (ParseException e) {
-            Log.i(TAG, "Problem while parsing in service class", e);
+            Log.i(TAG, "Date could not be parsed in RefreshService (lastRefreshOfDay): ", e);
+            lastRefreshOfDay = System.currentTimeMillis();
         }
 
-        boolean manualRefresh = intent.getBooleanExtra("manual_refresh", false);
-
-        // only run if it's been send from the MainActivity or if it's earlier than the lastRefresh (4pm of today)
-        if (manualRefresh || System.currentTimeMillis() <= lastRefresh) {
-            // download file from server
-            downloadFile(MainActivity.SERVER_URL + MainActivity.SUBSTITUTION_QUERY_FILE, "substitution", "", 1);
-
-        } else {
-            // cancel the refreshing animation
-            notifyMainActivityReturnResult(false);
-
-            Intent alarmIntent = new Intent(this, RefreshService.class);
-            alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
-            AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.cancel(alarmPendingIntent);
-
-            // adds 14 hours (in milliseconds to the last refresh) which represents 6 am the next morning
-            long nextDayRefresh = lastRefresh + (1000 * 60 * 60 * 14);
-            // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
-            alarmManager.setInexactRepeating(
-                    ALARM_TYPE,
-                    nextDayRefresh,
-                    ALARM_INTERVAL,
-                    alarmPendingIntent);
-
-            Log.i(TAG, "Alarm set");
-
-            mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
+        if (System.currentTimeMillis() >= lastRefreshOfDay) {
+            instructions = SET_ALARM;
         }
 
 
-        if (intent.getBooleanExtra("refresh_class_list", false)) {
-            updateClassList();
+        switch (instructions) {
+            case NO_REFRESH:
+                break;
+            case SUBSTITUTION_REFRESH:
+                downloadFile(substitutionUrl, XmlParser.SUBSTITUTION, "", mSchool);
+                break;
+            case CLASSLIST_REFRESH:
+                updateClassList();
+                break;
+            case SET_ALARM:
+                setNextDayAlarm(lastRefreshOfDay);
+                break;
+            default:
+                break;
         }
-
     }
 
     private boolean notifyMainActivityReturnResult(boolean newUpdate) {
@@ -136,9 +135,32 @@ public class RefreshService extends IntentService implements Constants {
         new DownloadXml(this, fileType, url, schedClass, school).execute();
     }
 
+    private void setNextDayAlarm(long lastRefreshOfDay) {
+        notifyMainActivityReturnResult(false);
+
+        Intent alarmIntent = new Intent(this, RefreshService.class);
+        alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(alarmPendingIntent);
+
+        // adds 14 hours (in milliseconds to the last refresh) which represents 6 am the next morning
+        long nextDayRefresh = lastRefreshOfDay + (1000 * 60 * 60 * 14);
+        // set the new alarm which will start firing alarms every fifteen minutes until 8 pm
+        alarmManager.setInexactRepeating(
+                ALARM_TYPE,
+                nextDayRefresh,
+                ALARM_INTERVAL,
+                alarmPendingIntent);
+
+        Log.i(TAG, "Alarm set for next day at 6 am");
+
+        mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
+    }
+
     public void callBackSubstitution() {
 
-        XmlParser parser = new XmlParser(this, XmlParser.XMLPARSER_TYPE_SUBSTITUTION);
+        XmlParser parser = new XmlParser(this, XmlParser.SUBSTITUTION);
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
