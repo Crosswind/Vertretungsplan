@@ -7,6 +7,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
+// this class lets the layout move up when snackbar is shown
 public class FloatingActionBehavior extends CoordinatorLayout.Behavior<LinearLayout> {
     public FloatingActionBehavior(Context context, AttributeSet attrs) {
     }
