@@ -76,6 +76,10 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+
         // finish if an instance of this app is already running
         if (mContext != null) {
             ((Activity) mContext).finish();
