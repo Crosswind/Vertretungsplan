@@ -2,13 +2,16 @@ package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,12 +36,19 @@ public abstract class ChooseFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        if (getBroadcastReceiver() != null && getIntentFilter() != null) {
+            LocalBroadcastManager.getInstance(activity).unregisterReceiver(getBroadcastReceiver());
+        }
         activity = null;
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getBroadcastReceiver() != null && getIntentFilter() != null) {
+            LocalBroadcastManager.getInstance(activity).registerReceiver(getBroadcastReceiver(), getIntentFilter());
+        }
+
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         if (activity instanceof ChooseFragmentContainer) {
@@ -92,6 +102,10 @@ public abstract class ChooseFragment extends Fragment {
             activity.finish();
         }
     }
+
+    protected abstract BroadcastReceiver getBroadcastReceiver();
+
+    protected abstract IntentFilter getIntentFilter();
 
     public interface ChooseFragmentContainer {
         Button getNextButton();

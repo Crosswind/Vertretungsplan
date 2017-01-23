@@ -1,6 +1,8 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 
@@ -16,6 +18,16 @@ public class ChooseCourseFragment extends ChooseFragment implements WelcomeActiv
     @Override
     protected ChooseFragmentOnclickListener getNextButtonOnclickListener() {
         return null;
+    }
+
+    @Override
+    protected BroadcastReceiver getBroadcastReceiver() {
+        return null;
+    }
+
+    @Override
+    protected IntentFilter getIntentFilter() {
+        return new IntentFilter("");
     }
 
     @Override

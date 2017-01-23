@@ -6,12 +6,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -51,7 +49,7 @@ public class RefreshService extends IntentService implements Constants {
     protected void onHandleIntent(Intent intent) {
         Log.i(TAG, "RefreshService started");
 
-        int instructions = intent.getIntExtra("instructions", -1);
+        int instructions = intent.getIntExtra(INSTRUCTION, -1);
         Calendar calendar = Calendar.getInstance();
         String date = dateFormatter.format(calendar.getTime());
 
@@ -77,8 +75,10 @@ public class RefreshService extends IntentService implements Constants {
         }
 
         if (System.currentTimeMillis() >= lastRefreshOfDay) {
-            instructions = SET_ALARM;
+            setNextDayAlarm(lastRefreshOfDay);
         }
+
+        Log.i(TAG, "classlist_refresh: " + instructions);
 
 
         switch (instructions) {
@@ -214,6 +214,7 @@ public class RefreshService extends IntentService implements Constants {
     }
 
     public void updateClassList() {
+        Log.i(TAG, "start refreshing classlist");
         String url = "http://gymnasium-beetzendorf.de/stundenkl/default.html";
 
         String username = "beetzendorf";
@@ -252,15 +253,11 @@ public class RefreshService extends IntentService implements Constants {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             sharedPreferences.edit().putLong("last_class_list_refresh", System.currentTimeMillis()).apply();
 
-            Handler mHandler = new Handler(getMainLooper());
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), "Klassen geupdated", Toast.LENGTH_SHORT).show();
+            Intent messageIntent = new Intent("classlist_updated");
+            messageIntent.putExtra("number_of_classes", classes.size());
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
 
-                }
-            });
-
+            Log.i(TAG, "done refreshing classlist");
         } catch (IOException e) {
             Log.e(TAG, "IOException when getting html", e);
         }

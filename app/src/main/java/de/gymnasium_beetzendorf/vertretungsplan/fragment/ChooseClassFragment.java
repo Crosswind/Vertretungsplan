@@ -1,6 +1,10 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,6 +21,7 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.R;
+import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.CustomListAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
@@ -30,6 +35,8 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
     CustomListAdapter adapter;
     int selected = -1;
     List<String> classes;
+    ProgressDialog mProgressDialog;
+    DatabaseHandler mDatabaseHandler;
 
     @Override
     protected String getNextButtonText() {
@@ -43,6 +50,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
             public void onClick(View v) {
                 if (selected >= 0) {
                     mSharedPreferences.edit().putString(Constants.PREFERENCE_CLASS_YEAR_LETTER, classes.get(selected)).apply();
+                    mSharedPreferences.edit().putBoolean(Constants.PREFERENCE_SHOW_WHOLE_PLAN, false).apply();
                     doNext();
                 } else {
                     Snackbar.make(getCoordinatorLayout(), "Bitte Klasse auswählen", Snackbar.LENGTH_SHORT).setAction("Action", null).show();
@@ -50,6 +58,29 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
                 }
             }
         };
+    }
+
+    @Override
+    protected BroadcastReceiver getBroadcastReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                fillListBox();
+            }
+        };
+    }
+
+    @Override
+    protected IntentFilter getIntentFilter() {
+        return new IntentFilter("classlist_updated");
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Intent intent = new Intent(activity, RefreshService.class);
+        intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
+        activity.startService(intent);
     }
 
     @Override
@@ -75,11 +106,23 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
         TextView textView = (TextView) view.findViewById(R.id.selectTextView);
         textView.setText(R.string.welcome_choose_class);
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        classes = databaseHandler.getClassList();
-        adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, classes);
-
         listView = (ListView) view.findViewById(R.id.schoolListView);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        mDatabaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        classes = mDatabaseHandler.getClassList();
+
+        if (classes.size() == 0) {
+            mProgressDialog = new ProgressDialog(view.getContext());
+            mProgressDialog.setCancelable(true);
+            mProgressDialog.setMessage("Klassen werden geladen");
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.show();
+        } else {
+            fillListBox();
+        }
+
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -87,9 +130,16 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
             }
         });
 
-        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        return view;
+    }
+
+    private void fillListBox() {
+        classes = mDatabaseHandler.getClassList();
+        adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, classes);
         listView.setAdapter(adapter);
 
-        return view;
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
     }
 }

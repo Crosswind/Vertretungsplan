@@ -16,7 +16,7 @@
         <ListPreference
             android:defaultValue="05 A"
             android:dependency="show_whole_plan"
-            android:key="class_to_show"
+            android:key="class_year_letter"
             android:summary="Für welche Klasse soll der Plan angezeigt werden?"
             android:title="Klasse" />
         <Preference

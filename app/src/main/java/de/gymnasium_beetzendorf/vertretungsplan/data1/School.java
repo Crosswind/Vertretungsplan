@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum School {
-    Gymnasium_Beetzendorf (1,
+    Gymnasium_Beetzendorf (0,
             "Gymnasium Beetzendorf",
             "http://gymnasium-beetzendorf.de/vplankl/Vertretungsplan_Klassen.xml",
             "http://gymnasium-beetzendorf.de/stundenkl/default.html",
@@ -80,7 +80,7 @@ public enum School {
                 return school.getId();
             }
         }
-        return 0;
+        return -1;
     }
 
     public static School findSchoolById(int id) throws IllegalAccessException {

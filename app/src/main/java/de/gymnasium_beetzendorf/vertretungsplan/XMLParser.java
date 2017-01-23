@@ -197,7 +197,7 @@ class XmlParser implements Constants {
                                 currentSubstitutionDay.setWeek(weekString);
                                 break;
                             case "schulname":
-                                int id = text.isEmpty() ? 0 : School.findSchoolIdByName(text);
+                                int id = text.isEmpty() ? -1 : School.findSchoolIdByName(text);
                                 currentSubstitutionDay.setSchool(id);
                                 break;
                             case "datum":

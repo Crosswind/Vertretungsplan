@@ -6,9 +6,8 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
+import android.util.Log;
 
-import java.sql.Ref;
 import java.util.Calendar;
 import java.util.List;
 
@@ -52,7 +51,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         schoolListPreference.setSummary(school);
 
         // classes to chose from
-        ListPreference classListPreference = (ListPreference) findPreference("class_to_show");
+        ListPreference classListPreference = (ListPreference) findPreference("class_year_letter");
 
         List<String> classList = databaseHandler.getClassList();
 
@@ -99,8 +98,6 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 Intent intent = new Intent(getActivity(), RefreshService.class);
-                // TODO: Remove next line after implementing RefreshService correctly
-                intent.putExtra("manual_refresh", true);
                 intent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
                 getActivity().startService(intent);
                 return true;
@@ -113,7 +110,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         sharedPreferences.edit().putBoolean("preferences_changed", true).apply();
         Calendar calendar = Calendar.getInstance();
 
-        Toast.makeText(getActivity(), "key: " + key, Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "key: " + key);
         switch (key) {
             case "schoolName":
                 ListPreference schoolList = (ListPreference) findPreference(key);
@@ -121,20 +118,21 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
                 // change the actual settings value
                 sharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, School.findSchoolIdByName(schoolList.getValue())).apply();
-
-            case "class_to_show":
-                ListPreference classList = (ListPreference) findPreference("class_to_show");
+                break;
+            case "class_year_letter":
+                ListPreference classList = (ListPreference) findPreference("class_year_letter");
                 classList.setTitle("Klasse - " + classList.getEntry());
-
+                break;
             case "last_class_list_refresh":
                 Preference refreshClassListPreferenceButton = findPreference("refresh_class_list");
                 calendar.setTimeInMillis(sharedPreferences.getLong("last_class_list_refresh", 0));
                 refreshClassListPreferenceButton.setSummary("Zuletzt aktualisiert: " + dateTimeFormatter.format(calendar.getTime()));
-
+                break;
             case "refresh_substitution_plan":
                 Preference refreshSubstitutionPreferenceButton = findPreference(key);
                 calendar.setTimeInMillis(sharedPreferences.getLong("last_substitution_plan_refresh", 0));
                 refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
+                break;
 
         }
     }

@@ -1,11 +1,12 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -44,16 +44,23 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
             @Override
             public void onClick(View v) {
                 if (selected >= 0) {
-                    mSharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, selected+1).apply();
-                    Intent intent = new Intent(activity, RefreshService.class);
-                    intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
-                    activity.startService(intent);
+                    mSharedPreferences.edit().putInt(Constants.PREFERENCE_SCHOOL, selected).apply();
                     doNext();
                 } else {
                     Snackbar.make(getCoordinatorLayout(), "Bitte Schule auswählen", Snackbar.LENGTH_SHORT).setAction("Action", null).show();
                 }
             }
         };
+    }
+
+    @Override
+    protected BroadcastReceiver getBroadcastReceiver() {
+        return null;
+    }
+
+    @Override
+    protected IntentFilter getIntentFilter() {
+        return null;
     }
 
     @Override

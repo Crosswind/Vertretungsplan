@@ -27,7 +27,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
             Intent intent = new Intent(this, WelcomeActivity.class);
             startActivity(intent);
             finish();
-//            return;
         }
 
         if (getLayoutId() != 0) {

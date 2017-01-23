@@ -99,11 +99,11 @@ public class MainActivity extends BaseActivity
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
 
-
         if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
             Intent intent = new Intent(this, RefreshService.class);
             intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
-            startService(intent);
+            // TODO: Remove
+            //startService(intent);
         }
 
         if (mSharedPreferences.getLong("last_substitution_plan_refresh", 0) == 0) {
@@ -230,10 +230,9 @@ public class MainActivity extends BaseActivity
 
         if (hasInternetAccess()) {
             Intent refreshServiceIntent = new Intent(this, RefreshService.class);
-            // TODO: Remove next line after implementing RefreshService correctly
             refreshServiceIntent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
-            refreshServiceIntent.putExtra("manual_refresh", true);
-            startService(refreshServiceIntent);
+            // TODO: REMOVE
+            //startService(refreshServiceIntent);
         } else {
             makeSnackbar(String.valueOf(getResources().getText(R.string.no_connection)));
             mSwipeRefreshLayout.setRefreshing(false);
