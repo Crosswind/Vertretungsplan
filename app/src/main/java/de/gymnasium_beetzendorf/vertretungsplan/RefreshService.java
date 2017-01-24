@@ -164,6 +164,7 @@ public class RefreshService extends IntentService implements Constants {
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
+        databaseHandler.insertSubstitutionResults(0, xmlResults);
         //List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

@@ -106,8 +106,7 @@ public class MainActivity extends BaseActivity
         if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
             Intent intent = new Intent(this, RefreshService.class);
             intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
-            // TODO: Remove
-            //startService(intent);
+            startService(intent);
         }
 
         if (mSharedPreferences.getLong("last_substitution_plan_refresh", 0) == 0) {
@@ -235,8 +234,7 @@ public class MainActivity extends BaseActivity
         if (hasInternetAccess()) {
             Intent refreshServiceIntent = new Intent(this, RefreshService.class);
             refreshServiceIntent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
-            // TODO: REMOVE
-            //startService(refreshServiceIntent);
+            startService(refreshServiceIntent);
         } else {
             makeSnackbar(String.valueOf(getResources().getText(R.string.no_connection)));
             mSwipeRefreshLayout.setRefreshing(false);
@@ -341,6 +339,5 @@ public class MainActivity extends BaseActivity
         }
 
         mSwipeRefreshLayout.setRefreshing(false);
-
     }
 }

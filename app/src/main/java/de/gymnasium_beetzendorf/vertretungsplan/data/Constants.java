@@ -26,7 +26,9 @@ public interface Constants {
     // date formatting variables - used all over the project
     SimpleDateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
     SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY);
+    SimpleDateFormat dateTimeFormatterKomma = new SimpleDateFormat("dd.MM.yyyy, HH:mm", Locale.GERMANY);
     SimpleDateFormat weekdayFormatter = new SimpleDateFormat("EE", Locale.GERMANY);
+    SimpleDateFormat dateFormatterMonthName = new SimpleDateFormat("dd. MMMM yyyy", Locale.GERMANY);
 
 
     // alarm constants

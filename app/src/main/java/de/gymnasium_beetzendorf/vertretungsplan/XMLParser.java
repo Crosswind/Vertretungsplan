@@ -54,7 +54,7 @@ class XmlParser implements Constants {
 
     private void init() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        this.school = sharedPreferences.getInt("school", 1);
+        this.school = sharedPreferences.getInt("school", 0);
 
         switch (type) {
             case SCHEDULE:
@@ -62,20 +62,18 @@ class XmlParser implements Constants {
                 this.filename = "aktuell" + this.classToShow + ".xml";
                 break;
             case SUBSTITUTION:
-                Log.i(TAG, "Schule: " + String.valueOf(school));
                 this.filename = "substitution_" + String.valueOf(school) + ".xml";
                 break;
         }
 
+
         try {
             fileInputStream = context.openFileInput(filename);
-            bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-            tempBufferedReader = bufferedReader;
+            bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
+            //tempBufferedReader = bufferedReader;
         } catch (IOException e) {
             Log.e(TAG, "missing file here: ", e);
         }
-
-        //setFileEncoding();
     }
 
     private void finish() {
@@ -108,7 +106,7 @@ class XmlParser implements Constants {
 
     // extract the encoding from the first line of the xml doc
     // if no encoding is set, utf-8 will be used by standard
-    private void setFileEncoding() {
+    /*private void setFileEncoding() {
         try {
             bufferedReader = tempBufferedReader;
             String firstLine = bufferedReader.readLine();
@@ -120,7 +118,7 @@ class XmlParser implements Constants {
         } catch (IOException e) {
             Log.e(TAG, "problem with file encoding ", e);
         }
-    }
+    }*/
 
     List<SubstitutionDay> parseReturnSubstitution() {
         SubstitutionDay currentSubstitutionDay = new SubstitutionDay();
@@ -128,16 +126,17 @@ class XmlParser implements Constants {
         Substitution currentSubstitution = new Substitution();
         List<Substitution> currentSubstitutionList = new ArrayList<>();
         int multipleClasses = 0, multiplePeriods = 0;
+        String text = "";
 
         try {
             XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+            xmlPullParserFactory.setNamespaceAware(true);
             XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
             xmlPullParser.setInput(bufferedReader);
 
             int eventType = xmlPullParser.getEventType();
 
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                String text = "";
                 String tag;
                 String attributeName = "";
                 String attributeValue = "";
@@ -187,11 +186,10 @@ class XmlParser implements Constants {
                             // all data stored as header data
                             case "titel":
                                 tempStringArray = text.split("[,(]");
-                                Log.i(TAG, "text: " + text + "\narray[1]: " + tempStringArray[0]);
                                 String weekString = tempStringArray[2].substring(0, 1);
 
                                 String dateString = tempStringArray[1].trim();
-                                long date = dateFormatter.parse(dateString).getTime();
+                                long date = dateFormatterMonthName.parse(dateString).getTime();
 
                                 currentSubstitutionDay.setDate(date);
                                 currentSubstitutionDay.setWeek(weekString);
@@ -201,7 +199,7 @@ class XmlParser implements Constants {
                                 currentSubstitutionDay.setSchool(id);
                                 break;
                             case "datum":
-                                long updated = dateTimeFormatter.parse(text).getTime();
+                                long updated = dateTimeFormatterKomma.parse(text).getTime();
                                 currentSubstitutionDay.setUpdated(updated);
                                 break;
                             // all data that is actual substitution information
@@ -210,26 +208,23 @@ class XmlParser implements Constants {
                                     currentSubstitution.setClassYearLetter(text);
                                     currentSubstitution.setClassCourse("");
                                 } else {
-                                    if (text.contains("/")) {
-                                        String course = text.substring(text.indexOf('/'));
-                                        currentSubstitution.setClassCourse(course.trim());
-                                    }
-                                    String classes = text.substring(0, text.indexOf('/'));
-                                    if (text.length() > 10) {
-                                        String[] rangeClasses = {classes.substring(0, 4), classes.substring(5, 9)};
+                                    if (text.length() == 9 || text.length() > 10) {
+                                        //text = text.substring(0, text.indexOf('/'));
+                                        String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
                                         currentSubstitution.setClassYearLetter(rangeClasses[0]);
                                         String[] rangeClassesLetter = {rangeClasses[0].substring(3, 4), rangeClasses[1].substring(3, 4)};
                                         multipleClasses = (int) rangeClassesLetter[1].charAt(0) - (int) rangeClassesLetter[0].charAt(0);
+                                        currentSubstitution.setClassYearLetter(rangeClasses[1]);
                                     } else {
-                                        classes = classes.substring(0, 4);
-                                        currentSubstitution.setClassYearLetter(classes);
+                                        text = text.substring(0, 4);
+                                        currentSubstitution.setClassYearLetter(text);
                                     }
                                 }
                                 break;
                             case "stunde":
                                 int periods = Integer.parseInt(text.replaceAll("-", ""));
                                 currentSubstitution.setPeriod(periods);
-                                if (String.valueOf(periods).length() > 1) {
+                                if (String.valueOf(periods).length() > 2) {
                                     multiplePeriods = (int) String.valueOf(periods).charAt(0) - (int) String.valueOf(periods).charAt(2);
                                 }
                                 break;
@@ -254,14 +249,13 @@ class XmlParser implements Constants {
                                 break;
 
                             case "haupt":
-                                Substitution temp = currentSubstitution;
                                 for (int i = 0; i <= multiplePeriods; i++) {
-                                    currentSubstitution.setPeriod(temp.getPeriod() + i);
+                                    currentSubstitution.setPeriod(currentSubstitution.getPeriod() + i);
                                     currentSubstitutionList.add(currentSubstitution);
                                 }
                                 for (int i = 0; i <= multipleClasses; i++) {
-                                    int letter = temp.getClassYearLetter().charAt(3);
-                                    currentSubstitution.setClassYearLetter(temp.getClassYearLetter().replace(Character.toChars(letter)[0], Character.toChars(letter + i)[0]));
+                                    int letter = currentSubstitution.getClassYearLetter().charAt(3);
+                                    currentSubstitution.setClassYearLetter(currentSubstitution.getClassYearLetter().replace(Character.toChars(letter)[0], Character.toChars(letter + i)[0]));
                                     currentSubstitutionList.add(currentSubstitution);
                                 }
                                 currentSubstitutionDay.setSubstitutionList(currentSubstitutionList);

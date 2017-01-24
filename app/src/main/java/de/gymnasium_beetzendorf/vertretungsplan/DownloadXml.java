@@ -18,10 +18,10 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
 
     private RefreshService refreshService;
-    String fileType;
-    String url;
-    String schedClass;
-    int school;
+    private String fileType;
+    private String url;
+    private String schedClass;
+    private int school;
 
     DownloadXml(RefreshService refreshService, String fileType, String url, String schedClass, int school) {
         this.refreshService = refreshService;
@@ -55,7 +55,6 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
                     filename = "temp.xml";
                     break;
             }
-
 
             FileOutputStream fileOutputStream = refreshService.openFileOutput(filename, Context.MODE_PRIVATE);
             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
