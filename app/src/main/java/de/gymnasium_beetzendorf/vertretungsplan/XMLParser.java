@@ -259,6 +259,7 @@ class XmlParser implements Constants {
                                     currentSubstitutionList.add(currentSubstitution);
                                 }
                                 currentSubstitutionDay.setSubstitutionList(currentSubstitutionList);
+                                results.add(currentSubstitutionDay);
                                 break;
                         }
                         break;

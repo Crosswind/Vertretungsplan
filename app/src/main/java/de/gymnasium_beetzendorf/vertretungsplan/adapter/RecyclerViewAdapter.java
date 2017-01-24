@@ -34,7 +34,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     public RecyclerViewAdapter(Context context, List<Substitution> results, String type) {
-
+        substitutionList = results;
+        this.context = context;
     }
 
     @Override

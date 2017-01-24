@@ -6,7 +6,13 @@ package de.gymnasium_beetzendorf.vertretungsplan.data1;
  */
 
 public enum Teacher {
-    Huppertz(0, "HUP", "Huppertz", "Martin");
+    Huppertz(0, "HUP", "Huppertz", "Martin"),
+    AHLFELD(1, "AHL", "Ahlfeld", ""),
+    KRÜGER(2, "KRÜ", "Kürger", ""),
+    MEHLBERG(3, "MEH", "Mehlberg", "Robert"),
+    PALUTKE(4, "PAL", "Palutke", "Hartmut"),
+    TUREK(5, "TUR", "Turek", "");
+
 
     private int id;
     private String teacher_short;

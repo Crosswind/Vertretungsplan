@@ -91,10 +91,10 @@ public class MainActivity extends BaseActivity
 
         // check if all settings are set
         mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-        mClassLetter = "A";
-        mClassYear = 12;
-        //mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-        //mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
+        //mClassLetter = "A";
+        //mClassYear = 12;
+        mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+        mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
 
         // activate boot receiver
         // this will start the alarm that is responsible for refreshing data
@@ -268,16 +268,21 @@ public class MainActivity extends BaseActivity
 
         // draw the tabs depending on the days from the file
         mMainTabLayout.removeAllTabs();
+        Log.i(TAG, "remove all tabs - after: " + databaseResults.size());
         for (int n = 0; n < databaseResults.size(); n++) {
 
             // only create a tab if there's any information to show within that tab
-            if (databaseResults.get(n).getSubstitutionList().size() > 0) {
+            if (databaseResults.get(n).getSubstitutionList().size() == 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
 
-                mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tempWeekday + " " + tempDate.substring(0, 6)));
+                String tabTitle = tempWeekday + " " + tempDate.substring(0, 6);
+                Log.i(TAG, n + " tabtitle: " +tabTitle);
+                tabTitle = "" + n;
+
+                mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tabTitle));
             }
         }
 
