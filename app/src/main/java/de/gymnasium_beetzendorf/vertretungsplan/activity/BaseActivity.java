@@ -23,11 +23,18 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.i(TAG, "1 BaseActivity");
+
+
         if (WelcomeActivity.shouldDisplay(this)) {
             Intent intent = new Intent(this, WelcomeActivity.class);
             startActivity(intent);
             finish();
+            Log.i(TAG, "2 BaseActivity");
+            return;
         }
+
+        Log.i(TAG, "3 BaseActivity");
 
         if (getLayoutId() != 0) {
             setContentView(getLayoutId());
@@ -59,7 +66,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
                 .show();
     }
 
-     protected boolean hasInternetAccess() {
+    protected boolean hasInternetAccess() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();

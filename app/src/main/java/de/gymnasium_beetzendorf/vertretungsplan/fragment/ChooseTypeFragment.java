@@ -6,9 +6,7 @@ import android.content.IntentFilter;
 
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 
-/**
- * Created by David on 27.09.16.
- */
+
 public class ChooseTypeFragment extends ChooseFragment implements WelcomeActivity.WelcomeActivityContent {
     @Override
     protected String getNextButtonText() {

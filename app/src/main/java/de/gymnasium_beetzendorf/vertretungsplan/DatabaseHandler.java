@@ -209,7 +209,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         cursor.close();
 
-        Log.i(TAG, "Menge der auszugebenden Vertretungen: " + result.get(0).getSubstitutionList().size());
+        //Log.i(TAG, "Menge der auszugebenden Vertretungen: " + result.get(0).getSubstitutionList().size());
         return result;
 
     }

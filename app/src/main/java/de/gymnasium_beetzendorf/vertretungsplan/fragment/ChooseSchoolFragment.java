@@ -2,7 +2,6 @@ package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,7 +17,6 @@ import android.widget.ListView;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
-import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.WelcomeActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.CustomListAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;

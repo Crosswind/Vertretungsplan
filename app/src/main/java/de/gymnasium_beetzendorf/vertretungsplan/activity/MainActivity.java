@@ -1,6 +1,5 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -71,19 +70,16 @@ public class MainActivity extends BaseActivity
         return (Toolbar) findViewById(R.id.mainToolbar);
     }
 
+
     // activity override methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.i(TAG, "1 MainActivity");
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        }
-
-        // finish if an instance of this app is already running
-        if (mContext != null) {
-            ((Activity) mContext).finish();
-            mContext = this;
         }
 
         // instantiate preference
@@ -91,10 +87,13 @@ public class MainActivity extends BaseActivity
 
         // check if all settings are set
         mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-        //mClassLetter = "A";
-        //mClassYear = 12;
-        mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-        mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
+        if (!mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").equalsIgnoreCase("")) {
+            mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
+            mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
+        } else {
+            mClassYear = 0;
+            mClassLetter = "";
+        }
 
         // activate boot receiver
         // this will start the alarm that is responsible for refreshing data
@@ -142,23 +141,18 @@ public class MainActivity extends BaseActivity
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
+            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    refresh();
+                }
+            });
         }
-
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh();
-            }
-        });
-
 
         mDatabaseHandler = getDatabaseHandler();
-        if (mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter).size() == 0) {
-            refresh();
-        } else {
-            // definitely show the data that's already been loaded at some point
-            displayData();
-        }
+
+
+        refresh();
     }
 
     @Override
@@ -268,19 +262,18 @@ public class MainActivity extends BaseActivity
 
         // draw the tabs depending on the days from the file
         mMainTabLayout.removeAllTabs();
-        Log.i(TAG, "remove all tabs - after: " + databaseResults.size());
+        String tabTitle;
         for (int n = 0; n < databaseResults.size(); n++) {
-
             // only create a tab if there's any information to show within that tab
-            if (databaseResults.get(n).getSubstitutionList().size() == 0) {
+            if (databaseResults.get(n).getSubstitutionList().size() != 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
 
-                String tabTitle = tempWeekday + " " + tempDate.substring(0, 6);
-                Log.i(TAG, n + " tabtitle: " +tabTitle);
-                tabTitle = "" + n;
+                tabTitle = tempWeekday + " " + tempDate.substring(0, 6);
+                Log.i(TAG, n + " tabtitle: " + tabTitle);
+                //tabTitle = "" + n;
 
                 mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tabTitle));
             }
@@ -313,30 +306,6 @@ public class MainActivity extends BaseActivity
 
             }
         });
-
-
-        // if possible sets the tab before refreshing as the current one again
-        // moving the ViewPager is already taken care of (OnTabSelectedListener)
-        if (mMainTabLayout.getTabCount() > 0) {
-            String newTabText;
-
-            try {
-                if (currentTabCount > -1 && currentTabCount < mMainTabLayout.getTabCount()) {
-                    for (int i = 0; i < mMainTabLayout.getTabCount(); i++) {
-                        try {
-                            newTabText = (String) mMainTabLayout.getTabAt(i).getText();
-                            if (newTabText.equals(currentTabText)) {
-                                mMainTabLayout.getTabAt(i).select();
-                            }
-                        } catch (NullPointerException e) {
-                            Log.i(TAG, "NullPointer", e);
-                        }
-                    }
-                }
-            } catch (NullPointerException e) {
-                Log.i(TAG, "NullPointerException on setting currentTabText", e);
-            }
-        }
 
         // add an empty tab if there are (for some reason) no results to display
         if (databaseResults.size() == 0) {

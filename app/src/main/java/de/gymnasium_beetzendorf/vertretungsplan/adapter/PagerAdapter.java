@@ -31,8 +31,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
                 substitutionTabFragment.setLessonsToDisplay(resultsToDisplay.get(position).getSubstitutionList());
                 return substitutionTabFragment;
             case "schedule":
-                ScheduleTabFragment scheduleTabFragment = new ScheduleTabFragment();
-                return scheduleTabFragment;
+                return new ScheduleTabFragment();
             default:
                 return null;
         }
