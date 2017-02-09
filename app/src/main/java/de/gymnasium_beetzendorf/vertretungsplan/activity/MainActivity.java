@@ -3,12 +3,10 @@ package de.gymnasium_beetzendorf.vertretungsplan.activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
@@ -34,11 +32,11 @@ import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 public class MainActivity extends BaseActivity
         implements Constants, BaseTabFragment.OnSwipeRefreshListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private SharedPreferences mSharedPreferences;
-    private TabLayout mMainTabLayout;
     private ViewPager mMainViewPager;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private Context mContext;
     private DatabaseHandler mDatabaseHandler;
     private int mSchool;
     private int mClassYear;
@@ -47,11 +45,9 @@ public class MainActivity extends BaseActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean new_update = intent.getBooleanExtra("new_update", false);
-
             if (mSwipeRefreshLayout.isRefreshing()) {
                 mSwipeRefreshLayout.setRefreshing(false);
             }
-
             if (new_update) {
                 displayData();
                 makeSnackbar("Aktualisiert.");
@@ -70,8 +66,6 @@ public class MainActivity extends BaseActivity
         return (Toolbar) findViewById(R.id.mainToolbar);
     }
 
-
-    // activity override methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,39 +76,13 @@ public class MainActivity extends BaseActivity
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
 
-        // instantiate preference
         mSharedPreferences = getSharedPreferences();
+        mDatabaseHandler = getDatabaseHandler();
 
-        // check if all settings are set
-        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-        if (!mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").equalsIgnoreCase("")) {
-            mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-            mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
-        } else {
-            mClassYear = 0;
-            mClassLetter = "";
-        }
-
-        // activate boot receiver
-        // this will start the alarm that is responsible for refreshing data
-        ComponentName receiver = new ComponentName(this, BootReceiver.class);
-        PackageManager packageManager = this.getPackageManager();
-        packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-
-
-        if (mSharedPreferences.getLong("last_class_list_refresh", 0) == 0) {
-            Intent intent = new Intent(this, RefreshService.class);
-            intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
-            startService(intent);
-        }
-
-        if (mSharedPreferences.getLong("last_substitution_plan_refresh", 0) == 0) {
-            mDatabaseHandler = getDatabaseHandler();
-            List<SubstitutionDay> list = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
-            if (list.size() > 0) {
-                mSharedPreferences.edit().putLong("last_substitution_plan_refresh", list.get(0).getUpdated()).apply();
-            }
-        }
+        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
+        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
+        mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
+        mClassLetter = classYearLetter.substring(3);
 
         // register alarm if it hasn't been done by the application after booting the device
         if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
@@ -124,20 +92,11 @@ public class MainActivity extends BaseActivity
 
             // set the alarm
             // it starts at 6 am and repeats once an hour
-            // elapsed_realtime is used to save ressources
             AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.setInexactRepeating(
-                    ALARM_TYPE,
-                    System.currentTimeMillis(),
-                    ALARM_INTERVAL,
-                    alarmPendingIntent);
-
-            // change prefs so it won't set alarm everytime the app opens
-            // unless the app is uninstalled/cache wiped the alarm will be handled by BootReceiver after the devices boots
+            alarmManager.setInexactRepeating(ALARM_TYPE, System.currentTimeMillis(), ALARM_INTERVAL, alarmPendingIntent);
             mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
         }
 
-        // instantiate SwipeRefreshLayout
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
@@ -149,9 +108,6 @@ public class MainActivity extends BaseActivity
             });
         }
 
-        mDatabaseHandler = getDatabaseHandler();
-
-
         refresh();
     }
 
@@ -161,20 +117,17 @@ public class MainActivity extends BaseActivity
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("refresh_message"));
 
-        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) { // refresh if prefs have changed
-            displayData();
-            mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
-
-            mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
-            mClassYear = Integer.parseInt(mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(0, 2));
-            mClassLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "").substring(3);
-        }
+        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
+        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
+        mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
+        mClassLetter = classYearLetter.substring(3);
+        mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+        displayData();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         // unregister receiver to no longer receive broadcast but subsequently push a notification
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
     }
@@ -216,11 +169,7 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    // takes care of data refreshing logic
-    // if internet connection is available it tries a full refresh
-    // else it just displays the current data
     public void refresh() {
-
         if (!mSwipeRefreshLayout.isRefreshing()) {
             mSwipeRefreshLayout.setRefreshing(true);
         }
@@ -237,35 +186,18 @@ public class MainActivity extends BaseActivity
 
 
     public void displayData() {
-        List<SubstitutionDay> databaseResults;
-
-        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
-        String currentTabText = "";
-        int currentTabCount = -1;
-
-        // get needed results
-        databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
-
-        // check if tabs are already there and store the current tab to reopen it
-        if (mMainTabLayout.getTabCount() > 0) {
-            currentTabCount = mMainTabLayout.getSelectedTabPosition();
-
-            try {
-                //noinspection ConstantConditions
-                currentTabText = (String) mMainTabLayout.getTabAt(currentTabCount).getText();
-            } catch (NullPointerException e) {
-                Log.i(TAG, "NullPointerException on getting currentTabText", e);
-            }
-        }
+        List<SubstitutionDay> databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
 
         // draw the tabs depending on the days from the file
-        mMainTabLayout.removeAllTabs();
+        mainTabLayout.removeAllTabs();
         String tabTitle;
         for (int n = 0; n < databaseResults.size(); n++) {
             // only create a tab if there's any information to show within that tab
-            if (databaseResults.get(n).getSubstitutionList().size() != 0) {
+            Log.i(TAG, String.format("Tag %1$d: Menge der Vertretungen: %2$d", n, databaseResults.get(n).getSubstitutionList().size()));
+            if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
@@ -273,24 +205,23 @@ public class MainActivity extends BaseActivity
 
                 tabTitle = tempWeekday + " " + tempDate.substring(0, 6);
                 Log.i(TAG, n + " tabtitle: " + tabTitle);
-                //tabTitle = "" + n;
 
-                mMainTabLayout.addTab(mMainTabLayout.newTab().setText(tabTitle));
+                mainTabLayout.addTab(mainTabLayout.newTab().setText(tabTitle));
             }
         }
 
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mMainTabLayout.getTabCount(), "substitution", databaseResults);
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mainTabLayout.getTabCount(), "substitution", databaseResults);
         mMainViewPager.setAdapter(pagerAdapter);
-        mMainTabLayout.setupWithViewPager(mMainViewPager);
+        mainTabLayout.setupWithViewPager(mMainViewPager);
 
-        mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mMainTabLayout) {
+        mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mainTabLayout) {
             @Override
             public void onPageScrollStateChanged(int state) {
                 toggleRefreshing(state == ViewPager.SCROLL_STATE_IDLE);
             }
         });
 
-        mMainTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        mainTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mMainViewPager.setCurrentItem(tab.getPosition());
@@ -309,7 +240,7 @@ public class MainActivity extends BaseActivity
 
         // add an empty tab if there are (for some reason) no results to display
         if (databaseResults.size() == 0) {
-            mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
+            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
         }
 
         mSwipeRefreshLayout.setRefreshing(false);

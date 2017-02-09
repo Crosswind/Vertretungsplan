@@ -65,7 +65,6 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
     public boolean shouldDisplay(Context context) {
         mSharedPreferences = getSharedPreferences(context);
         int school;
-
         try {
             school = mSharedPreferences.getInt(Constants.PREFERENCE_SCHOOL, -1);
         } catch (NullPointerException e) {

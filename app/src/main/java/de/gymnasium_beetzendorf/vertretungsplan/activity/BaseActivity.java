@@ -1,8 +1,10 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -14,27 +16,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
+import de.gymnasium_beetzendorf.vertretungsplan.BootReceiver;
 import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 
 public abstract class BaseActivity extends AppCompatActivity implements Constants {
 
+    private final String TAG = BaseActivity.class.getSimpleName();
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Log.i(TAG, "1 BaseActivity");
-
 
         if (WelcomeActivity.shouldDisplay(this)) {
             Intent intent = new Intent(this, WelcomeActivity.class);
             startActivity(intent);
             finish();
-            Log.i(TAG, "2 BaseActivity");
             return;
         }
 
-        Log.i(TAG, "3 BaseActivity");
+        PackageManager packageManager = this.getPackageManager();
+        ComponentName receiver = new ComponentName(this, BootReceiver.class);
+        if (packageManager.getComponentEnabledSetting(receiver) != PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+            packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        }
 
         if (getLayoutId() != 0) {
             setContentView(getLayoutId());

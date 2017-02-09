@@ -104,22 +104,6 @@ class XmlParser implements Constants {
         return weekday + 1;
     }
 
-    // extract the encoding from the first line of the xml doc
-    // if no encoding is set, utf-8 will be used by standard
-    /*private void setFileEncoding() {
-        try {
-            bufferedReader = tempBufferedReader;
-            String firstLine = bufferedReader.readLine();
-            int start = firstLine.indexOf("encoding=") + 10; // +10 to actually start after the encoding string
-            String encoding = firstLine.substring(start, firstLine.indexOf("\"", start));
-
-            this.bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-            this.tempBufferedReader = bufferedReader;
-        } catch (IOException e) {
-            Log.e(TAG, "problem with file encoding ", e);
-        }
-    }*/
-
     List<SubstitutionDay> parseReturnSubstitution() {
         SubstitutionDay currentSubstitutionDay = new SubstitutionDay();
         List<SubstitutionDay> results = new ArrayList<>();
@@ -204,29 +188,27 @@ class XmlParser implements Constants {
                                 break;
                             // all data that is actual substitution information
                             case "klasse":
-                                if (text.length() == 4) {
-                                    currentSubstitution.setClassYearLetter(text);
-                                    currentSubstitution.setClassCourse("");
+                                currentSubstitution.setClassCourse("");
+
+                                if (text.length() == 9 || text.length() > 10) {
+                                    String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
+                                    Log.i(TAG, rangeClasses.toString());
+                                    currentSubstitution.setClassYearLetter(rangeClasses[0]);
+                                    String[] rangeClassesLetter = {rangeClasses[0].substring(3, 4), rangeClasses[1].substring(3, 4)};
+                                    multipleClasses = (int) rangeClassesLetter[1].charAt(0) - (int) rangeClassesLetter[0].charAt(0);
+                                    currentSubstitution.setClassYearLetter(rangeClasses[1]);
                                 } else {
-                                    if (text.length() == 9 || text.length() > 10) {
-                                        //text = text.substring(0, text.indexOf('/'));
-                                        String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
-                                        currentSubstitution.setClassYearLetter(rangeClasses[0]);
-                                        String[] rangeClassesLetter = {rangeClasses[0].substring(3, 4), rangeClasses[1].substring(3, 4)};
-                                        multipleClasses = (int) rangeClassesLetter[1].charAt(0) - (int) rangeClassesLetter[0].charAt(0);
-                                        currentSubstitution.setClassYearLetter(rangeClasses[1]);
-                                    } else {
-                                        text = text.substring(0, 4);
-                                        currentSubstitution.setClassYearLetter(text);
-                                    }
+                                    text = text.substring(0, 4);
+                                    currentSubstitution.setClassYearLetter(text);
                                 }
                                 break;
                             case "stunde":
                                 int periods = Integer.parseInt(text.replaceAll("-", ""));
-                                currentSubstitution.setPeriod(periods);
-                                if (String.valueOf(periods).length() > 2) {
-                                    multiplePeriods = (int) String.valueOf(periods).charAt(0) - (int) String.valueOf(periods).charAt(2);
+                                if (String.valueOf(periods).length() > 1) {
+                                    multiplePeriods = (periods % 10) - (periods / 10);
+                                    periods /= 10;
                                 }
+                                currentSubstitution.setPeriod(periods);
                                 break;
                             case "fach":
                                 if (!text.equalsIgnoreCase("")) {
@@ -248,7 +230,9 @@ class XmlParser implements Constants {
                                 currentSubstitution.setInfo(text);
                                 break;
 
-                            case "haupt":
+                            case "aktion":
+                                Log.i(TAG, currentSubstitution.getClassYearLetter() + " multipleperiod: " + multiplePeriods + " multipleClasses: " + multipleClasses);
+
                                 for (int i = 0; i <= multiplePeriods; i++) {
                                     currentSubstitution.setPeriod(currentSubstitution.getPeriod() + i);
                                     currentSubstitutionList.add(currentSubstitution);
@@ -258,6 +242,9 @@ class XmlParser implements Constants {
                                     currentSubstitution.setClassYearLetter(currentSubstitution.getClassYearLetter().replace(Character.toChars(letter)[0], Character.toChars(letter + i)[0]));
                                     currentSubstitutionList.add(currentSubstitution);
                                 }
+                                break;
+
+                            case "haupt":
                                 currentSubstitutionDay.setSubstitutionList(currentSubstitutionList);
                                 results.add(currentSubstitutionDay);
                                 break;
