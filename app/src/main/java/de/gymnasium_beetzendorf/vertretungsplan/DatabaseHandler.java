@@ -311,11 +311,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
             // old data is deleted and then the new data is reinserted. no check if the data is actually different
 
             db.delete(TABLE_SUBSTITUTION, S_ID_DAY + " = " + cursor.getInt(0), null);
-
+            Substitution substitution;
             for (int j = 0; j < results.get(i).getSubstitutionList().size(); j++) {
-                Substitution substitution = results.get(i).getSubstitutionList().get(j);
+                substitution = results.get(i).getSubstitutionList().get(j);
 
-                Log.i(TAG, substitution.getClassYearLetter().substring(0, 2) + " " + substitution.getClassYearLetter().substring(3) + " " + substitution.getClassCourse() + " " + substitution.getPeriod() + " " + substitution.getSubject() + " " + substitution.getTeacher() + " " + substitution.getRoom() + " " + substitution.getInfo());
+                Log.i(TAG, substitution.getClassYearLetter().substring(0, 2) + "-" + substitution.getClassYearLetter().substring(3) + "-" + substitution.getClassCourse() + "-" + substitution.getPeriod() + "-" + substitution.getSubject() + "-" + substitution.getTeacher() + "-" + substitution.getRoom() + "-" + substitution.getInfo());
                 cv.clear();
                 cv.put(S_ID_DAY, cursor.getInt(0));
                 cv.put(S_CLASS_YEAR, substitution.getClassYearLetter().substring(0, 2));
