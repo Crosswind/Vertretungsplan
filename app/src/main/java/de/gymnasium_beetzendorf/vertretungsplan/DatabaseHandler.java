@@ -258,14 +258,24 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         if (cursor.moveToFirst()) {
             do {
+                Log.i(TAG, "s_id: " + cursor.getInt(0)
+                        + "\ns_id_day: " + cursor.getInt(1)
+                        + "\ns_class_year: " + cursor.getInt(2)
+                        + "\ns_class_letter: " + cursor.getString(3)
+                        + "\ns_class_type: " + cursor.getString(4)
+                        + "\ns_period: " + cursor.getInt(5)
+                        + "\ns_subject: " + cursor.getInt(6)
+                        + "\ns_teacher: " + cursor.getInt(7)
+                        + "\ns_room: " + cursor.getString(8)
+                        + "\ns_info: " + cursor.getString(9));
                 Substitution substitution = new Substitution();
-                substitution.setClassYearLetter(cursor.getInt(3) + " " + cursor.getString(4));
-                substitution.setClassCourse(cursor.getString(5));
-                substitution.setPeriod(cursor.getInt(6));
-                substitution.setSubject(Subject.getSubjectIdBySubjectShort(cursor.getString(7)));
-                substitution.setTeacher(Teacher.getTeacherIdByTeacherShort(cursor.getString(8)));
-                substitution.setRoom(cursor.getString(9));
-                substitution.setInfo(cursor.getString(10));
+                substitution.setClassYearLetter(cursor.getInt(2) + " " + cursor.getString(3));
+                substitution.setClassCourse(cursor.getString(4));
+                substitution.setPeriod(cursor.getInt(5));
+                substitution.setSubject(Subject.getSubjectIdBySubjectShort(cursor.getString(5)));
+                substitution.setTeacher(Teacher.getTeacherIdByTeacherShort(cursor.getString(7)));
+                substitution.setRoom(cursor.getString(8));
+                substitution.setInfo(cursor.getString(9));
                 result.add(substitution);
             } while (cursor.moveToNext());
         }
@@ -274,22 +284,22 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         return result;
     }
 
-    public List<Schoolday> getFullSchedule() {
+   /* public List<Schoolday> getFullSchedule() {
         return null;
-    }
+    } */
 
-    private List<Lesson> getScheduleLessonsByDay() {
+    /*private List<Lesson> getScheduleLessonsByDay() {
         return null;
-    }
+    } */
 
     void insertSubstitutionResults(int school, List<SubstitutionDay> results) {
-        Log.i(TAG, "Menge der Ergebnisse: " + results.size());
-
+        Substitution substitution;
 
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor;
         ContentValues cv = new ContentValues();
         for (int i = 0; i < results.size(); i++) {
+            Log.i(TAG, "Menge der Vertretungen: " + results.get(i).getSubstitutionList().size());
             query = "SELECT " + SD_ID + " FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = " + results.get(i).getDate() + " AND " + SD_SCHOOL + " = " + school;
             cursor = db.rawQuery(query, null);
             cursor.moveToFirst();
@@ -311,11 +321,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
             // old data is deleted and then the new data is reinserted. no check if the data is actually different
 
             db.delete(TABLE_SUBSTITUTION, S_ID_DAY + " = " + cursor.getInt(0), null);
-            Substitution substitution;
+            Log.i(TAG, "cursor.getInt(0): " + cursor.getInt(0));
             for (int j = 0; j < results.get(i).getSubstitutionList().size(); j++) {
                 substitution = results.get(i).getSubstitutionList().get(j);
 
-                Log.i(TAG, substitution.getClassYearLetter().substring(0, 2) + "-" + substitution.getClassYearLetter().substring(3) + "-" + substitution.getClassCourse() + "-" + substitution.getPeriod() + "-" + substitution.getSubject() + "-" + substitution.getTeacher() + "-" + substitution.getRoom() + "-" + substitution.getInfo());
+                //Log.i(TAG, substitution.getClassYearLetter().substring(0, 2) + "-" + substitution.getClassYearLetter().substring(3) + "-" + substitution.getClassCourse() + "-" + substitution.getPeriod() + "-" + substitution.getSubject() + "-" + substitution.getTeacher() + "-" + substitution.getRoom() + "-" + substitution.getInfo());
                 cv.clear();
                 cv.put(S_ID_DAY, cursor.getInt(0));
                 cv.put(S_CLASS_YEAR, substitution.getClassYearLetter().substring(0, 2));
@@ -336,191 +346,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     }
 
-    /*
-    public boolean isUpToDate(String date, Long last_updated) {
-        SQLiteDatabase db = getReadableDatabase();
-        Boolean is_up_to_date;
-        Cursor cursor;
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + date + "'";
-        cursor = db.rawQuery(query, null);
-
-        is_up_to_date = last_updated <= cursor.getLong(cursor.getColumnIndex(SD_LAST_UPDATED));
-
-        cursor.close();
-        return is_up_to_date;
-    }
-
-    public List<Schoolday> getAllSubstitutions() { // return all substitutions from a certain mDate on
-        SQLiteDatabase db = getReadableDatabase();
-        List<Schoolday> schooldayList = new ArrayList<>();
-        Cursor cursor;
-
-        long time = 0;
-        try {
-            time = dateFormatter.parse(date).getTime();
-        } catch (ParseException e) {
-            Log.i(TAG, "ParseException", e);
-        }
-
-        boolean after3Pm = after3Pm();
-
-        if (after3Pm) {
-            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " > '" + time + "'";
-
-        } else {
-            // original query for working app
-            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= '" + time + "'";
-            // demo query for testing
-            //query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " <= '" + time + " LIMIT(0,5)'";
-
-        }
-        cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                //Log.i(MainActivity.TAG, "current position: " + String.valueOf(cursor.getPosition()));
-                Schoolday currentSchoolday = new Schoolday();
-                currentSchoolday.setDate(cursor.getLong(1));
-                currentSchoolday.setLastUpdated(cursor.getLong(2));
-                currentSchoolday.setSubjects(getSubstitutions(cursor.getInt(0)));
-
-                // only add currentSchoolday if it contains any subjects
-                if (currentSchoolday.getSubjects().size() > 0) {
-                    schooldayList.add(currentSchoolday);
-                }
-            } while (cursor.moveToNext());
-        }
-
-        //Log.i(MainActivity.TAG, "größe des schooldaylist arrays: " + String.valueOf(schooldayList.size()));
-
-        cursor.close();
-        db.close();
-        Log.i(TAG, "Größe der Liste: " + schooldayList.size());
-        return schooldayList;
-    }
-
-    public List<Subject> getSubstitutions(int id) { // return substitutions for a certain day
-        SQLiteDatabase db = getReadableDatabase();
-        List<Subject> subjectList = new ArrayList<>();
-        Cursor cursor;
-        String classToShow, classToShowPrimary, classToShowSecondary;
-
-        // specify the results needed depending on the settings
-        if (sharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, true)) {
-            query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
-        } else {
-            classToShow = sharedPreferences.getString(CLASS_TO_SHOW, null);
-            if (classToShow != null) {
-                classToShowPrimary = classToShow.substring(0, 2);
-                classToShowSecondary = classToShow.substring(3, 4);
-                // how it works right now (might change once the whole plan will be available through the app + specific course selection will be available
-                // search for entries that definitely include the general class (05, 11, 12, etc). it necessarily checks if A/B/C is also included
-                // if not, second condition (OR) is that the entry needs to be longer than 4 (-> all entries that have a specific course like 12 inf1
-
-                query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "' " +
-                        "AND " + SR_COURSE + " LIKE '%" + classToShowPrimary + "%' " +
-                        "AND (" + SR_COURSE + " LIKE '%" + classToShowSecondary + "' " +
-                        "OR length(" + SR_COURSE + ") > 4)" +
-                        "ORDER BY " + SR_PERIOD;
-            } else {
-                query = "SELECT * FROM " + TABLE_SUBSTITUTION_ROWS + " WHERE " + SR_DAY + " = '" + id + "'";
-            }
-        }
-
-        // query all subjects for a certain mDate
-        cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Subject currentSubject = new Subject();
-                currentSubject.setCourse(cursor.getString(2));
-                currentSubject.setPeriod(cursor.getInt(3));
-                currentSubject.setSubject(cursor.getString(4));
-                currentSubject.setTeacher(cursor.getString(5));
-                currentSubject.setRoom(cursor.getString(6));
-                currentSubject.setInfo(cursor.getString(7));
-                subjectList.add(currentSubject);
-            } while (cursor.moveToNext());
-        }
-
-        cursor.close();
-        db.close();
-
-        return subjectList;
-    }
-
-    public void insertSubstitutionXmlResults(List<Schoolday> results) {
-        SQLiteDatabase db = getWritableDatabase();
-        Schoolday currentDay;
-        Cursor cursor;
-        for (int n = 0; n < results.size(); n++) {
-            currentDay = results.get(n);
-            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + currentDay.getDate() + "'";
-            cursor = db.rawQuery(query, null);
-            cursor.moveToFirst();
-
-            ContentValues values;
-            if (cursor.getCount() == 0) {
-                values = new ContentValues();
-                values.put(SD_DATE, currentDay.getDate());
-                values.put(SD_LAST_UPDATED, currentDay.getLastUpdated());
-                values.put(SD_PAST, false);
-                db.insert(TABLE_SUBSTITUTION_DAYS, null, values);
-            } else if (cursor.getCount() == 1) {
-                values = new ContentValues();
-                int id = cursor.getInt(cursor.getColumnIndex(SD_ID));
-                // updating table days
-                values.put(SD_LAST_UPDATED, currentDay.getLastUpdated());
-                db.update(TABLE_SUBSTITUTION_DAYS, values, SD_ID + " = ?", new String[]{String.valueOf(id)});
-            }
-
-            query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = '" + currentDay.getDate() + "'";
-            cursor = db.rawQuery(query, null);
-            cursor.moveToFirst();
-            int id = cursor.getInt(cursor.getColumnIndex(SD_ID));
-
-            // clear corresponding table rows and then re-add them
-            // subjects need to be deleted everytime because we don't want old results in the database that aren't valid anymore
-            // --> the way how the xml file is set up -> there is no indicator if a substitution lost its validity
-            db.delete(TABLE_SUBSTITUTION_ROWS, SR_DAY + " = ?", new String[]{String.valueOf(id)});
-            Subject currentSubject;
-            for (int i = 0; i < currentDay.getSubjects().size(); i++) {
-                currentSubject = currentDay.getSubjects().get(i);
-                values = new ContentValues();
-                values.put(SR_DAY, id);
-                values.put(SR_COURSE, currentSubject.getCourse());
-                values.put(SR_PERIOD, currentSubject.getPeriod());
-                values.put(SR_ROOM, currentSubject.getRoom());
-                values.put(SR_SUBJECT, currentSubject.getSubject());
-                values.put(SR_TEACHER, currentSubject.getTeacher());
-                values.put(SR_INFO, currentSubject.getInfo());
-                db.insert(TABLE_SUBSTITUTION_ROWS, null, values);
-            }
-            cursor.close();
-        }
-
-        Log.i(TAG, "wieviel ist jetzt in der db - " + getAllSubstitutions().size());
-        db.close();
-    }
-
-    public boolean after3Pm() {
-        // check if current day is needed or if it's passt 3 pm that day
-        long currentTime = System.currentTimeMillis();
-        long afterSchoolTime = 0;
-
-        try {
-            afterSchoolTime = dateTimeFormatter.parse(date + " 15:00").getTime();
-        } catch (ParseException e) {
-            Log.i(TAG, "ParseException for afterSchoolTime", e);
-        }
-
-        // today no longer needs to be displayed
-        return afterSchoolTime != 0 && currentTime > afterSchoolTime;
-    }
-
-    */
-
-    void emptyClassListTable() {
+    private void emptyClassListTable() {
         SQLiteDatabase db = getWritableDatabase();
 
         query = "DELETE FROM " + TABLE_CLASSLIST;

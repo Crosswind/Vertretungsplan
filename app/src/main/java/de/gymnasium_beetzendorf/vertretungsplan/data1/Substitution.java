@@ -17,6 +17,10 @@ public class Substitution {
 
     private String changes;
 
+    public Substitution () {
+        this.changes = "";
+    }
+
 
     public String getClassYearLetter() {
         return classYearLetter;

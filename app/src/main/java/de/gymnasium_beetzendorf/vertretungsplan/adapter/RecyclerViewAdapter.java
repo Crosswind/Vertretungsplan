@@ -5,22 +5,29 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
 
+import static de.gymnasium_beetzendorf.vertretungsplan.data1.Subject.getSubjectShortById;
+
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         implements Constants, View.OnClickListener {
+
+    private static final String TAG = RecyclerViewAdapter.class.getSimpleName();
 
     private List<Substitution> substitutionList;
     private Context context;
@@ -70,13 +77,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         TextView roomTextView = holder.roomTextView;
 
         CardView itemCardView = holder.itemCardView;
-
-        int color = context.getResources().getIdentifier(Subject.getSubjectShortById(currentSubstitution.getSubject()), "color", null);
+        int color = context.getResources().getIdentifier(getSubjectShortById(currentSubstitution.getSubject()), "color", context.getPackageName());
         itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
-
         // differentiating between free period or not
-        if (Subject.getSubjectShortById(currentSubstitution.getSubject()).equals("---")) {
+        if (getSubjectShortById(currentSubstitution.getSubject()).equals("---")) {
             subjectTextView.setText("frei");
             roomTextView.setText("");
             teacherTextView.setText("");
@@ -91,7 +96,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (Teacher.getTeacher_shortById(currentSubstitution.getTeacher()).length() == 7) {
                 subjectTextView.setVisibility(View.INVISIBLE);
             } else {
-                subjectTextView.setText(currentSubstitution.getSubject());
+                subjectTextView.setText(Subject.getSubjectShortById(currentSubstitution.getSubject()));
             }
 
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) subjectTextView.getLayoutParams();
@@ -104,7 +109,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             roomTextView.setText(currentSubstitution.getRoom());
             roomTextView.setVisibility(View.VISIBLE);
-            teacherTextView.setText(currentSubstitution.getTeacher());
+            teacherTextView.setText(Teacher.getTeacher_shortById(currentSubstitution.getTeacher()));
         }
 
 
@@ -114,19 +119,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         infoTextView.setText(currentSubstitution.getInfo());
 
         // change visibility on onclick event
-        if (position == expandedPosition)
 
-        {
+        if (position == expandedPosition) {
             infoTextView.setVisibility(View.VISIBLE);
-        } else if (position == prev)
-
-        {
+        } else if (position == prev) {
             infoTextView.setVisibility(View.GONE);
-        } else
-
-        {
+        } else {
             infoTextView.setVisibility(View.GONE);
         }
+
     }
 
     @Override

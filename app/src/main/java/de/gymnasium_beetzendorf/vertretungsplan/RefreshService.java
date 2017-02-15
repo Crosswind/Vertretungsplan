@@ -34,6 +34,7 @@ public class RefreshService extends IntentService implements Constants {
     public RefreshService() {
         super("RefreshService");
     }
+    private static final String TAG = RefreshService.class.getSimpleName();
 
     public static final String INSTRUCTION = "instruction";
     public static final int NO_REFRESH = -1;
@@ -162,6 +163,10 @@ public class RefreshService extends IntentService implements Constants {
 
         XmlParser parser = new XmlParser(this, XmlParser.SUBSTITUTION);
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
+
+        for (int i = 0; i < xmlResults.size(); i++) {
+            Log.i(TAG, "Menge der Vertretungen: " + xmlResults.get(i).getSubstitutionList().size());
+        }
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
         databaseHandler.insertSubstitutionResults(0, xmlResults);

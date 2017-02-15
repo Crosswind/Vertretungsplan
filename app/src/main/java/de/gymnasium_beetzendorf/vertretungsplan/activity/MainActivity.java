@@ -189,8 +189,8 @@ public class MainActivity extends BaseActivity
         TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
-        List<SubstitutionDay> databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
-
+        List<SubstitutionDay> databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool);
+        Log.i(TAG, "results from the database: " + databaseResults.size());
         // draw the tabs depending on the days from the file
         mainTabLayout.removeAllTabs();
         String tabTitle;
