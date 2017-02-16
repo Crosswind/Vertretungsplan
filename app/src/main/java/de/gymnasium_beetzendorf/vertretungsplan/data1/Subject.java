@@ -1,5 +1,8 @@
 package de.gymnasium_beetzendorf.vertretungsplan.data1;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * holds data about the individual subjects
  * this may change in the future and migrate into a database that updates dynamically according to the data from the different xml files
@@ -26,7 +29,9 @@ public enum Subject {
     Berufsberatung(16, "BSB", "Berufsberatung"),
     DLI(17, "DLI", "Das Lernen lernen"),
     PCI(18, "PCI", "Einführung mit d. PC"),
-    Informatik(19, "Inf", "Informatik");
+    Informatik(19, "Inf", "Informatik"),
+    FREISTUNDE(20, "freePeriod", "frei"),
+    BERUFSBERATUNG(21, "BSB", "Berufsberatung");
 
 
     private int id;
@@ -39,7 +44,9 @@ public enum Subject {
         this.subject_long = subject_long;
     }
 
-    Subject() {}
+    public static List<Subject> list() {
+        return Arrays.asList(values());
+    }
 
     private int getId() {
         return id;
@@ -63,7 +70,7 @@ public enum Subject {
     }
 
     public static String getSubjectShortById(int id) {
-        for (Subject subject : values()) {
+        for (Subject subject : list()) {
             if (subject.getId() == id) {
                 return subject.getSubject_short();
             }
@@ -72,7 +79,7 @@ public enum Subject {
     }
 
     static String getSubjectLongById(int id) {
-        for (Subject subject : values()) {
+        for (Subject subject : list()) {
             if (subject.getId() == id) {
                 return subject.getSubject_long();
             }
@@ -81,7 +88,7 @@ public enum Subject {
     }
 
     public static int getSubjectIdBySubjectShort(String subject_short) {
-        for (Subject subject : values()) {
+        for (Subject subject : list()) {
             if (subject.getSubject_short().equalsIgnoreCase(subject_short)) {
                 return subject.getId();
             }

@@ -9,13 +9,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.List;
 
-import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
@@ -78,6 +76,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         CardView itemCardView = holder.itemCardView;
         int color = context.getResources().getIdentifier(getSubjectShortById(currentSubstitution.getSubject()), "color", context.getPackageName());
+        Log.i(TAG, "subject short: " + getSubjectShortById(currentSubstitution.getSubject()));
         itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
 
         // differentiating between free period or not
@@ -96,6 +95,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (Teacher.getTeacher_shortById(currentSubstitution.getTeacher()).length() == 7) {
                 subjectTextView.setVisibility(View.INVISIBLE);
             } else {
+                Log.i(TAG, "Fach: " + Subject.getSubjectShortById(currentSubstitution.getSubject()) + " id: " + currentSubstitution.getSubject());
                 subjectTextView.setText(Subject.getSubjectShortById(currentSubstitution.getSubject()));
             }
 

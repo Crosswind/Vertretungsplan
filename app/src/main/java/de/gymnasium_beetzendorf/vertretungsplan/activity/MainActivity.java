@@ -26,6 +26,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.PagerAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 
@@ -71,6 +72,8 @@ public class MainActivity extends BaseActivity
         super.onCreate(savedInstanceState);
 
         Log.i(TAG, "1 MainActivity");
+
+        Log.i(TAG, "Mat: " + Subject.getSubjectIdBySubjectShort("Eng") + " - " + Subject.getSubjectShortById(Subject.getSubjectIdBySubjectShort("Eng")));
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);

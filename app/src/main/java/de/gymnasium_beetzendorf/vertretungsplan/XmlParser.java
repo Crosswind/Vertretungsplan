@@ -44,9 +44,6 @@ class XmlParser implements Constants {
     private BufferedReader bufferedReader = null;
     private BufferedReader tempBufferedReader = null;
 
-    // meta tags
-    static final String xmlStartTag = "?xml";
-
     static final String SUBSTITUTION = "substitution";
     static final String SCHEDULE = "schedule";
 
@@ -146,8 +143,7 @@ class XmlParser implements Constants {
                                 currentSubstitutionDay = new SubstitutionDay();
                                 break;
                             case "haupt":
-                                currentSubstitutionList.clear();
-                                Log.i(TAG, "cleared list - elements: " + currentSubstitutionList.size());
+                                currentSubstitutionList = new ArrayList<>();
                                 break;
                             case "aktion":
                                 currentSubstitution = new Substitution();
@@ -225,7 +221,10 @@ class XmlParser implements Constants {
                                 break;
                             case "fach":
                                 if (!text.equalsIgnoreCase("")) {
+                                    text = text.replace("---", "freePeriod");
+                                    Log.i(TAG, "Fach Text: " + text);
                                     currentSubstitution.setSubject(Subject.getSubjectIdBySubjectShort(text));
+                                    Log.i(TAG, "Fach Id: " + currentSubstitution.getSubject());
                                 }
                                 break;
                             case "lehrer":
@@ -247,28 +246,19 @@ class XmlParser implements Constants {
                                 int letterNumber;
                                 String initialLetter = currentSubstitution.getClassYearLetter();
                                 int initialPeriod = currentSubstitution.getPeriod();
-                                //Log.i(TAG, currentSubstitution.getClassYearLetter().substring(0, 2) + "-" + currentSubstitution.getClassCourse() + "-" + currentSubstitution.getPeriod() + "-" + currentSubstitution.getSubject() + "-" + currentSubstitution.getTeacher() + "-" + currentSubstitution.getRoom() + "-" + currentSubstitution.getInfo() + "-" + currentSubstitution.getChanges());
-                                //Log.i(TAG, "mPeriods: " + multiplePeriods + " -- mClasses: " + multipleClasses);
-                                //Log.i(TAG, currentSubstitution.getClassYearLetter() + "-" + currentSubstitution.getClassCourse() + "-" + currentSubstitution.getPeriod() + "-" + currentSubstitution.getSubject() + "-" + currentSubstitution.getTeacher() + "-" + currentSubstitution.getRoom() + "-" + currentSubstitution.getInfo() + "-" + currentSubstitution.getChanges());
                                 for (int i = 0; i <= multiplePeriods; i++) {
                                     for (int j = 0; j <= multipleClasses; j++) {
                                         currentSubstitution.setPeriod(initialPeriod + i);
                                         letterNumber = initialLetter.charAt(3) + j;
                                         currentSubstitution.setClassYearLetter(initialLetter.replace(initialLetter.charAt(3), (char) letterNumber));
                                         currentSubstitutionList.add(currentSubstitution);
-                                        Log.i(TAG, "Listgröße: " + currentSubstitutionList.size());
-                                        //Log.i(TAG, currentSubstitution.getClassYearLetter() + "-" + currentSubstitution.getClassCourse() + "-" + currentSubstitution.getPeriod() + "-" + currentSubstitution.getSubject() + "-" + currentSubstitution.getTeacher() + "-" + currentSubstitution.getRoom() + "-" + currentSubstitution.getInfo() + "-" + currentSubstitution.getChanges());
                                     }
                                 }
-
-                                //Log.i(TAG, currentSubstitution.getClassYearLetter() + "-" + currentSubstitution.getClassCourse() + "-" + currentSubstitution.getPeriod() + "-" + currentSubstitution.getSubject() + "-" + currentSubstitution.getTeacher() + "-" + currentSubstitution.getRoom() + "-" + currentSubstitution.getInfo() + "-" + currentSubstitution.getChanges());
                                 break;
 
                             case "haupt":
                                 currentSubstitutionDay.setSubstitutionList(currentSubstitutionList);
-                                Log.i(TAG, "Menge der Vertretungen nach dem Hinzufügen: " + currentSubstitutionList.size());
                                 results.add(currentSubstitutionDay);
-                                Log.i(TAG, "Menge der Vertretungen nach dem Hinzufügen(2): " + results.get(results.size()-1).getSubstitutionList().size());
                                 break;
                         }
                         break;
@@ -282,10 +272,6 @@ class XmlParser implements Constants {
         } catch (IllegalFormatException e) {
             Log.e(TAG, "No school with this name found!", e);
         }
-        for (int i = 0; i < results.size(); i++) {
-            Log.i(TAG, "Datum: " + results.get(i).getDate() + "\nMenge der Vertretungen: " + results.get(i).getSubstitutionList().size());
-        }
-        Log.i(TAG, "finished parsing, result size: " + String.valueOf(results.size()));
         return results;
     }
 

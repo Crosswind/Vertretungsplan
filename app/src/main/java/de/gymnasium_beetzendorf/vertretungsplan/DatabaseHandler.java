@@ -272,8 +272,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 substitution.setClassYearLetter(cursor.getInt(2) + " " + cursor.getString(3));
                 substitution.setClassCourse(cursor.getString(4));
                 substitution.setPeriod(cursor.getInt(5));
-                substitution.setSubject(Subject.getSubjectIdBySubjectShort(cursor.getString(5)));
-                substitution.setTeacher(Teacher.getTeacherIdByTeacherShort(cursor.getString(7)));
+                substitution.setSubject(cursor.getInt(6));
+                substitution.setTeacher(cursor.getInt(7));
                 substitution.setRoom(cursor.getString(8));
                 substitution.setInfo(cursor.getString(9));
                 result.add(substitution);
