@@ -31,7 +31,13 @@
     <color name="Ast">#4CAF50</color>
     <color name="Eth">#00C853</color>
     <color name="Rel">#AA00FF</color>
-    <color name="freePeriod">#607D8B</color>
+    <color name="Lat">@color/foreignLanguage</color>
+    <color name="Rus">@color/foreignLanguage</color>
+    <color name="Frz">@color/foreignLanguage</color>
+    <color name="BSB">@color/defaultColor</color>
+    <color name="DLl">@color/defaultColor</color>
+    <color name="AG">@color/defaultColor</color>
+    <color name="frei">#607D8B</color>
     <color name="defaultColor">#9E9E9E</color>
 
 </resources>

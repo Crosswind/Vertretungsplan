@@ -16,12 +16,8 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
 
 
 public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
@@ -29,7 +25,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 5;
+    public static int DATABASE_VERSION = 6;
 
     // substitution table / coloumn names
     private static String TABLE_SUBSTITUTION = "substitution";
@@ -103,8 +99,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 S_CLASS_LETTER + " TEXT, " +
                 S_CLASS_TYPE + " TEXT, " +
                 S_PERIOD + " INTEGER, " +
-                S_SUBJECT + " INTEGER, " +
-                S_TEACHER + " INTEGER, " +
+                S_SUBJECT + " TEXT, " +
+                S_TEACHER + " TEXT, " +
                 S_ROOM + " TEXT, " +
                 S_INFO + " TEXT " +
                 S_CHANGE + " TEXT " +
@@ -186,7 +182,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     }
 
     public List<SubstitutionDay> getSubstitutionDayList(int school) {
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_SCHOOL + " = " + school;
+        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
@@ -194,7 +190,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         if (cursor.moveToFirst()) {
             do {
-                //Log.i(TAG, "sd_id: " + cursor.getInt(0) + "\nsd_date: " + cursor.getLong(1) + "\nsd_updated: " + cursor.getLong(2) + "\nsd_school: " + cursor.getInt(3));
                 SubstitutionDay substitutionDay = new SubstitutionDay();
                 substitutionDay.setDate(cursor.getLong(2));
                 substitutionDay.setUpdated(cursor.getLong(3));
@@ -206,7 +201,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         cursor.close();
 
-        //Log.i(TAG, "Menge der auszugebenden Vertretungen: " + result.get(0).getSubstitutionList().size());
         return result;
     }
 
@@ -219,7 +213,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         if (cursor.moveToFirst()) {
             do {
-                //Log.i(TAG, "sd_id: " + cursor.getInt(0) + "\nsd_date: " + cursor.getLong(1) + "\nsd_updated: " + cursor.getLong(2) + "\nsd_school: " + cursor.getInt(3));
                 SubstitutionDay substitutionDay = new SubstitutionDay();
                 substitutionDay.setDate(cursor.getLong(2));
                 substitutionDay.setUpdated(cursor.getLong(3));
@@ -230,15 +223,13 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         }
 
         cursor.close();
-
-        //Log.i(TAG, "Menge der auszugebenden Vertretungen: " + result.get(0).getSubstitutionList().size());
         return result;
 
     }
 
     private List<Substitution> getSubstitutionListByDayId(int dayId, int classYear, String classLetter, String... classTypes) {
         query = "SELECT * FROM " + TABLE_SUBSTITUTION + " WHERE " + S_ID_DAY + " = " + dayId + " ";
-        if (classYear != 0 || !classLetter.equalsIgnoreCase("")) {
+        if (classYear != 0 && !classLetter.equalsIgnoreCase("")) {
             query += "AND " + S_CLASS_YEAR + " = " + classYear + " AND " + S_CLASS_LETTER + " = '" + classLetter + "'";
         }
         if (classTypes.length > 0) {
@@ -258,22 +249,12 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         if (cursor.moveToFirst()) {
             do {
-                Log.i(TAG, "s_id: " + cursor.getInt(0)
-                        + "\ns_id_day: " + cursor.getInt(1)
-                        + "\ns_class_year: " + cursor.getInt(2)
-                        + "\ns_class_letter: " + cursor.getString(3)
-                        + "\ns_class_type: " + cursor.getString(4)
-                        + "\ns_period: " + cursor.getInt(5)
-                        + "\ns_subject: " + cursor.getInt(6)
-                        + "\ns_teacher: " + cursor.getInt(7)
-                        + "\ns_room: " + cursor.getString(8)
-                        + "\ns_info: " + cursor.getString(9));
                 Substitution substitution = new Substitution();
                 substitution.setClassYearLetter(cursor.getInt(2) + " " + cursor.getString(3));
                 substitution.setClassCourse(cursor.getString(4));
                 substitution.setPeriod(cursor.getInt(5));
-                substitution.setSubject(cursor.getInt(6));
-                substitution.setTeacher(cursor.getInt(7));
+                substitution.setSubject(cursor.getString(6));
+                substitution.setTeacher(cursor.getString(7));
                 substitution.setRoom(cursor.getString(8));
                 substitution.setInfo(cursor.getString(9));
                 result.add(substitution);
@@ -297,14 +278,18 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor;
-        ContentValues cv = new ContentValues();
+        ContentValues cv;
+
+        db.delete(TABLE_SUBSTITUTION, null, null);
+        db.delete(TABLE_SUBSTITUTION_DAYS, null, null);
+
         for (int i = 0; i < results.size(); i++) {
             Log.i(TAG, "Menge der Vertretungen: " + results.get(i).getSubstitutionList().size());
             query = "SELECT " + SD_ID + " FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = " + results.get(i).getDate() + " AND " + SD_SCHOOL + " = " + school;
             cursor = db.rawQuery(query, null);
             cursor.moveToFirst();
 
-            cv.clear();
+            cv = new ContentValues();
             cv.put(SD_UPDATED, results.get(i).getUpdated());
 
             if (cursor.getCount() == 0) {

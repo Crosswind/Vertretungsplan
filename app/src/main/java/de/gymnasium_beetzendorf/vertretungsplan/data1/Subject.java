@@ -48,40 +48,10 @@ public enum Subject {
         return Arrays.asList(values());
     }
 
-    private int getId() {
-        return id;
-    }
-
-    private String getSubject_short() {
-        return subject_short;
-    }
-
-    private String getSubject_long() {
-        return subject_long;
-    }
-
-    Subject getSubjectById(int id) {
-        for (Subject subject : values()) {
-            if (subject.getId() == id) {
-                return subject;
-            }
-        }
-        return null;
-    }
-
     public static String getSubjectShortById(int id) {
         for (Subject subject : list()) {
             if (subject.getId() == id) {
                 return subject.getSubject_short();
-            }
-        }
-        return "";
-    }
-
-    static String getSubjectLongById(int id) {
-        for (Subject subject : list()) {
-            if (subject.getId() == id) {
-                return subject.getSubject_long();
             }
         }
         return "";
@@ -95,4 +65,26 @@ public enum Subject {
         }
         return 0;
     }
+
+    static String getSubjectLongById(int id) {
+        for (Subject subject : list()) {
+            if (subject.getId() == id) {
+                return subject.getSubject_long();
+            }
+        }
+        return "";
+    }
+
+    private int getId() {
+        return id;
+    }
+
+    private String getSubject_short() {
+        return subject_short;
+    }
+
+    private String getSubject_long() {
+        return subject_long;
+    }
+
 }

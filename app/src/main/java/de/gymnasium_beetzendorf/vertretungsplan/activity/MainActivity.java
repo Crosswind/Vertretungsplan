@@ -26,7 +26,6 @@ import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.PagerAdapter;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.BaseTabFragment;
 
@@ -42,6 +41,7 @@ public class MainActivity extends BaseActivity
     private int mSchool;
     private int mClassYear;
     private String mClassLetter;
+    private boolean mShowWholePlan;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -71,10 +71,6 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.i(TAG, "1 MainActivity");
-
-        Log.i(TAG, "Mat: " + Subject.getSubjectIdBySubjectShort("Eng") + " - " + Subject.getSubjectShortById(Subject.getSubjectIdBySubjectShort("Eng")));
-
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
@@ -84,8 +80,11 @@ public class MainActivity extends BaseActivity
 
         mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
         String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
-        mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
-        mClassLetter = classYearLetter.substring(3);
+        if (classYearLetter.length() > 3) {
+            mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
+            mClassLetter = classYearLetter.substring(3);
+        }
+        mShowWholePlan = mSharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, false);
 
         // register alarm if it hasn't been done by the application after booting the device
         if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
@@ -124,6 +123,7 @@ public class MainActivity extends BaseActivity
         String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
         mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
         mClassLetter = classYearLetter.substring(3);
+        mShowWholePlan = mSharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, false);
         mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
         displayData();
     }
@@ -192,17 +192,21 @@ public class MainActivity extends BaseActivity
         TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
-        List<SubstitutionDay> databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool);
-        Log.i(TAG, "results from the database: " + databaseResults.size());
+        List<SubstitutionDay> databaseResults;
+        if (mShowWholePlan) {
+            databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool);
+        } else {
+            databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
+        }
+
         // draw the tabs depending on the days from the file
         mainTabLayout.removeAllTabs();
         String tabTitle;
         for (int n = 0; n < databaseResults.size(); n++) {
-            // only create a tab if there's any information to show within that tab
-            Log.i(TAG, String.format("Tag %1$d: Menge der Vertretungen: %2$d", n, databaseResults.get(n).getSubstitutionList().size()));
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
+                Log.i(TAG, "dates: " + databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
 

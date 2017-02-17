@@ -36,7 +36,7 @@ public enum Teacher {
     public static String getTeacher_shortById(int id) {
         for (Teacher teacher : list()) {
             if (teacher.getId() == id) {
-                return teacher.teacher_short;
+                return teacher.getTeacher_short();
             }
         }
         return "";
@@ -57,10 +57,6 @@ public enum Teacher {
 
     private String getTeacher_short() {
         return teacher_short;
-    }
-
-    public String getTeacher_long_last() {
-        return teacher_long_last;
     }
 
 }

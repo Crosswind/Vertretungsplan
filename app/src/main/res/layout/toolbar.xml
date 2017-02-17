@@ -9,4 +9,3 @@
     app:layout_scrollFlags="scroll|enterAlways"
     app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-    <!--app:layout_collapseMode="pin" -->

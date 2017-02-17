@@ -21,15 +21,13 @@ import java.util.List;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Subject;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Teacher;
 
+import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 import static org.xmlpull.v1.XmlPullParser.TEXT;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
 
 class XmlParser implements Constants {
 
@@ -130,7 +128,7 @@ class XmlParser implements Constants {
                 tag = xmlPullParser.getName();
                 switch (eventType) {
                     case TEXT:
-                        text = xmlPullParser.getText();
+                        text = xmlPullParser.getText().trim();
                         break;
 
                     case START_TAG:
@@ -221,18 +219,17 @@ class XmlParser implements Constants {
                                 break;
                             case "fach":
                                 if (!text.equalsIgnoreCase("")) {
-                                    text = text.replace("---", "freePeriod");
-                                    Log.i(TAG, "Fach Text: " + text);
-                                    currentSubstitution.setSubject(Subject.getSubjectIdBySubjectShort(text));
-                                    Log.i(TAG, "Fach Id: " + currentSubstitution.getSubject());
+                                    text = text.replace("---", "frei");
+                                    currentSubstitution.setSubject(text);
                                 }
                                 break;
                             case "lehrer":
                                 if (!text.equalsIgnoreCase("")) {
-                                    String teacherString = text.replaceAll("[()]", "");
-                                    currentSubstitution.setTeacher(Teacher.getTeacherIdByTeacherShort(teacherString));
+                                    //String teacherString = text.replaceAll("[()]", "");
+                                    //currentSubstitution.setTeacher(Teacher.getTeacherIdByTeacherShort(teacherString));
+                                    currentSubstitution.setTeacher(text);
                                 } else {
-                                    currentSubstitution.setTeacher(-1);
+                                    currentSubstitution.setTeacher("");
                                 }
                                 break;
                             case "raum":
@@ -251,7 +248,14 @@ class XmlParser implements Constants {
                                         currentSubstitution.setPeriod(initialPeriod + i);
                                         letterNumber = initialLetter.charAt(3) + j;
                                         currentSubstitution.setClassYearLetter(initialLetter.replace(initialLetter.charAt(3), (char) letterNumber));
-                                        currentSubstitutionList.add(currentSubstitution);
+                                        currentSubstitutionList.add(new Substitution(currentSubstitution.getClassYearLetter(),
+                                                currentSubstitution.getClassCourse(),
+                                                currentSubstitution.getPeriod(),
+                                                currentSubstitution.getSubject(),
+                                                currentSubstitution.getTeacher(),
+                                                currentSubstitution.getRoom(),
+                                                currentSubstitution.getInfo(),
+                                                currentSubstitution.getChanges()));
                                     }
                                 }
                                 break;

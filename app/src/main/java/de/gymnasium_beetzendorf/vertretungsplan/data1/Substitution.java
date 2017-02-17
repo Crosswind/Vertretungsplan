@@ -10,8 +10,8 @@ public class Substitution {
     private String classYearLetter;
     private String classCourse;
     private int period;
-    private int subject;
-    private int teacher;
+    private String subject;
+    private String teacher;
     private String room;
     private String info;
 
@@ -30,6 +30,17 @@ public class Substitution {
         this.classYearLetter = classYearLetter;
     }
 
+    public Substitution(String classYearLetter, String classCourse, int period, String subject, String teacher, String room, String info, String changes) {
+        this.classYearLetter = classYearLetter;
+        this.classCourse = classCourse;
+        this.period = period;
+        this.subject = subject;
+        this.teacher = teacher;
+        this.room = room;
+        this.info = info;
+        this.changes = changes;
+    }
+
     public int getPeriod() {
         return period;
     }
@@ -38,19 +49,19 @@ public class Substitution {
         this.period = period;
     }
 
-    public int getSubject() {
+    public String getSubject() {
         return subject;
     }
 
-    public void setSubject(int subject) {
+    public void setSubject(String subject) {
         this.subject = subject;
     }
 
-    public int getTeacher() {
+    public String getTeacher() {
         return teacher;
     }
 
-    public void setTeacher(int teacher) {
+    public void setTeacher(String teacher) {
         this.teacher = teacher;
     }
 
