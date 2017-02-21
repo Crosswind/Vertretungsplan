@@ -12,13 +12,13 @@ import de.gymnasium_beetzendorf.vertretungsplan.fragment.ScheduleTabFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.SubstitutionTabFragment;
 
 public class PagerAdapter extends FragmentStatePagerAdapter {
-    private int numberOfTabs;
+    private List<String> tabTitles;
     private List<SubstitutionDay> resultsToDisplay = new ArrayList<>();
     private String type;
 
-    public PagerAdapter(FragmentManager fragmentManager, int numberOfTabs, String type, List<SubstitutionDay> resultsToDisplay) {
+    public PagerAdapter(FragmentManager fragmentManager, List<String> tabTitles, String type, List<SubstitutionDay> resultsToDisplay) {
         super(fragmentManager);
-        this.numberOfTabs = numberOfTabs;
+        this.tabTitles = tabTitles;
         this.resultsToDisplay = resultsToDisplay;
         this.type = type;
     }
@@ -39,6 +39,11 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return numberOfTabs;
+        return tabTitles.size();
+    }
+
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return tabTitles.get(position);
     }
 }

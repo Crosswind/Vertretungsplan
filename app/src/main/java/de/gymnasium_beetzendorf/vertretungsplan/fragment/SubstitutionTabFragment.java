@@ -20,7 +20,6 @@ public class SubstitutionTabFragment extends BaseTabFragment {
         this.substitutionsToDisplay = substitutionsToDisplay;
     }
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

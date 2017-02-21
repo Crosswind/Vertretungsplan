@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -38,10 +39,6 @@ public class MainActivity extends BaseActivity
     private ViewPager mMainViewPager;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private DatabaseHandler mDatabaseHandler;
-    private int mSchool;
-    private int mClassYear;
-    private String mClassLetter;
-    private boolean mShowWholePlan;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -78,13 +75,6 @@ public class MainActivity extends BaseActivity
         mSharedPreferences = getSharedPreferences();
         mDatabaseHandler = getDatabaseHandler();
 
-        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
-        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
-        if (classYearLetter.length() > 3) {
-            mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
-            mClassLetter = classYearLetter.substring(3);
-        }
-        mShowWholePlan = mSharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, false);
 
         // register alarm if it hasn't been done by the application after booting the device
         if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
@@ -110,22 +100,22 @@ public class MainActivity extends BaseActivity
             });
         }
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         refresh();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("refresh_message"));
-
-        mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
-        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
-        mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
-        mClassLetter = classYearLetter.substring(3);
-        mShowWholePlan = mSharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, false);
-        mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
-        displayData();
+        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) {
+            displayData();
+            mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
+        }
     }
 
     @Override
@@ -189,37 +179,46 @@ public class MainActivity extends BaseActivity
 
 
     public void displayData() {
-        TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        final TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
 
+        int school = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
+        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
+        int classYear = Integer.parseInt(classYearLetter.substring(0, 2));
+        String classLetter = classYearLetter.substring(3);
+
+        Calendar calendar = Calendar.getInstance();
+        List<String> tabTitles = new ArrayList<>();
+
         List<SubstitutionDay> databaseResults;
-        if (mShowWholePlan) {
-            databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool);
+        if (mSharedPreferences.getBoolean(PREFERENCE_SHOW_WHOLE_PLAN, false)) {
+            databaseResults = mDatabaseHandler.getSubstitutionDayList(school, 0, "");
         } else {
-            databaseResults = mDatabaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
+            databaseResults = mDatabaseHandler.getSubstitutionDayList(school, classYear, classLetter);
         }
 
-        // draw the tabs depending on the days from the file
+
+
         mainTabLayout.removeAllTabs();
-        String tabTitle;
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
-                Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
-                Log.i(TAG, "dates: " + databaseResults.get(n).getDate());
+                Log.i(TAG, "date ms: " + databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
-
-                tabTitle = tempWeekday + " " + tempDate.substring(0, 6);
-                Log.i(TAG, n + " tabtitle: " + tabTitle);
-
-                mainTabLayout.addTab(mainTabLayout.newTab().setText(tabTitle));
+                tabTitles.add(tempWeekday + " " + tempDate.substring(0, 6));
+                Log.i(TAG, tempWeekday + " " + tempDate.substring(0, 6));
             }
         }
 
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), mainTabLayout.getTabCount(), "substitution", databaseResults);
+        if (tabTitles.size() == 0) {
+            tabTitles.add("Keine Vertretungen gefunden");
+        }
+
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabTitles, "substitution", databaseResults);
         mMainViewPager.setAdapter(pagerAdapter);
         mainTabLayout.setupWithViewPager(mMainViewPager);
+
 
         mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mainTabLayout) {
             @Override
@@ -244,11 +243,6 @@ public class MainActivity extends BaseActivity
 
             }
         });
-
-        // add an empty tab if there are (for some reason) no results to display
-        if (databaseResults.size() == 0) {
-            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretung gefunden!"));
-        }
 
         mSwipeRefreshLayout.setRefreshing(false);
     }

@@ -181,40 +181,19 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     }
 
-    public List<SubstitutionDay> getSubstitutionDayList(int school) {
-        query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
-
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        List<SubstitutionDay> result = new ArrayList<>();
-
-        if (cursor.moveToFirst()) {
-            do {
-                SubstitutionDay substitutionDay = new SubstitutionDay();
-                substitutionDay.setDate(cursor.getLong(2));
-                substitutionDay.setUpdated(cursor.getLong(3));
-                substitutionDay.setSubstitutionList(getSubstitutionListByDayId(cursor.getInt(0), 0, ""));
-                substitutionDay.setSchool(school);
-                result.add(substitutionDay);
-            } while (cursor.moveToNext());
-        }
-
-        cursor.close();
-
-        return result;
-    }
-
     public List<SubstitutionDay> getSubstitutionDayList(int school, int classYear, String classLetter) {
         query = "SELECT * FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " >= " + dateInMillis + " AND " + SD_SCHOOL + " = " + school;
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
         List<SubstitutionDay> result = new ArrayList<>();
+        SubstitutionDay substitutionDay;
+
 
         if (cursor.moveToFirst()) {
             do {
-                SubstitutionDay substitutionDay = new SubstitutionDay();
-                substitutionDay.setDate(cursor.getLong(2));
+                substitutionDay = new SubstitutionDay();
+                substitutionDay.setDate(cursor.getLong(1));
                 substitutionDay.setUpdated(cursor.getLong(3));
                 substitutionDay.setSubstitutionList(getSubstitutionListByDayId(cursor.getInt(0), classYear, classLetter));
                 substitutionDay.setSchool(school);
@@ -224,7 +203,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         cursor.close();
         return result;
-
     }
 
     private List<Substitution> getSubstitutionListByDayId(int dayId, int classYear, String classLetter, String... classTypes) {
@@ -241,7 +219,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
             query += ")";
         }
         query += ";";
-        Log.i(TAG, "query string for getSubstitutionList: " + query);
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
@@ -284,7 +261,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         db.delete(TABLE_SUBSTITUTION_DAYS, null, null);
 
         for (int i = 0; i < results.size(); i++) {
-            Log.i(TAG, "Menge der Vertretungen: " + results.get(i).getSubstitutionList().size());
             query = "SELECT " + SD_ID + " FROM " + TABLE_SUBSTITUTION_DAYS + " WHERE " + SD_DATE + " = " + results.get(i).getDate() + " AND " + SD_SCHOOL + " = " + school;
             cursor = db.rawQuery(query, null);
             cursor.moveToFirst();
@@ -306,11 +282,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
             // old data is deleted and then the new data is reinserted. no check if the data is actually different
 
             db.delete(TABLE_SUBSTITUTION, S_ID_DAY + " = " + cursor.getInt(0), null);
-            Log.i(TAG, "cursor.getInt(0): " + cursor.getInt(0));
             for (int j = 0; j < results.get(i).getSubstitutionList().size(); j++) {
                 substitution = results.get(i).getSubstitutionList().get(j);
-
-                //Log.i(TAG, substitution.getClassYearLetter().substring(0, 2) + "-" + substitution.getClassYearLetter().substring(3) + "-" + substitution.getClassCourse() + "-" + substitution.getPeriod() + "-" + substitution.getSubject() + "-" + substitution.getTeacher() + "-" + substitution.getRoom() + "-" + substitution.getInfo());
                 cv.clear();
                 cv.put(S_ID_DAY, cursor.getInt(0));
                 cv.put(S_CLASS_YEAR, substitution.getClassYearLetter().substring(0, 2));

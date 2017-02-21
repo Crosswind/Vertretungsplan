@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:tabTextColor="@color/appWhite"
             app:tabGravity="fill" />
 
     </android.support.design.widget.AppBarLayout>
