@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
@@ -48,7 +50,9 @@ public class MainActivity extends BaseActivity
             }
             if (new_update) {
                 displayData();
-                makeSnackbar("Aktualisiert.");
+                makeSnackbar("Aktualisiert");
+            } else {
+                makeSnackbar("Keine neuen Vertretungen vorhanden");
             }
         }
     };
@@ -56,7 +60,7 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected int getLayoutId() {
-        return R.layout.activity_main;
+        return R.layout.activity_main_new;
     }
 
     @Override
@@ -67,16 +71,17 @@ public class MainActivity extends BaseActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // if BaseActivity calls finish it will still run through the whole onCreate here but I don't want that
+        if (isFinishing()) {
+            return;
+        }
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
 
-        mSharedPreferences = getSharedPreferences();
-        mDatabaseHandler = getDatabaseHandler();
-
-
         // register alarm if it hasn't been done by the application after booting the device
+        mSharedPreferences = getSharedPreferences();
         if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
             // assign RefreshService class
             Intent alarmIntent = new Intent(this, RefreshService.class);
@@ -100,12 +105,20 @@ public class MainActivity extends BaseActivity
             });
         }
 
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        refresh();
+        int currentVersion = 0;
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            currentVersion = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.i(TAG, "Name not found: ", e);
+        }
+        if (currentVersion > mSharedPreferences.getInt(PREFERENCE_CURRENT_VERSION, 0)) {
+            refresh();
+            showWhatsNewDialog();
+            mSharedPreferences.edit().putInt(PREFERENCE_CURRENT_VERSION, currentVersion).apply();
+        } else {
+            displayData();
+        }
     }
 
     @Override
@@ -181,6 +194,7 @@ public class MainActivity extends BaseActivity
     public void displayData() {
         final TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+        mDatabaseHandler = getDatabaseHandler();
 
         int school = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
         String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
@@ -198,7 +212,6 @@ public class MainActivity extends BaseActivity
         }
 
 
-
         mainTabLayout.removeAllTabs();
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
@@ -210,13 +223,12 @@ public class MainActivity extends BaseActivity
         }
 
         if (tabTitles.size() == 0) {
-            tabTitles.add("Keine Vertretungen gefunden");
+            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretungen gefunden"));
+        } else {
+            PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabTitles, "substitution", databaseResults);
+            mMainViewPager.setAdapter(pagerAdapter);
+            mainTabLayout.setupWithViewPager(mMainViewPager);
         }
-
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabTitles, "substitution", databaseResults);
-        mMainViewPager.setAdapter(pagerAdapter);
-        mainTabLayout.setupWithViewPager(mMainViewPager);
-
 
         mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mainTabLayout) {
             @Override

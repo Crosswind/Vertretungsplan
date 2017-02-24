@@ -22,15 +22,12 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
@@ -136,8 +133,6 @@ public class RefreshService extends IntentService implements Constants {
     }
 
     private void setNextDayAlarm(long lastRefreshOfDay) {
-        notifyMainActivityReturnResult(false);
-
         Intent alarmIntent = new Intent(this, RefreshService.class);
         alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);

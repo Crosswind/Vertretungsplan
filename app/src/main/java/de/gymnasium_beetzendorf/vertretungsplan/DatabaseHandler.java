@@ -189,7 +189,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         List<SubstitutionDay> result = new ArrayList<>();
         SubstitutionDay substitutionDay;
 
-
         if (cursor.moveToFirst()) {
             do {
                 substitutionDay = new SubstitutionDay();
@@ -197,10 +196,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 substitutionDay.setUpdated(cursor.getLong(2));
                 substitutionDay.setSubstitutionList(getSubstitutionListByDayId(cursor.getInt(0), classYear, classLetter));
                 substitutionDay.setSchool(school);
-                result.add(substitutionDay);
+                if (substitutionDay.getSubstitutionList().size() > 0) {
+                    result.add(substitutionDay);
+                }
             } while (cursor.moveToNext());
         }
-
         cursor.close();
         return result;
     }

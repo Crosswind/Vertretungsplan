@@ -15,6 +15,7 @@ public interface Constants {
     String PREFERENCE_SCHOOL = "school";
     String PREFERENCE_CLASS_YEAR_LETTER = "class_year_letter";
     String PREFERENCE_SHOW_WHOLE_PLAN = "show_whole_plan";
+    String PREFERENCE_CURRENT_VERSION = "current_or_old_version";
 
     // boolean to determine wheter the view should update itsself after leaving the preference screen
     String PREFERENCES_CHANGED = "preferences_changed";

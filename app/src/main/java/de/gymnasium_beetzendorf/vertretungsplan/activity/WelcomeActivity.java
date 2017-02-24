@@ -1,6 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
+import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseClassFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseCourseFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseFragment;
@@ -26,7 +28,7 @@ public class WelcomeActivity extends AppCompatActivity implements ChooseFragment
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.i(TAG, "in Welcome Activity now");
         setContentView(R.layout.activity_choose_coord);
 
         mWelcomeFragment = getWelcomeFragment(this);

@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
@@ -43,5 +45,13 @@ public class AboutActivity extends BaseActivity implements Constants {
         } else {
             mVersionTextView.setText(R.string.version_number_not_found);
         }
+
+        Button changelogButton = (Button) findViewById(R.id.changelogButton);
+        changelogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showWhatsNewDialog();
+            }
+        });
     }
 }
