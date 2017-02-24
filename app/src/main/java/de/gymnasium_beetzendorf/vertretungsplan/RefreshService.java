@@ -2,6 +2,8 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -23,17 +25,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Schoolday;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
+import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
 import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
 
-    public RefreshService() {
-        super("RefreshService");
-    }
     private static final String TAG = RefreshService.class.getSimpleName();
 
     public static final String INSTRUCTION = "instruction";
@@ -45,17 +46,26 @@ public class RefreshService extends IntentService implements Constants {
 
     private SharedPreferences mSharedPreferences;
     private int mSchool;
+    private int mClassYear;
+    private String mCLassLetter;
+
+    public RefreshService() {
+        super("RefreshService");
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.i(TAG, "RefreshService started");
 
-        int instructions = intent.getIntExtra(INSTRUCTION, -1);
-        Calendar calendar = Calendar.getInstance();
-        String date = dateFormatter.format(calendar.getTime());
-
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mSchool = mSharedPreferences.getInt(PREFERENCE_SCHOOL, 0);
+        String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
+        if (!classYearLetter.equalsIgnoreCase("")) {
+            mClassYear = Integer.parseInt(classYearLetter.substring(0, 2));
+            mCLassLetter = classYearLetter.substring(3);
+        }
+
+        int instructions = intent.getIntExtra(INSTRUCTION, -1);
 
         String substitutionUrl;
         try {
@@ -68,8 +78,7 @@ public class RefreshService extends IntentService implements Constants {
 
         long lastRefreshOfDay;
         try {
-            lastRefreshOfDay = dateTimeFormatter.parse(date + " 16:00").getTime();
-
+            lastRefreshOfDay = dateTimeFormatter.parse(dateFormatter.format(Calendar.getInstance().getTime()) + " 16:00").getTime();
         } catch (ParseException e) {
             Log.i(TAG, "Date could not be parsed in RefreshService (lastRefreshOfDay): ", e);
             lastRefreshOfDay = System.currentTimeMillis();
@@ -78,8 +87,6 @@ public class RefreshService extends IntentService implements Constants {
         if (System.currentTimeMillis() >= lastRefreshOfDay) {
             setNextDayAlarm(lastRefreshOfDay);
         }
-
-        Log.i(TAG, "classlist_refresh: " + instructions);
 
 
         switch (instructions) {
@@ -101,35 +108,27 @@ public class RefreshService extends IntentService implements Constants {
 
     private boolean notifyMainActivityReturnResult(boolean newUpdate) {
         Intent messageIntent = new Intent("refresh_message");
-
         messageIntent.putExtra("new_update", newUpdate);
-
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
         return localBroadcastManager.sendBroadcast(messageIntent);
     }
 
-    private boolean newUpdate(List<Schoolday> xmlResults, List<Schoolday> databaseResults) {
-
+    private boolean newUpdate(List<SubstitutionDay> xmlResults, List<SubstitutionDay> databaseResults) {
         long databaseLastUpdated, xmlLastUpdated;
-
         try {
-            xmlLastUpdated = xmlResults.get(0).getLastUpdated();
-            Log.i(TAG, "xml: " + dateTimeFormatter.format(new Date(xmlLastUpdated)));
+            xmlLastUpdated = xmlResults.get(0).getUpdated();
         } catch (IndexOutOfBoundsException e) {
             Log.i(TAG, "IndexOutOfBoundsException: ", e);
             return false;
         }
 
         try {
-            databaseLastUpdated = databaseResults.get(0).getLastUpdated();
-            Log.i(TAG, "db: " + dateTimeFormatter.format(new Date(databaseLastUpdated)));
+            databaseLastUpdated = databaseResults.get(0).getUpdated();
         } catch (IndexOutOfBoundsException e) {
             Log.i(TAG, "IndexOutOfBoundsException: ", e);
             return true;
         }
-
         return xmlLastUpdated > databaseLastUpdated;
-
     }
 
     private void downloadFile(String url, String fileType, String schedClass, int school) {
@@ -155,41 +154,26 @@ public class RefreshService extends IntentService implements Constants {
                 alarmPendingIntent);
 
         Log.i(TAG, "Alarm set for next day at 6 am");
-
         mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
     }
 
     public void callBackSubstitution() {
-
         XmlParser parser = new XmlParser(this, XmlParser.SUBSTITUTION);
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
-
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        databaseHandler.insertSubstitutionResults(0, xmlResults);
-        //List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mClassLetter);
+        List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mCLassLetter);
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean notifications_enabled = mSharedPreferences.getBoolean("enable_notifications", false);
 
-        boolean notifications_enabled = sharedPreferences.getBoolean("enable_notifications", false);
+        if (newUpdate(xmlResults, databaseResults)) {
+            databaseHandler.insertSubstitutionResults(mSchool, xmlResults);
+            mSharedPreferences.edit().putLong("last_substitution_plan_refresh", xmlResults.get(0).getUpdated()).apply();
 
-        /*if (newUpdate(xmlResults, databaseResults)) {
-            databaseHandler.insertSubstitutionXmlResults(xmlResults);
-
-            Log.i(TAG, "xml: " + xmlResults.size() + " database: " + databaseResults.size());
-
-            //Log.i(TAG, String.valueOf(xmlResults.get(0).getLastUpdated()));
-            sharedPreferences.edit().putLong("last_substitution_plan_refresh", xmlResults.get(0).getLastUpdated()).apply();
-
-            // check if user is currently in the app
-            // if not - fire notification
-
-            boolean isUserInApp = notifyMainActivityReturnResult(true);
-
-            if (!isUserInApp && notifications_enabled) {
+            // fire notification if user is not in app
+            if (!notifyMainActivityReturnResult(true) && notifications_enabled) {
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(xmlResults.get(0).getLastUpdated()); // use xml results because database hasn't been updated
-
+                calendar.setTimeInMillis(xmlResults.get(0).getUpdated()); // use xml results because database hasn't been updated
                 String updated = dateTimeFormatter.format(calendar.getTime());
 
                 // intent that opens the main activity when notification is clicked
@@ -205,15 +189,11 @@ public class RefreshService extends IntentService implements Constants {
                         .setAutoCancel(true)
                         .setContentIntent(notificationPendingIntent)
                         .build();
-
                 notificationManager.notify(0, notification);
             }
-
         } else {
             notifyMainActivityReturnResult(false);
-        } */
-
-
+        }
     }
 
     public void updateClassList() {

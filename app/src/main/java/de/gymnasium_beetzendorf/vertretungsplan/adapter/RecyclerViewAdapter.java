@@ -5,6 +5,8 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -108,7 +110,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
 
         // setting the rest of the output
-        courseTextView.setText(currentSubstitution.getClassYearLetter());
+
+        if (!currentSubstitution.getClassCourse().equalsIgnoreCase("")) {
+            String string;
+            if (currentSubstitution.getClassYearLetter().contains("X")) {
+                string = "AG (" + currentSubstitution.getClassCourse().substring(3).trim() + ")";
+            } else {
+                string = currentSubstitution.getClassYearLetter() + " (" + currentSubstitution.getClassCourse().toLowerCase() + ")";
+            }
+            int pos = string.indexOf("(");
+            SpannableString spannableString = new SpannableString(string);
+            spannableString.setSpan(new RelativeSizeSpan(0.5f), pos, spannableString.length(), 0);
+            courseTextView.setText(spannableString);
+        } else {
+            courseTextView.setText(currentSubstitution.getClassYearLetter());
+        }
         periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), String.valueOf(currentSubstitution.getPeriod())));
         infoTextView.setText(currentSubstitution.getInfo());
 
@@ -121,7 +137,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         } else {
             infoTextView.setVisibility(View.GONE);
         }
-
     }
 
     @Override

@@ -191,23 +191,28 @@ class XmlParser implements Constants {
                             case "klasse":
                                 String course = "";
 
-                                if (text.length() == 9 || text.length() > 10) {
-                                    String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
-                                    currentSubstitution.setClassYearLetter(rangeClasses[0]);
-                                    String[] rangeClassesLetter = {rangeClasses[0].substring(3, 4), rangeClasses[1].substring(3, 4)};
-                                    multipleClasses = (int) rangeClassesLetter[1].charAt(0) - (int) rangeClassesLetter[0].charAt(0);
-                                    currentSubstitution.setClassYearLetter(rangeClasses[0]);
-                                    if (text.length() > 10) {
-                                        course = text.substring(11);
-                                    }
+                                if (text.contains("AG")) {
+                                    currentSubstitution.setClassCourse(text);
+                                    currentSubstitution.setClassYearLetter("00 X");
                                 } else {
-                                    if (text.length() == 10) {
-                                        course = text.substring(6);
+                                    if (text.length() == 9 || text.length() > 10) {
+                                        String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
+                                        currentSubstitution.setClassYearLetter(rangeClasses[0]);
+                                        String[] rangeClassesLetter = {rangeClasses[0].substring(3, 4), rangeClasses[1].substring(3, 4)};
+                                        multipleClasses = (int) rangeClassesLetter[1].charAt(0) - (int) rangeClassesLetter[0].charAt(0);
+                                        currentSubstitution.setClassYearLetter(rangeClasses[0]);
+                                        if (text.length() > 10) {
+                                            course = text.substring(11);
+                                        }
+                                    } else {
+                                        if (text.length() == 10) {
+                                            course = text.substring(6);
+                                        }
+                                        text = text.substring(0, 4);
+                                        currentSubstitution.setClassYearLetter(text);
                                     }
-                                    text = text.substring(0, 4);
-                                    currentSubstitution.setClassYearLetter(text);
+                                    currentSubstitution.setClassCourse(course);
                                 }
-                                currentSubstitution.setClassCourse(course);
                                 break;
                             case "stunde":
                                 int periods = Integer.parseInt(text.replaceAll("-", ""));

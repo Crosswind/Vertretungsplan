@@ -203,11 +203,9 @@ public class MainActivity extends BaseActivity
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
-                Log.i(TAG, "date ms: " + databaseResults.get(n).getDate());
                 String tempDate = dateFormatter.format(calendar.getTime());
                 String tempWeekday = weekdayFormatter.format(calendar.getTime());
                 tabTitles.add(tempWeekday + " " + tempDate.substring(0, 6));
-                Log.i(TAG, tempWeekday + " " + tempDate.substring(0, 6));
             }
         }
 
