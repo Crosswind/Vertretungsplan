@@ -283,30 +283,4 @@ class XmlParser implements Constants {
         }
         return results;
     }
-
-    public List<Lesson> parseReturnSchedule() {
-        Lesson headerData = parseScheduleHeader();
-
-        return null;
-    }
-
-    private Lesson parseScheduleHeader() {
-        Lesson result = new Lesson();
-
-        try {
-            XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
-            XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
-            bufferedReader = tempBufferedReader;
-            xmlPullParser.setInput(bufferedReader);
-
-            int eventType = xmlPullParser.getEventType();
-            // now actually loop through the data
-
-
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
 }
