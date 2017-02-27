@@ -28,11 +28,14 @@
 
     <string-array name="whatsnew_header">
         <item>Version 1.4:\n</item>
+        <item>Version 1.4.1:\n</item>
     </string-array>
     <string-array name="whatsnew_descriptions">
-        <item>- Willkommensbildschirm beim ersten Starten der App \n- Kleine UI-Änderungen\n-Eine Menge Bugfixes (Ich freue mich immer über Meldungen, falls etwas nicht funktioniert)!\n- Blockstunden werden jetzt wieder korrekt angezeigt\n- Es kann sein, dass das Benachrichtigen bei einem neuen Plan
+        <item>- Willkommensbildschirm beim ersten Starten der App \n- Kleine UI-Änderungen\n- Eine Menge Bugfixes (Ich freue mich immer über Meldungen, falls etwas nicht funktioniert)!\n- Blockstunden werden jetzt wieder korrekt angezeigt\n- Es kann sein, dass das Benachrichtigen bei einem neuen Plan
             momentan nicht zu 100% läuft. Freue mich dort über Feedback!\n\nTut mir Leid, dass ich solange kein Update gepusht habe. Ich habe
         mittlerweile einen etwas geregelten Tagesablauf und kann mich um die App wieder regelmäßiger kümmern. Ich werde mich jetzt endlich daran setzen, dass ihr in Zukunft auch den Stundenplan hier einsehen könnt. Einige von euch haben die App wieder deinstalliert. Vielleicht sagt ihr euern Mitschülern
         Bescheid, dass sie nun wieder funktionsfähig ist ;) \nViele Grüße, David</item>
+        <item>- kleine Bugs behoben \nSollte die App crashen bitte einmal den App-Cache leeren (Einstellungen -> Apps -> Vertretungsplan -> Speicher -> Daten löschen) und es dann nochmal versuchen. Falls beim Stehen bleiben der App ein Fenster öffnet, dann darüber bitte den Report senden und ich werde mich
+        darum entsprechend kümmern!</item>
     </string-array>
 </resources>

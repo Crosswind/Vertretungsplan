@@ -213,6 +213,7 @@ public class MainActivity extends BaseActivity
 
 
         mainTabLayout.removeAllTabs();
+        mMainViewPager.removeAllViews();
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());

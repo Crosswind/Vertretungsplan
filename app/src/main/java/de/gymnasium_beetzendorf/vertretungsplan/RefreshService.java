@@ -240,4 +240,8 @@ public class RefreshService extends IntentService implements Constants {
             Log.e(TAG, "IOException when getting html", e);
         }
     }
+
+    public void callBackSchedule(int school, String schedClass) {
+        XmlParser parser = new XmlParser(getApplicationContext(), XmlParser.SCHEDULE);
+    }
 }

@@ -39,7 +39,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
         SharedPreferences sharedPreferences = getSharedPreferences();
         if (sharedPreferences.getInt(PREFERENCE_CURRENT_VERSION, 0) == 0) {
             sharedPreferences.edit().putString(PREFERENCE_CLASS_YEAR_LETTER, "").apply();
-            sharedPreferences.edit().putInt(PREFERENCE_SCHOOL, 0).apply();
+            sharedPreferences.edit().putInt(PREFERENCE_SCHOOL, -1).apply();
+            sharedPreferences.edit().putInt(PREFERENCE_CURRENT_VERSION, 1).apply();
         }
 
         if (WelcomeActivity.shouldDisplay(this)) {
@@ -98,6 +99,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
         SpannableString spannable;
         CharSequence holder = "";
         for (int i = whatsnew_header.size()-1; i >= 0; i--) {
+            if (i < whatsnew_header.size()-1) {
+                holder = TextUtils.concat(holder, "\n\n");
+            }
             spannable = new SpannableString(whatsnew_header.get(i) + whatsnew_description.get(i));
             spannable.setSpan(new StyleSpan(Typeface.BOLD), 0, whatsnew_header.get(i).indexOf(":"), 0);
             holder = TextUtils.concat(holder, spannable);

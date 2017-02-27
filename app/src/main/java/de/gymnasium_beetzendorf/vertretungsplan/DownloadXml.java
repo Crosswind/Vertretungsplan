@@ -23,6 +23,10 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
     private String schedClass;
     private int school;
 
+    public static int SUBSTITUTION = 1;
+    public static int SCHEDULE = 2;
+    public static int SCHEDULE_ALL = 3;
+
     DownloadXml(RefreshService refreshService, String fileType, String url, String schedClass, int school) {
         this.refreshService = refreshService;
         this.fileType = fileType;
@@ -85,18 +89,12 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
                 refreshService.callBackSubstitution();
                 break;
             case "schedule":
-                //refreshService.callBackSchedule(schedClass);
+                refreshService.callBackSchedule(school, schedClass);
                 break;
 
         }
 
     }
 
-    private String getFileEncoding(URLConnection urlConnection) {
-        String header = urlConnection.getHeaderField("Content-Type");
-        Log.i(Constants.TAG, "tag: " + TAG + " header: " + header);
-        int startingIndex = header.indexOf("charset=") + "charset".length();
-        int endingIndex = header.indexOf("\"", startingIndex);
-        return header.substring(startingIndex, endingIndex);
-    }
+
 }

@@ -2,6 +2,7 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -25,7 +26,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     // databse
     public static String DATABASE_NAME = "database.db";
-    public static int DATABASE_VERSION = 6;
+    public static int DATABASE_VERSION = 8;
 
     // substitution table / coloumn names
     private static String TABLE_SUBSTITUTION = "substitution";
@@ -147,25 +148,25 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        switch (newVersion) {
-            case 5:
-                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_DAYS;
-                db.execSQL(query);
-                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
-                db.execSQL(query);
-                query = "DROP TABLE IF EXISTS " + TABLE_LESSON;
-                db.execSQL(query);
-                query = "DROP TABLE IF EXISTS " + TABLE_LESSON_DAYS;
-                db.execSQL(query);
-                query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
-                db.execSQL(query);
-                onCreate(db);
-            case 6:
-                query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
-                db.execSQL(query);
-            default:
-                break;
-        }
+        query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION_DAYS;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_LESSON;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_LESSON_DAYS;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
+        db.execSQL(query);
+        onCreate(db);
+        Intent intent = new Intent(context, RefreshService.class);
+        intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
+        context.startService(intent);
+        Intent intent2 = new Intent(context, RefreshService.class);
+        intent2.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
+        context.startService(intent2);
     }
 
     private void init() {
