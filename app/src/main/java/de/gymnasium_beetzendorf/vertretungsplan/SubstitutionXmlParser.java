@@ -3,28 +3,21 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 import android.content.Context;
 import android.util.Log;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data.School;
-import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 /*
     This class is responsible for parsing the substion xml. The current one for Gymnasium
     Beetzendorf can always be found here: http://vplankl.gymnasium-beetzendorf.de/Vertretungsplan_Klassen.xml
     The parser is not responsible for downloading the file (therefore see DownloadXml.java).
     The naming format of the file needs to be: substitution_IdOfSchool.xml (IdOfSchool needs to be
-    replaced with the corresponding id found in School.java.
+    replaced with the corresponding id found in School.
  */
 
 
@@ -79,64 +72,6 @@ public class SubstitutionXmlParser implements Constants {
         }
         // if encoding could not be found for some reason return UTF-8 by default
         return encoding.equalsIgnoreCase("") ? "UTF-8" : encoding;
-    }
-
-    private Substitution getSubstitutionHeader() {
-        int school = 0, day = 0;
-        long valid_on = 0, updated = 0;
-        try {
-            FileInputStream fileInputStream = context.openFileInput(fileName);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, fileEncoding));
-
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            XmlPullParser parser = factory.newPullParser();
-
-            int eventType = parser.getEventType();
-            String text = "", tag;
-
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                tag = parser.getName();
-                switch (eventType) {
-                    case XmlPullParser.TEXT:
-                        text = parser.getText();
-                        break;
-                    case XmlPullParser.END_TAG:
-                        switch (tag) {
-                            case xml_title:
-                                day = getWeekdayCountFromTitle(text);
-                                valid_on = getValidDateFromTitle(text);
-                                break;
-                            case xml_schoolname:
-                                try {
-                                    school = School.findSchoolByName(text).getId();
-                                } catch (IllegalAccessException e) {
-                                    e.printStackTrace();
-                                }
-                                break;
-                            case xml_updated:
-                                updated = getLastUpdatedFromHeader(text);
-                                break;
-                            case xml_header:
-                                eventType = XmlPullParser.END_DOCUMENT;
-                                break;
-                        }
-                        break;
-                }
-                // prevent parser from throwing IO - can't go behind END_DOCUMENT
-                if (eventType != XmlPullParser.END_DOCUMENT) eventType = parser.next();
-            }
-
-        } catch (FileNotFoundException e) {
-            Log.i(TAG, "substitution file could not be found!", e);
-        } catch (UnsupportedEncodingException e) {
-            Log.i(TAG, "encoding is not supported", e);
-        } catch (XmlPullParserException e) {
-            Log.i(TAG, "problem with the parser", e);
-        } catch (IOException e) {
-
-        }
-
-        return new Substitution(school, valid_on, day, updated);
     }
 
     private int getWeekdayCountFromTitle(String title) {

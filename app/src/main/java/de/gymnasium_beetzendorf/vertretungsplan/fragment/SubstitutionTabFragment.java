@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 public class SubstitutionTabFragment extends BaseTabFragment {
 

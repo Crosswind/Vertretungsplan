@@ -17,8 +17,8 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data.SubstitutionDay;
 
 
 public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
@@ -28,7 +28,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     public static String DATABASE_NAME = "database.db";
     public static int DATABASE_VERSION = 8;
 
-    // substitution table / coloumn names
+    // substitution table / column names
     private static String TABLE_SUBSTITUTION = "substitution";
 
     private static String S_ID = "s_id";
@@ -43,7 +43,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private static String S_INFO = "s_info";
     private static String S_CHANGE = "s_change";
 
-    // substitution days table / coloumn names
+    // substitution days table / column names
     private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
 
     private static String SD_ID = "sd_id";
@@ -51,7 +51,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private static String SD_UPDATED = "sd_updated";
     private static String SD_SCHOOL = "sd_school";
 
-    // lesson table / coloum names
+    // lesson table / column names
     private static String TABLE_LESSON = "lesson";
 
     private static String L_ID = "l_id";
@@ -62,19 +62,27 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     private static String L_TEACHER = "l_teacher";
     private static String L_ROOM = "l_room";
 
-    // lesson days table / coloum names
+    // lesson days table / column names
     private static String TABLE_LESSON_DAYS = "lesson_days";
 
     private static String LD_ID = "ld_id";
     private static String LD_CLASS_YEAR_LETTER = "ld_class_year_letter";
     private static String LD_VALID = "ld_valid";
 
-    // classlist table / coloum names
+    // classlist table / column names
     private static String TABLE_CLASSLIST = "table_classlist";
 
     private static String CL_ID = "cl_id";
     private static String CL_NAME = "cl_name";
     private static String CL_URL = "cl_url";
+
+    // courselist table / column names
+    private static final String TABLE_COURSELIST = "table_courselist";
+
+    private static final String CO_ID = "co_id";
+    private static final String CO_NAME = "co_name";
+    private static final String CO_SCHOOL = "co_school";
+    private static final String CO_CLASSYEARLETTER = "co_classyearletter";
 
 
     // stuff
@@ -144,6 +152,15 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 CL_URL + " TEXT" +
                 ");";
         db.execSQL(query);
+
+        // courselist table
+        query = "CREATE TABLE IF NOT EXISTS " + TABLE_COURSELIST + " (" +
+                CO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                CO_NAME + " TEXT, " +
+                CO_SCHOOL + " INTEGER, " +
+                CO_CLASSYEARLETTER + " TEXT" +
+                ");";
+        db.execSQL(query);
     }
 
     @Override
@@ -159,6 +176,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         query = "DROP TABLE IF EXISTS " + TABLE_CLASSLIST;
         db.execSQL(query);
         query = "DROP TABLE IF EXISTS " + TABLE_SUBSTITUTION;
+        db.execSQL(query);
+        query = "DROP TABLE IF EXISTS " + TABLE_COURSELIST;
         db.execSQL(query);
         onCreate(db);
         Intent intent = new Intent(context, RefreshService.class);
@@ -244,14 +263,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         return result;
     }
 
-   /* public List<Schoolday> getFullSchedule() {
-        return null;
-    } */
-
-    /*private List<Lesson> getScheduleLessonsByDay() {
-        return null;
-    } */
-
     void insertSubstitutionResults(int school, List<SubstitutionDay> results) {
         Substitution substitution;
 
@@ -311,6 +322,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         query = "DELETE FROM " + TABLE_CLASSLIST;
         db.execSQL(query);
+        db.close();
     }
 
     void updateClassList(List<Class> classList) {
@@ -327,12 +339,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 db.insert(TABLE_CLASSLIST, null, values);
             }
         }
-
         db.close();
     }
 
     public List<String> getClassList() {
-        SQLiteDatabase db = getWritableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
 
         String query = "SELECT " + CL_NAME + " FROM " + TABLE_CLASSLIST;
         Cursor cursor = db.rawQuery(query, null);
@@ -346,5 +357,34 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         cursor.close();
         return classList;
+    }
+
+    private void emptyCourseListTable(int school, String classYearLetter) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        query = "DELETE FROM " + TABLE_COURSELIST + " WHERE " + CO_SCHOOL + " = " + school + " AND " + CO_CLASSYEARLETTER + " = '" + classYearLetter + "'";
+        db.execSQL(query);
+        db.close();
+    }
+
+    void updateCourseList(List<String> courseList, int school, String classYearLetter) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        if (courseList.size() > 0) {
+            emptyCourseListTable(school, classYearLetter);
+            ContentValues cv;
+            for (int i = 0; i < courseList.size(); i++) {
+                cv = new ContentValues();
+                cv.put(CO_NAME, courseList.get(i));
+                cv.put(CO_SCHOOL, school);
+                cv.put(CO_CLASSYEARLETTER, classYearLetter);
+                db.insert(TABLE_COURSELIST, null, cv);
+            }
+        }
+        db.close();
+    }
+
+    public List<String> getCourseList(int school, String classYearLetter) {
+        return null;
     }
 }

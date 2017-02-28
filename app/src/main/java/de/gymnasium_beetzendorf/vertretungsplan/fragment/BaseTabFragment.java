@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.adapter.RecyclerViewAdapter;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 
 public abstract class BaseTabFragment extends Fragment {

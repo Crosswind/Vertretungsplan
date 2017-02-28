@@ -5,16 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum School {
-    Gymnasium_Beetzendorf(0,
+    Gymnasium_Beetzendorf (0,
             "Gymnasium Beetzendorf",
             "http://gymnasium-beetzendorf.de/vplankl/Vertretungsplan_Klassen.xml",
             "http://gymnasium-beetzendorf.de/stundenkl/default.html",
-            "http://gymnasium-beetzendorf.de/stundenkl/"),
-    Jahn_Gymnasium(1,
+            "http://gymnasium-beetzendorf.de/stundenkl/");
+   /*Jahn_Gymnasium(1,
             "Jahn Gymnasium Salzwedel",
             "",
             "",
-            "");
+            "");*/
 
 
     private int id;
@@ -65,8 +65,8 @@ public enum School {
     }
 
     public static School findSchoolByName(String name) throws IllegalAccessException {
-        for (School school : schoolList()) {
-            if ((school.getName()).equalsIgnoreCase(name)) {
+        for(School school : schoolList()) {
+            if((school.getName()).equalsIgnoreCase(name)) {
                 return school;
             }
         }
@@ -74,8 +74,17 @@ public enum School {
         throw new IllegalAccessException("No school with this name(" + name + ") found.");
     }
 
-    public static School findSchoolById(int id) throws IllegalAccessException {
+    public static int findSchoolIdByName(String name) {
         for (School school : schoolList()) {
+            if (school.getName().equalsIgnoreCase(name)) {
+                return school.getId();
+            }
+        }
+        return -1;
+    }
+
+    public static School findSchoolById(int id) throws IllegalAccessException {
+        for(School school : schoolList()) {
             if (school.getId() == id) {
                 return school;
             }

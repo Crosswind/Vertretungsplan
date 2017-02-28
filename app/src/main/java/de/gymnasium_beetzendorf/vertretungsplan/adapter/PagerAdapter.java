@@ -6,7 +6,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
+import de.gymnasium_beetzendorf.vertretungsplan.data.SubstitutionDay;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ScheduleTabFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.SubstitutionTabFragment;
 

@@ -27,8 +27,8 @@ import java.util.List;
 import de.gymnasium_beetzendorf.vertretungsplan.activity.MainActivity;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
+import de.gymnasium_beetzendorf.vertretungsplan.data.School;
+import de.gymnasium_beetzendorf.vertretungsplan.data.SubstitutionDay;
 
 public class RefreshService extends IntentService implements Constants {
 

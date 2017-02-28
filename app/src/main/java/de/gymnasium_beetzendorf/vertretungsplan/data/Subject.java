@@ -1,140 +1,90 @@
 package de.gymnasium_beetzendorf.vertretungsplan.data;
 
-public class Subject {
+import java.util.Arrays;
+import java.util.List;
 
-    private String course;
-    private int period;
-    private String subject;
-    private String teacher;
-    private String room;
-    private String info;
+/**
+ * holds data about the individual subjects
+ * this may change in the future and migrate into a database that updates dynamically according to the data from the different xml files
+ * right now this works because we only look at one school
+ */
+
+public enum Subject {
+    Mathe(0, "Mat", "Mathe"),
+    Religion(1, "EvR", "Religion"),
+    Geographie(2, "Geo", "Geographie"),
+    Deutsch(3, "Deu", "Deutsch"),
+    Chemie(4, "Che", "Chemie"),
+    Geschichte(5, "Ges", "Geschichte"),
+    Kunst(6, "Kun", "Kunst"),
+    Psychologie(7, "Psy", "Psychologie"),
+    Englisch(8, "Eng", "Englisch"),
+    Französisch(9, "Frz", "Französisch"),
+    Russisch(10, "Rus", "Russisch"),
+    Sport(11, "Spo", "Sport"),
+    Biologie(12, "Bio", "Biologie"),
+    Philosophie(13, "Phi", "Philosophie"),
+    Latein(14, "Lat", "Latein"),
+    Ethik(15, "Eth", "Ethik"),
+    Berufsberatung(16, "BSB", "Berufsberatung"),
+    DLI(17, "DLI", "Das Lernen lernen"),
+    PCI(18, "PCI", "Einführung mit d. PC"),
+    Informatik(19, "Inf", "Informatik"),
+    FREISTUNDE(20, "freePeriod", "frei"),
+    BERUFSBERATUNG(21, "BSB", "Berufsberatung");
 
 
+    private int id;
+    private String subject_short;
+    private String subject_long;
 
-    // constructors
-
-    public Subject() {
-        this.info = null;
+    Subject(int id, String subject_short, String subject_long) {
+        this.id = id;
+        this.subject_short = subject_short;
+        this.subject_long = subject_long;
     }
 
-    // getters
+    public static List<Subject> list() {
+        return Arrays.asList(values());
+    }
 
-    // probably useless - future release will show
-    public static String convertSubjectsToLong(String shortSubject) {
-        String longSubject = "";
-        switch (shortSubject) {
-            case "Mat":
-                longSubject = "Mathe";
-                break;
-            case "EvR":
-                longSubject = "Religion";
-                break;
-            case "Geo":
-                longSubject = "Geographie";
-                break;
-            case "Deu":
-                longSubject = "Deutsch";
-                break;
-            case "Che":
-                longSubject = "Chemie";
-                break;
-            case "Ges":
-                longSubject = "Geschichte";
-                break;
-            case "Kun":
-                longSubject = "Kunst";
-                break;
-            case "---":
-                longSubject = "kein Fach";
-                break;
-            case "Psy":
-                longSubject = "Psychologie";
-                break;
-            case "Eng":
-                longSubject = "Englisch";
-                break;
-            case "Frz":
-                longSubject = "Französisch";
-                break;
-            case "Rus":
-                longSubject = "Russisch";
-                break;
-            case "Spo":
-                longSubject = "Sport";
-                break;
-            case "Bio":
-                longSubject = "Biologie";
-                break;
-            case "Phi":
-                longSubject = "Philosophie";
-                break;
-            case "Lat":
-                longSubject = "Latein";
-                break;
-            case "Eth":
-                longSubject = "Ethik";
-                break;
-            default:
-                longSubject = shortSubject;
-                break;
+    public static String getSubjectShortById(int id) {
+        for (Subject subject : list()) {
+            if (subject.getId() == id) {
+                return subject.getSubject_short();
+            }
         }
-        return longSubject;
+        return "";
     }
 
-    // not yet implemented
-    public static String convertTeachersToLong(String shortTeacher) {
-        return shortTeacher;
+    public static int getSubjectIdBySubjectShort(String subject_short) {
+        for (Subject subject : list()) {
+            if (subject.getSubject_short().equalsIgnoreCase(subject_short)) {
+                return subject.getId();
+            }
+        }
+        return 0;
     }
 
-    public String getCourse() {
-        return course;
+    static String getSubjectLongById(int id) {
+        for (Subject subject : list()) {
+            if (subject.getId() == id) {
+                return subject.getSubject_long();
+            }
+        }
+        return "";
     }
 
-    public void setCourse(String course) {
-        this.course = course;
+    private int getId() {
+        return id;
     }
 
-    public int getPeriod() {
-        return period;
+    private String getSubject_short() {
+        return subject_short;
     }
 
-    public void setPeriod(int period) {
-        this.period = period;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-
-    // setters
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getTeacher() {
-        return teacher;
-    }
-
-    public void setTeacher(String teacher) {
-        this.teacher = teacher;
-    }
-
-    public String getRoom() {
-        return room;
-    }
-
-    public void setRoom(String room) {
-        this.room = room;
-    }
-
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info;
+    private String getSubject_long() {
+        return subject_long;
     }
 
 }

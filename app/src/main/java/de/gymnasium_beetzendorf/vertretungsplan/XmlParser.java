@@ -19,10 +19,9 @@ import java.util.IllegalFormatException;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Lesson;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.SubstitutionDay;
+import de.gymnasium_beetzendorf.vertretungsplan.data.School;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data.SubstitutionDay;
 
 import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;

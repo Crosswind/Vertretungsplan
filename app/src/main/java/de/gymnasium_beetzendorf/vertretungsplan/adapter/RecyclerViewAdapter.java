@@ -17,7 +17,7 @@ import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.Substitution;
+import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         implements Constants, View.OnClickListener {

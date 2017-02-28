@@ -15,7 +15,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.DatabaseHandler;
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
-import de.gymnasium_beetzendorf.vertretungsplan.data1.School;
+import de.gymnasium_beetzendorf.vertretungsplan.data.School;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
         implements Constants, SharedPreferences.OnSharedPreferenceChangeListener {
