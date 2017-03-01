@@ -39,5 +39,7 @@
     <color name="AG">@color/defaultColor</color>
     <color name="frei">#607D8B</color>
     <color name="defaultColor">#9E9E9E</color>
+    <color name="PCI1">@color/Inf</color>
+    <color name="PCI2">@color/Inf</color>
 
 </resources>

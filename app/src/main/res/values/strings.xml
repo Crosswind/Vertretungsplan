@@ -29,6 +29,7 @@
     <string-array name="whatsnew_header">
         <item>Version 1.4:\n</item>
         <item>Version 1.4.1:\n</item>
+        <item>Version 1.4.2:\n</item>
     </string-array>
     <string-array name="whatsnew_descriptions">
         <item>- Willkommensbildschirm beim ersten Starten der App \n- Kleine UI-Änderungen\n- Eine Menge Bugfixes (Ich freue mich immer über Meldungen, falls etwas nicht funktioniert)!\n- Blockstunden werden jetzt wieder korrekt angezeigt\n- Es kann sein, dass das Benachrichtigen bei einem neuen Plan
@@ -37,5 +38,7 @@
         Bescheid, dass sie nun wieder funktionsfähig ist ;) \nViele Grüße, David</item>
         <item>- kleine Bugs behoben \nSollte die App crashen bitte einmal den App-Cache leeren (Einstellungen -> Apps -> Vertretungsplan -> Speicher -> Daten löschen) und es dann nochmal versuchen. Falls beim Stehen bleiben der App ein Fenster öffnet, dann darüber bitte den Report senden und ich werde mich
         darum entsprechend kümmern!</item>
+        <item>- Problem behoben, dass die App sich bei den momentanen Stunden selbst beendet.\n- Mir ist aufgefallen, dass die Benachrichtigungen nicht funktionieren. Ich versuche mich die kommenden Tage darum zu kümmern.\n\nVielen Dank, für das viele Feedback! Einfacher als über die Reviews im PlayStore bin
+        sonst auch per Mail zu erreichen - die findet ihr, wenn ihr auf der Seite der App im Store runter scrollt.</item>
     </string-array>
 </resources>

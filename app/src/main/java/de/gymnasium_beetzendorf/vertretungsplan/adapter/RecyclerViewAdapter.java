@@ -1,12 +1,14 @@
 package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,9 +74,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         TextView roomTextView = holder.roomTextView;
         CardView itemCardView = holder.itemCardView;
 
-        int color = context.getResources().getIdentifier(currentSubstitution.getSubject(), "color", context.getPackageName());
-        //Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
-        itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
+
+        try {
+            int color = context.getResources().getIdentifier(currentSubstitution.getSubject(), "color", context.getPackageName());
+            itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
+        } catch (Resources.NotFoundException e) {
+            e.printStackTrace();
+            Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
+            itemCardView.setBackgroundResource(R.color.defaultColor);
+        }
+
+        Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
+
 
         // differentiating between free period or not
         if (currentSubstitution.getSubject().equals("---")) {

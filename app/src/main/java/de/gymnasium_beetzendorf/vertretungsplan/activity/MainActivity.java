@@ -40,6 +40,7 @@ public class MainActivity extends BaseActivity
     private SharedPreferences mSharedPreferences;
     private ViewPager mMainViewPager;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private TabLayout mMainTabLayout;
     private DatabaseHandler mDatabaseHandler;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -125,7 +126,7 @@ public class MainActivity extends BaseActivity
     protected void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("refresh_message"));
-        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false)) {
+        if (mSharedPreferences.getBoolean(PREFERENCES_CHANGED, false) || (mMainTabLayout != null && mMainTabLayout.getTabCount() == 0)) {
             displayData();
             mSharedPreferences.edit().putBoolean(PREFERENCES_CHANGED, false).apply(); // reset prefs
         }
@@ -192,7 +193,7 @@ public class MainActivity extends BaseActivity
 
 
     public void displayData() {
-        final TabLayout mainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
         mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
         mDatabaseHandler = getDatabaseHandler();
 
@@ -212,7 +213,7 @@ public class MainActivity extends BaseActivity
         }
 
 
-        mainTabLayout.removeAllTabs();
+        mMainTabLayout.removeAllTabs();
         mMainViewPager.removeAllViews();
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
@@ -224,21 +225,21 @@ public class MainActivity extends BaseActivity
         }
 
         if (tabTitles.size() == 0) {
-            mainTabLayout.addTab(mainTabLayout.newTab().setText("Keine Vertretungen gefunden"));
+            mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretungen gefunden"));
         } else {
             PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabTitles, "substitution", databaseResults);
             mMainViewPager.setAdapter(pagerAdapter);
-            mainTabLayout.setupWithViewPager(mMainViewPager);
+            mMainTabLayout.setupWithViewPager(mMainViewPager);
         }
 
-        mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mainTabLayout) {
+        mMainViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mMainTabLayout) {
             @Override
             public void onPageScrollStateChanged(int state) {
                 toggleRefreshing(state == ViewPager.SCROLL_STATE_IDLE);
             }
         });
 
-        mainTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        mMainTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 mMainViewPager.setCurrentItem(tab.getPosition());

@@ -322,7 +322,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
         query = "DELETE FROM " + TABLE_CLASSLIST;
         db.execSQL(query);
-        db.close();
     }
 
     void updateClassList(List<Class> classList) {
