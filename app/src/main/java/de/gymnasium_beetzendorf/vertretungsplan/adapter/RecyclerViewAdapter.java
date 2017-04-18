@@ -78,7 +78,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         try {
             int color = context.getResources().getIdentifier(currentSubstitution.getSubject(), "color", context.getPackageName());
             itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
-        } catch (Resources.NotFoundException e) {
+        } catch (Resources.NotFoundException | NullPointerException e) {
             e.printStackTrace();
             Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
             itemCardView.setBackgroundResource(R.color.defaultColor);
