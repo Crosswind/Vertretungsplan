@@ -8,8 +8,8 @@ android {
         applicationId "de.gymnasium_beetzendorf.vertretungsplan"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 26
-        versionName "1.4.3"
+        versionCode 27
+        versionName "1.4.4"
     }
     buildTypes {
         release {

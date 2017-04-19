@@ -193,6 +193,9 @@ class XmlParser implements Constants {
                                 if (text.contains("AG")) {
                                     currentSubstitution.setClassCourse(text);
                                     currentSubstitution.setClassYearLetter("00 X");
+                                } else if (text.contains(",")) {
+                                    currentSubstitution.setClassYearLetter(text.substring(0, 4));
+                                    multipleClasses = 2;
                                 } else {
                                     if (text.length() == 9 || text.length() > 10) {
                                         String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};
@@ -214,7 +217,8 @@ class XmlParser implements Constants {
                                 }
                                 break;
                             case "stunde":
-                                int periods = Integer.parseInt(text.replaceAll("-", ""));
+                                int periods;
+                                periods = Integer.parseInt(text.replaceAll("-", ""));
                                 if (String.valueOf(periods).length() > 1) {
                                     multiplePeriods = (periods % 10) - (periods / 10);
                                     periods /= 10;
