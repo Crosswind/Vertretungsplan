@@ -51,6 +51,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
                 if (selected >= 0) {
                     mSharedPreferences.edit().putString(Constants.PREFERENCE_CLASS_YEAR_LETTER, classes.get(selected)).apply();
                     mSharedPreferences.edit().putBoolean(Constants.PREFERENCE_SHOW_WHOLE_PLAN, false).apply();
+                    mSharedPreferences.edit().putBoolean(Constants.PREFERENCE_NOTIFICATIONS_ENABLED, true).apply();
                     doNext();
                 } else {
                     Snackbar.make(getCoordinatorLayout(), "Bitte Klasse auswählen", Snackbar.LENGTH_SHORT).setAction("Action", null).show();

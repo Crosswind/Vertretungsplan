@@ -8,7 +8,6 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +26,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private static final String TAG = RecyclerViewAdapter.class.getSimpleName();
 
     private List<Substitution> substitutionList;
+    private List<Substitution> oldSubstituionList;
     private Context context;
 
     private int expandedPosition = -1;
@@ -38,6 +38,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     public RecyclerViewAdapter(Context context, List<Substitution> results, String type) {
+        if (substitutionList != null) {
+            oldSubstituionList = substitutionList;
+        }
         substitutionList = results;
         this.context = context;
     }
@@ -61,6 +64,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return viewHolder;
     }
 
+
     @Override
     public void onBindViewHolder(RecyclerViewAdapter.ViewHolder holder, int position) {
         Substitution currentSubstitution = substitutionList.get(position);
@@ -80,12 +84,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             itemCardView.setCardBackgroundColor(ContextCompat.getColor(context, color));
         } catch (Resources.NotFoundException | NullPointerException e) {
             e.printStackTrace();
-            Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
             itemCardView.setBackgroundResource(R.color.defaultColor);
         }
 
-        Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
-
+        // Log.i(TAG, "Fach: " + currentSubstitution.getSubject());
 
         // differentiating between free period or not
         if (currentSubstitution.getSubject().equals("---")) {

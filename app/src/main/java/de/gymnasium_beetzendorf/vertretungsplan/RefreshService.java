@@ -106,11 +106,10 @@ public class RefreshService extends IntentService implements Constants {
     private boolean notifyMainActivityReturnResult(boolean newUpdate) {
         Intent messageIntent = new Intent("refresh_message");
         messageIntent.putExtra("new_update", newUpdate);
-        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
-        return localBroadcastManager.sendBroadcast(messageIntent);
+        return LocalBroadcastManager.getInstance(this).sendBroadcast(messageIntent);
     }
 
-    private boolean newUpdate(List<SubstitutionDay> xmlResults, List<SubstitutionDay> databaseResults) {
+    private boolean newUpdate(List<SubstitutionDay> xmlResults) {
         long databaseLastUpdated, xmlLastUpdated;
         try {
             xmlLastUpdated = xmlResults.get(0).getUpdated();
@@ -119,12 +118,7 @@ public class RefreshService extends IntentService implements Constants {
             return false;
         }
 
-        try {
-            databaseLastUpdated = databaseResults.get(0).getUpdated();
-        } catch (IndexOutOfBoundsException e) {
-            Log.i(TAG, "IndexOutOfBoundsException: ", e);
-            return true;
-        }
+        databaseLastUpdated = mSharedPreferences.getLong(Constants.PREFERENCE_LAST_SUBSTITUTION_REFRESH, 0);
         return xmlLastUpdated > databaseLastUpdated;
     }
 
@@ -157,13 +151,12 @@ public class RefreshService extends IntentService implements Constants {
         List<SubstitutionDay> xmlResults = parser.parseReturnSubstitution();
 
         DatabaseHandler databaseHandler = new DatabaseHandler(this, DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
-        List<SubstitutionDay> databaseResults = databaseHandler.getSubstitutionDayList(mSchool, mClassYear, mCLassLetter);
 
-        boolean notifications_enabled = mSharedPreferences.getBoolean("enable_notifications", false);
+        boolean notifications_enabled = mSharedPreferences.getBoolean(Constants.PREFERENCE_NOTIFICATIONS_ENABLED, false);
 
-        if (newUpdate(xmlResults, databaseResults)) {
+        if (newUpdate(xmlResults)) {
             databaseHandler.insertSubstitutionResults(mSchool, xmlResults);
-            mSharedPreferences.edit().putLong("last_substitution_plan_refresh", xmlResults.get(0).getUpdated()).apply();
+            mSharedPreferences.edit().putLong(Constants.PREFERENCE_LAST_SUBSTITUTION_REFRESH, xmlResults.get(0).getUpdated()).apply();
 
             // fire notification if user is not in app
             if (!notifyMainActivityReturnResult(true) && notifications_enabled) {

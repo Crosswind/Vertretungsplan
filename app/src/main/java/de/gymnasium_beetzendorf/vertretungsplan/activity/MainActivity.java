@@ -95,6 +95,11 @@ public class MainActivity extends BaseActivity
             mSharedPreferences.edit().putBoolean(PREFERENCE_ALARM_REGISTERED, true).apply();
         }
 
+        mDatabaseHandler = getDatabaseHandler();
+
+        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
+        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
@@ -193,10 +198,6 @@ public class MainActivity extends BaseActivity
 
 
     public void displayData() {
-        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
-        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
-        mDatabaseHandler = getDatabaseHandler();
-
         int school = mSharedPreferences.getInt(PREFERENCE_SCHOOL, -1);
         String classYearLetter = mSharedPreferences.getString(PREFERENCE_CLASS_YEAR_LETTER, "");
         int classYear = Integer.parseInt(classYearLetter.substring(0, 2));
@@ -214,7 +215,6 @@ public class MainActivity extends BaseActivity
 
 
         mMainTabLayout.removeAllTabs();
-        mMainViewPager.removeAllViews();
         for (int n = 0; n < databaseResults.size(); n++) {
             if (databaseResults.get(n).getSubstitutionList().size() > 0) {
                 calendar.setTimeInMillis(databaseResults.get(n).getDate());
@@ -226,6 +226,7 @@ public class MainActivity extends BaseActivity
 
         if (tabTitles.size() == 0) {
             mMainTabLayout.addTab(mMainTabLayout.newTab().setText("Keine Vertretungen gefunden"));
+            mMainViewPager.removeAllViews();
         } else {
             PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabTitles, "substitution", databaseResults);
             mMainViewPager.setAdapter(pagerAdapter);

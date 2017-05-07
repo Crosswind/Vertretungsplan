@@ -195,7 +195,12 @@ class XmlParser implements Constants {
                                     currentSubstitution.setClassYearLetter("00 X");
                                 } else if (text.contains(",")) {
                                     currentSubstitution.setClassYearLetter(text.substring(0, 4));
-                                    multipleClasses = 2;
+                                    multipleClasses = 1;
+                                    if (text.contains("/")) {
+                                        currentSubstitution.setClassCourse(text.substring(text.length() - 4));
+                                    } else {
+                                        currentSubstitution.setClassCourse("");
+                                    }
                                 } else {
                                     if (text.length() == 9 || text.length() > 10) {
                                         String[] rangeClasses = {text.substring(0, 4), text.substring(5, 9)};

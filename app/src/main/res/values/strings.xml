@@ -15,6 +15,7 @@
     <string name="welcome_next">Weiter</string>
     <string name="welcome_choose_school">Wähle deine Schule aus:</string>
     <string name="welcome_choose_class">Wähle deine Klasse aus:</string>
+    <string name="openPlanInBrowserText">Vertretungsplan im Browser öffnen</string>
     <string-array name="notification_types_entries">
         <item>15 min</item>
         <item>30 min</item>

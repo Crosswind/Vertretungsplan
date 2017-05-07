@@ -36,10 +36,20 @@
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/linkButton"
+            android:layout_below="@id/versionTextView"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="@string/openPlanInBrowserText"
+            android:visibility="gone"/>
+
+        <Button
             android:id="@+id/changelogButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/versionTextView"
+            android:layout_below="@id/linkButton"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"
             android:text="Changelog" />

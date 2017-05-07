@@ -96,4 +96,26 @@ public class Substitution {
     public void setChanges(String changes) {
         this.changes = changes;
     }
+
+    @Override
+    public String toString() {
+        return "[" + classYearLetter + ", " + classCourse + ", " + period + ", " + subject + ", " + teacher + ", " + room + ", " + info + ", " + changes + "]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Substitution)) {
+            return false;
+        }
+
+        Substitution comp = (Substitution) obj;
+
+        return this.classYearLetter.equals(comp.classYearLetter) &&
+                this.classCourse.equals(comp.classCourse) &&
+                this.period == comp.period &&
+                this.subject.equals(comp.subject) &&
+                this.teacher.equals(comp.teacher) &&
+                this.room.equals(comp.room) &&
+                this.info.equals(comp.info);
+    }
 }
