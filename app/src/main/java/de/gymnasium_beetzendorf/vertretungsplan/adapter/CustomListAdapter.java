@@ -1,7 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +32,7 @@ public class CustomListAdapter extends ArrayAdapter<String> {
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         ViewHolder holder;
 
@@ -57,7 +57,7 @@ public class CustomListAdapter extends ArrayAdapter<String> {
 
         TextView getRowText() {
             if (this.rowTextView == null) {
-                this.rowTextView = (TextView) row.findViewById(R.id.listViewText);
+                this.rowTextView = row.findViewById(R.id.listViewText);
             }
             return this.rowTextView;
         }

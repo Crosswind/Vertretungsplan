@@ -3,9 +3,9 @@ package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
@@ -191,14 +191,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         ViewHolder(View layoutItemView) {
             super(layoutItemView);
-            courseTextView = (TextView) layoutItemView.findViewById(R.id.courseTextView);
-            periodTextView = (TextView) layoutItemView.findViewById(R.id.periodTextView);
-            teacherTextView = (TextView) layoutItemView.findViewById(R.id.teacherTextView);
-            subjectTextView = (TextView) layoutItemView.findViewById(R.id.subjectTextView);
-            infoTextView = (TextView) layoutItemView.findViewById(R.id.infoTextView);
-            roomTextView = (TextView) layoutItemView.findViewById(R.id.roomTextView);
+            courseTextView = layoutItemView.findViewById(R.id.courseTextView);
+            periodTextView = layoutItemView.findViewById(R.id.periodTextView);
+            teacherTextView = layoutItemView.findViewById(R.id.teacherTextView);
+            subjectTextView = layoutItemView.findViewById(R.id.subjectTextView);
+            infoTextView = layoutItemView.findViewById(R.id.infoTextView);
+            roomTextView = layoutItemView.findViewById(R.id.roomTextView);
 
-            itemCardView = (CardView) layoutItemView.findViewById(R.id.itemCardView);
+            itemCardView = layoutItemView.findViewById(R.id.itemCardView);
         }
     }
 }

@@ -77,14 +77,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             summary += dateTimeFormatter.format(calendar.getTime());
         }
         refreshClassListPreferenceButton.setSummary(summary);
-        refreshClassListPreferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                Intent intent = new Intent(getActivity(), RefreshService.class);
-                intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
-                getActivity().startService(intent);
-                return true;
-            }
+        refreshClassListPreferenceButton.setOnPreferenceClickListener(preference -> {
+            Intent intent = new Intent(getActivity(), RefreshService.class);
+            intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
+            getActivity().startService(intent);
+            return true;
         });
 
         // refresh substitution plan
@@ -94,14 +91,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         calendar.setTimeInMillis(last_substitution_plan_refresh);
 
         refreshSubstitutionPreferenceButton.setSummary("Letzter Plan vom: " + dateTimeFormatter.format(calendar.getTime()));
-        refreshSubstitutionPreferenceButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                Intent intent = new Intent(getActivity(), RefreshService.class);
-                intent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
-                getActivity().startService(intent);
-                return true;
-            }
+        refreshSubstitutionPreferenceButton.setOnPreferenceClickListener(preference -> {
+            Intent intent = new Intent(getActivity(), RefreshService.class);
+            intent.putExtra(RefreshService.INSTRUCTION, RefreshService.SUBSTITUTION_REFRESH);
+            getActivity().startService(intent);
+            return true;
         });
     }
 

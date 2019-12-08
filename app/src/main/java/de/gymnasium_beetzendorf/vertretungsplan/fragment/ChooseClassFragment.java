@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
+import androidx.annotation.Nullable;
+import com.google.android.material.snackbar.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,10 +104,10 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.welcome_school_fragment, container, false);
 
-        TextView textView = (TextView) view.findViewById(R.id.selectTextView);
+        TextView textView = view.findViewById(R.id.selectTextView);
         textView.setText(R.string.welcome_choose_class);
 
-        listView = (ListView) view.findViewById(R.id.schoolListView);
+        listView = view.findViewById(R.id.schoolListView);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         mDatabaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
@@ -124,12 +124,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
         }
 
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selected = position;
-            }
-        });
+        listView.setOnItemClickListener((parent, view1, position, id) -> selected = position);
 
         return view;
     }

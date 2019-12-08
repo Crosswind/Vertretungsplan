@@ -9,9 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -170,14 +171,16 @@ public class RefreshService extends IntentService implements Constants {
 
                 // build the notification and fire it to the user
                 NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                Notification notification = new Notification.Builder(this)
-                        .setContentTitle("Neue Vertretung!")
-                        .setContentText("Aktualisiert: " + updated)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setAutoCancel(true)
-                        .setContentIntent(notificationPendingIntent)
-                        .build();
-                notificationManager.notify(0, notification);
+                if (notificationManager != null) {
+                    Notification notification = new Notification.Builder(this)
+                            .setContentTitle("Neue Vertretung!")
+                            .setContentText("Aktualisiert: " + updated)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setAutoCancel(true)
+                            .setContentIntent(notificationPendingIntent)
+                            .build();
+                    notificationManager.notify(0, notification);
+                }
             }
         } else {
             notifyMainActivityReturnResult(false);

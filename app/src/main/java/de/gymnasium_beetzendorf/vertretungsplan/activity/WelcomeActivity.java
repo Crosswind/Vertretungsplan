@@ -1,10 +1,9 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
 
@@ -13,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
-import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseClassFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseCourseFragment;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.ChooseFragment;
@@ -50,7 +48,7 @@ public class WelcomeActivity extends AppCompatActivity implements ChooseFragment
     }
 
     private static List<WelcomeActivityContent> getWelcomeFragments() {
-        return new ArrayList<WelcomeActivityContent>(Arrays.asList(
+        return new ArrayList<>(Arrays.asList(
                 new ChooseSchoolFragment(),
                 new ChooseClassFragment(),
                 new ChooseCourseFragment(),

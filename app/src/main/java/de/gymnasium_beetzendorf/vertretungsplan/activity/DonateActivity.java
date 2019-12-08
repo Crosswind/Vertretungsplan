@@ -2,7 +2,7 @@ package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -24,14 +24,11 @@ public class DonateActivity extends BaseActivity implements Constants {
     private IabHelper mHelper;
 
 
-    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-        @Override
-        public void onConsumeFinished(Purchase purchase, IabResult result) {
-            if (result.isSuccess()) {
-                // mButton.setEnabled(true);
-            } else {
-                Log.i(TAG, "something went wrong in consumefinishedlistener");
-            }
+    IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = (purchase, result) -> {
+        if (result.isSuccess()) {
+            // mButton.setEnabled(true);
+        } else {
+            Log.i(TAG, "something went wrong in consumefinishedlistener");
         }
     };
 
@@ -78,14 +75,11 @@ public class DonateActivity extends BaseActivity implements Constants {
 
         mHelper = new IabHelper(this, base64EncodedPublicKey);
         mHelper.enableDebugLogging(true, TAG);
-        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                if (!result.isSuccess()) {
-                    Log.i(TAG, "IAP setup failed: " + result);
-                } else {
-                    Log.i(TAG, "IAP setup successful");
-                }
+        mHelper.startSetup(result -> {
+            if (!result.isSuccess()) {
+                Log.i(TAG, "IAP setup failed: " + result);
+            } else {
+                Log.i(TAG, "IAP setup successful");
             }
         });
     }

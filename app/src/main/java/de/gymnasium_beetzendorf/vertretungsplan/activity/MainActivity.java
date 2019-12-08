@@ -10,11 +10,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.tabs.TabLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager.widget.ViewPager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -97,18 +97,13 @@ public class MainActivity extends BaseActivity
 
         mDatabaseHandler = getDatabaseHandler();
 
-        mMainTabLayout = (TabLayout) findViewById(R.id.mainTabLayout);
-        mMainViewPager = (ViewPager) findViewById(R.id.mainViewPager);
+        mMainTabLayout = findViewById(R.id.mainTabLayout);
+        mMainViewPager = findViewById(R.id.mainViewPager);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.mainSwipeContainer);
+        mSwipeRefreshLayout = findViewById(R.id.mainSwipeContainer);
         if (mSwipeRefreshLayout != null) {
             mSwipeRefreshLayout.setColorSchemeResources(R.color.colorAccent);
-            mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    refresh();
-                }
-            });
+            mSwipeRefreshLayout.setOnRefreshListener(this::refresh);
         }
 
         int currentVersion = 0;

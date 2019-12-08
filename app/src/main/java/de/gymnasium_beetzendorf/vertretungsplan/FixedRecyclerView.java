@@ -1,7 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.AttributeSet;
 
 public class FixedRecyclerView extends RecyclerView {
@@ -23,7 +23,7 @@ public class FixedRecyclerView extends RecyclerView {
         // scrolling up?
         if (direction < 1) {
             boolean original = super.canScrollVertically(direction);
-            return !original && getChildAt(0) != null && getChildAt(0).getTop() < 0 || original;
+            return original || getChildAt(0) != null && getChildAt(0).getTop() < 0;
         }
         return super.canScrollVertically(direction);
     }

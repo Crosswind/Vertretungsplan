@@ -2,10 +2,12 @@ package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +20,10 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 public abstract class BaseTabFragment extends Fragment {
 
-    OnSwipeRefreshListener onSwipeRefreshListener;
+    private OnSwipeRefreshListener onSwipeRefreshListener;
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
         try {
@@ -35,7 +37,7 @@ public abstract class BaseTabFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View customView = inflater.inflate(getLayoutId(), container, false);
-        final RecyclerView recyclerView = (RecyclerView) customView.findViewById(getRecyclerViewId());
+        final RecyclerView recyclerView = customView.findViewById(getRecyclerViewId());
 
         RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(getContext(), getSubstitutionsToDisplay(), getListType());
         recyclerView.setAdapter(recyclerViewAdapter);
@@ -45,7 +47,7 @@ public abstract class BaseTabFragment extends Fragment {
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 onSwipeRefreshListener.toggleRefreshing(linearLayoutManager.findFirstCompletelyVisibleItemPosition() == 0);
                 super.onScrollStateChanged(recyclerView, newState);
             }

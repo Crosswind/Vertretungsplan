@@ -1,9 +1,10 @@
 package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.SubstitutionDay;
@@ -12,7 +13,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.fragment.SubstitutionTabFragment
 
 public class PagerAdapter extends FragmentStatePagerAdapter {
     private List<String> tabTitles;
-    private List<SubstitutionDay> resultsToDisplay = new ArrayList<>();
+    private List<SubstitutionDay> resultsToDisplay;
     private String type;
 
     public PagerAdapter(FragmentManager fragmentManager, List<String> tabTitles, String type, List<SubstitutionDay> resultsToDisplay) {
@@ -22,8 +23,9 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
         this.type = type;
     }
 
+    @NonNull
     @Override
-    public android.support.v4.app.Fragment getItem(int position) {
+    public Fragment getItem(int position) {
         switch (type) {
             case "substitution":
                 SubstitutionTabFragment substitutionTabFragment = new SubstitutionTabFragment();

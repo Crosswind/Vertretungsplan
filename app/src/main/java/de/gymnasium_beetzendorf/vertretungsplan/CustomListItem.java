@@ -1,7 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
 import android.widget.Checkable;
 import android.widget.LinearLayout;
@@ -22,7 +22,7 @@ public class CustomListItem extends LinearLayout implements Checkable {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        textView = (TextView) findViewById(R.id.listViewText);
+        textView = findViewById(R.id.listViewText);
     }
 
     @Override

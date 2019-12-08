@@ -1,7 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +14,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 public class SubstitutionTabFragment extends BaseTabFragment {
 
-    List<Substitution> substitutionsToDisplay = new ArrayList<>();
+    private List<Substitution> substitutionsToDisplay = new ArrayList<>();
 
     public void setLessonsToDisplay(List<Substitution> substitutionsToDisplay) {
         this.substitutionsToDisplay = substitutionsToDisplay;

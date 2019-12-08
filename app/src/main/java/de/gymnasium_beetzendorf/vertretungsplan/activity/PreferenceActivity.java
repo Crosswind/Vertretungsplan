@@ -1,11 +1,11 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NavUtils;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.fragment.PreferenceFragment;
@@ -18,12 +18,7 @@ public class PreferenceActivity extends BaseActivity {
 
         // this workaround is needed because else the back button won't work
         // related to the PreferenceActivity thing
-        getToolbar().setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavUtils.navigateUpFromSameTask(PreferenceActivity.this);
-            }
-        });
+        getToolbar().setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(PreferenceActivity.this));
 
 
         getFragmentManager().beginTransaction()
@@ -49,11 +44,10 @@ public class PreferenceActivity extends BaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                NavUtils.navigateUpFromSameTask(this);
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

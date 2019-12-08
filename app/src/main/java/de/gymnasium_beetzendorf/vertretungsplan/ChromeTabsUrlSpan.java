@@ -1,9 +1,6 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-import android.net.Uri;
 import android.os.Parcel;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.v4.content.ContextCompat;
 import android.text.style.URLSpan;
 import android.view.View;
 

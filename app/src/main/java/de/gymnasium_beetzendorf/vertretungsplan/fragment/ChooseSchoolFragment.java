@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
+import androidx.annotation.Nullable;
+import com.google.android.material.snackbar.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,14 +84,9 @@ public class ChooseSchoolFragment extends ChooseFragment implements WelcomeActiv
         final List<String> schools = School.schoolListNames();
         adapter = new CustomListAdapter(getActivity(), R.layout.welcome_list_item, schools);
 
-        listView = (ListView) view.findViewById(R.id.schoolListView);
+        listView = view.findViewById(R.id.schoolListView);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selected = position;
-            }
-        });
+        listView.setOnItemClickListener((parent, view1, position, id) -> selected = position);
 
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listView.setAdapter(adapter);
