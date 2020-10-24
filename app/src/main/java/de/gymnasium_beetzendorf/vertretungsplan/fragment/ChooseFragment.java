@@ -1,7 +1,9 @@
 package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 
 import android.app.Activity;
-import android.app.Fragment;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,7 +30,7 @@ public abstract class ChooseFragment extends Fragment {
     protected Activity activity;
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         activity = (Activity) context;
     }
@@ -44,7 +46,7 @@ public abstract class ChooseFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getBroadcastReceiver() != null && getIntentFilter() != null) {
             LocalBroadcastManager.getInstance(activity).registerReceiver(getBroadcastReceiver(), getIntentFilter());
         }
@@ -98,9 +100,6 @@ public abstract class ChooseFragment extends Fragment {
             activity.finish();
         }
 
-        void doFinish() {
-            activity.finish();
-        }
     }
 
     protected abstract BroadcastReceiver getBroadcastReceiver();
@@ -109,8 +108,6 @@ public abstract class ChooseFragment extends Fragment {
 
     public interface ChooseFragmentContainer {
         Button getNextButton();
-
-        void setNextButtonEnabled(Boolean enabled);
     }
 }
 

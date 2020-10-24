@@ -132,6 +132,7 @@ public class RefreshService extends IntentService implements Constants {
         alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        assert alarmManager != null;
         alarmManager.cancel(alarmPendingIntent);
 
         // adds 14 hours (in milliseconds to the last refresh) which represents 6 am the next morning
@@ -189,7 +190,7 @@ public class RefreshService extends IntentService implements Constants {
 
     public void updateClassList() {
         Log.i(TAG, "start refreshing classlist");
-        String url = "http://gymnasium-beetzendorf.de/stundenkl/default.html";
+        String url = "https://gymnasium-beetzendorf.de/stundenkl/default.html";
 
         String username = "beetzendorf";
         String password = "tafel";

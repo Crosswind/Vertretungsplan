@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "713845954388",
+    "firebase_url": "https://vertretungsplan-46244.firebaseio.com",
+    "project_id": "vertretungsplan-46244",
+    "storage_bucket": "vertretungsplan-46244.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:713845954388:android:ded3952dc04f9959",
+        "android_client_info": {
+          "package_name": "de.gymnasium_beetzendorf.vertretungsplan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "713845954388-c31bltfh33u1nveqnpoh2k05gkumq474.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "de.gymnasium_beetzendorf.vertretungsplan",
+            "certificate_hash": "e3e4b62744e174873ad8c74404b19bf21983bb4f"
+          }
+        },
+        {
+          "client_id": "713845954388-jvdqeir6ugo7fsvkcg26h73vgvjbgjbu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "de.gymnasium_beetzendorf.vertretungsplan",
+            "certificate_hash": "1a97c9eed48f6c01b33c2117854cb857c1f11441"
+          }
+        },
+        {
+          "client_id": "713845954388-ed4mpns86kp2j4t13b2olgt59kmld8jp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDblUTeHTdm4gevRwQ8XOki8GgRDR2SPGc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "713845954388-ed4mpns86kp2j4t13b2olgt59kmld8jp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

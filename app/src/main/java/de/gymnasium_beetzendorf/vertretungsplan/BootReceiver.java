@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Objects;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 
@@ -20,13 +21,13 @@ public class BootReceiver extends BroadcastReceiver implements Constants {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
+        if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             Log.i(TAG, "boot received");
             Calendar calendar = Calendar.getInstance();
             String date = dateFormatter.format(calendar.getTime());
 
             try {
-                mFirstRefresh = dateTimeFormatter.parse(date + " 6:00").getTime();
+                mFirstRefresh = Objects.requireNonNull(dateTimeFormatter.parse(date + " 6:00")).getTime();
             } catch (ParseException e) {
                 Log.i(TAG, "ParseException in BootReceiver", e);
             }
@@ -42,6 +43,7 @@ public class BootReceiver extends BroadcastReceiver implements Constants {
             // it starts at 6 am and repeats every 30 min
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            assert alarmManager != null;
             alarmManager.setInexactRepeating(
                     ALARM_TYPE,
                     mFirstRefresh,

@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 import de.gymnasium_beetzendorf.vertretungsplan.data.Class;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
@@ -29,52 +30,52 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     public static int DATABASE_VERSION = 8;
 
     // substitution table / column names
-    private static String TABLE_SUBSTITUTION = "substitution";
+    private static final String TABLE_SUBSTITUTION = "substitution";
 
-    private static String S_ID = "s_id";
-    private static String S_ID_DAY = "s_id_day";
-    private static String S_CLASS_YEAR = "s_class_year";
-    private static String S_CLASS_LETTER = "s_class_letter";
-    private static String S_CLASS_TYPE = "s_class_type";
-    private static String S_PERIOD = "s_period";
-    private static String S_SUBJECT = "s_subject";
-    private static String S_TEACHER = "s_teacher";
-    private static String S_ROOM = "s_room";
-    private static String S_INFO = "s_info";
-    private static String S_CHANGE = "s_change";
+    private static final String S_ID = "s_id";
+    private static final String S_ID_DAY = "s_id_day";
+    private static final String S_CLASS_YEAR = "s_class_year";
+    private static final String S_CLASS_LETTER = "s_class_letter";
+    private static final String S_CLASS_TYPE = "s_class_type";
+    private static final String S_PERIOD = "s_period";
+    private static final String S_SUBJECT = "s_subject";
+    private static final String S_TEACHER = "s_teacher";
+    private static final String S_ROOM = "s_room";
+    private static final String S_INFO = "s_info";
+    private static final String S_CHANGE = "s_change";
 
     // substitution days table / column names
-    private static String TABLE_SUBSTITUTION_DAYS = "substitution_days";
+    private static final String TABLE_SUBSTITUTION_DAYS = "substitution_days";
 
-    private static String SD_ID = "sd_id";
-    private static String SD_DATE = "sd_date";
-    private static String SD_UPDATED = "sd_updated";
-    private static String SD_SCHOOL = "sd_school";
+    private static final String SD_ID = "sd_id";
+    private static final String SD_DATE = "sd_date";
+    private static final String SD_UPDATED = "sd_updated";
+    private static final String SD_SCHOOL = "sd_school";
 
     // lesson table / column names
-    private static String TABLE_LESSON = "lesson";
+    private static final String TABLE_LESSON = "lesson";
 
-    private static String L_ID = "l_id";
-    private static String L_ID_DAY = "l_id_day";
-    private static String L_CLASS_TYPE = "l_class_type";
-    private static String L_PERIOD = "l_period";
-    private static String L_SUBJECT = "l_subject";
-    private static String L_TEACHER = "l_teacher";
-    private static String L_ROOM = "l_room";
+    private static final String L_ID = "l_id";
+    private static final String L_ID_DAY = "l_id_day";
+    private static final String L_CLASS_TYPE = "l_class_type";
+    private static final String L_PERIOD = "l_period";
+    private static final String L_SUBJECT = "l_subject";
+    private static final String L_TEACHER = "l_teacher";
+    private static final String L_ROOM = "l_room";
 
     // lesson days table / column names
-    private static String TABLE_LESSON_DAYS = "lesson_days";
+    private static final String TABLE_LESSON_DAYS = "lesson_days";
 
-    private static String LD_ID = "ld_id";
-    private static String LD_CLASS_YEAR_LETTER = "ld_class_year_letter";
-    private static String LD_VALID = "ld_valid";
+    private static final String LD_ID = "ld_id";
+    private static final String LD_CLASS_YEAR_LETTER = "ld_class_year_letter";
+    private static final String LD_VALID = "ld_valid";
 
     // classlist table / column names
-    private static String TABLE_CLASSLIST = "table_classlist";
+    private static final String TABLE_CLASSLIST = "table_classlist";
 
-    private static String CL_ID = "cl_id";
-    private static String CL_NAME = "cl_name";
-    private static String CL_URL = "cl_url";
+    private static final String CL_ID = "cl_id";
+    private static final String CL_NAME = "cl_name";
+    private static final String CL_URL = "cl_url";
 
     // courselist table / column names
     private static final String TABLE_COURSELIST = "table_courselist";
@@ -86,9 +87,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
 
 
     // stuff
-    private Context context;
+    private final Context context;
     private String query, date;
-    private SharedPreferences sharedPreferences;
     private long dateInMillis, todayInMillis;
 
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -111,7 +111,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
                 S_SUBJECT + " TEXT, " +
                 S_TEACHER + " TEXT, " +
                 S_ROOM + " TEXT, " +
-                S_INFO + " TEXT " +
+                S_INFO + " TEXT, " +
                 S_CHANGE + " TEXT " +
                 ");";
         db.execSQL(query);
@@ -189,11 +189,11 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
     }
 
     private void init() {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Calendar c = Calendar.getInstance();
         date = dateFormatter.format(c.getTime());
         try {
-            dateInMillis = dateFormatter.parse(date).getTime();
+            dateInMillis = Objects.requireNonNull(dateFormatter.parse(date)).getTime();
         } catch (ParseException e) {
             Log.e(TAG, "ParseException in init():", e);
         }
@@ -383,7 +383,4 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Constants {
         db.close();
     }
 
-    public List<String> getCourseList(int school, String classYearLetter) {
-        return null;
-    }
 }

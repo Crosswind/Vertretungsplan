@@ -1,5 +1,7 @@
 package de.gymnasium_beetzendorf.vertretungsplan.activity;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
@@ -35,8 +37,8 @@ public class WelcomeActivity extends AppCompatActivity implements ChooseFragment
             finish();
         }
 
-        android.app.FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.welcome_content, (android.app.Fragment) mWelcomeFragment);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.welcome_content, (Fragment) mWelcomeFragment);
         fragmentTransaction.commit();
     }
 
@@ -71,15 +73,6 @@ public class WelcomeActivity extends AppCompatActivity implements ChooseFragment
     @Override
     public Button getNextButton() {
         return (Button) findViewById(R.id.nextButton);
-    }
-
-    @Override
-    public void setNextButtonEnabled(Boolean enabled) {
-        try {
-            getNextButton().setEnabled(enabled);
-        } catch (NullPointerException e) {
-            Log.e(TAG, "there is no button to enable/disable");
-        }
     }
 
     public interface WelcomeActivityContent {

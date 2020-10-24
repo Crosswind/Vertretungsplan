@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
@@ -32,14 +33,14 @@ class XmlParser implements Constants {
 
     private final String TAG = XmlParser.class.getSimpleName();
 
-    private String type;
-    private Context context;
+    private final String type;
+    private final Context context;
     private String filename;
     private String classToShow;
     private int school;
     private FileInputStream fileInputStream = null;
     private BufferedReader bufferedReader = null;
-    private BufferedReader tempBufferedReader = null;
+    private final BufferedReader tempBufferedReader = null;
 
     static final String SUBSTITUTION = "substitution";
     static final String SCHEDULE = "schedule";
@@ -61,14 +62,14 @@ class XmlParser implements Constants {
                 this.filename = "aktuell" + this.classToShow + ".xml";
                 break;
             case SUBSTITUTION:
-                this.filename = "substitution_" + String.valueOf(school) + ".xml";
+                this.filename = "substitution_" + school + ".xml";
                 break;
         }
 
 
         try {
             fileInputStream = context.openFileInput(filename);
-            bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
+            bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8));
             //tempBufferedReader = bufferedReader;
         } catch (IOException e) {
             Log.e(TAG, "missing file here: ", e);

@@ -12,6 +12,6 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Version 1.4" />
+            android:text="@string/version_number" />
     </LinearLayout>
 </ScrollView>

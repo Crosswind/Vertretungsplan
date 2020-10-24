@@ -16,6 +16,19 @@
     <string name="welcome_choose_school">Wähle deine Schule aus:</string>
     <string name="welcome_choose_class">Wähle deine Klasse aus:</string>
     <string name="openPlanInBrowserText">Vertretungsplan im Browser öffnen</string>
+    <string name="changelog">Changelog</string>
+    <string name="logo">logo</string>
+    <string name="_1_spenden">1€ Spenden</string>
+    <string name="_2_spenden">2€ Spenden</string>
+    <string name="_5_spenden">5€ Spenden</string>
+    <string name="free">frei</string>
+    <string name="default_class">12 B</string>
+    <string name="default_period">period</string>
+    <string name="default_teacher">teacher</string>
+    <string name="default_subject">subject</string>
+    <string name="default_room">room</string>
+    <string name="default_information">info</string>
+    <string name="menu_settings_about">Über</string>
     <string-array name="notification_types_entries">
         <item>15 min</item>
         <item>30 min</item>

@@ -27,10 +27,9 @@
                 android:id="@+id/courseTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:gravity="center"
-                android:text="12 B"
+                android:text="@string/default_class"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
@@ -38,18 +37,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:text="period"
+                android:text="@string/default_period"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
                 android:id="@+id/teacherTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@+id/periodTextView"
                 android:layout_alignStart="@+id/periodTextView"
                 android:layout_below="@+id/periodTextView"
                 android:layout_centerHorizontal="true"
-                android:text="teacher"
+                android:text="@string/default_teacher"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
@@ -57,23 +55,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
                 android:layout_alignParentTop="true"
-                android:gravity="right"
+                android:gravity="end"
                 android:minWidth="60dp"
-                android:text="subject"
+                android:text="@string/default_subject"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
                 android:id="@+id/roomTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@+id/subjectTextView"
                 android:layout_alignStart="@+id/subjectTextView"
                 android:layout_below="@+id/subjectTextView"
-                android:gravity="right"
+                android:gravity="end"
                 android:minWidth="100dp"
-                android:text="room"
+                android:text="@string/default_room"
                 android:maxLines="1"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:fitsSystemWindows="false" />
@@ -82,12 +78,11 @@
                 android:id="@+id/infoTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/teacherTextView"
                 android:layout_marginTop="10dp"
                 android:paddingTop="10dp"
-                android:text="info"
+                android:text="@string/default_information"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </RelativeLayout>

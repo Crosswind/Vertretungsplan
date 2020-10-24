@@ -3,9 +3,6 @@ package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
-import androidx.core.content.ContextCompat;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
@@ -14,7 +11,13 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
+import java.util.Locale;
 
 import de.gymnasium_beetzendorf.vertretungsplan.R;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
@@ -26,8 +29,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private static final String TAG = RecyclerViewAdapter.class.getSimpleName();
 
     private List<Substitution> substitutionList;
-    private List<Substitution> oldSubstituionList;
-    private Context context;
+    private final Context context;
 
     private int expandedPosition = -1;
     private int prev = -1;
@@ -39,12 +41,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     public RecyclerViewAdapter(Context context, List<Substitution> results, String type) {
         if (substitutionList != null) {
-            oldSubstituionList = substitutionList;
+            List<Substitution> oldSubstituionList = substitutionList;
         }
         substitutionList = results;
         this.context = context;
     }
 
+    @NonNull
     @Override
     public RecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // get context and inflater
@@ -91,7 +94,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         // differentiating between free period or not
         if (currentSubstitution.getSubject().equals("---")) {
-            subjectTextView.setText("frei");
+            subjectTextView.setText(R.string.free);
             roomTextView.setText("");
             teacherTextView.setText("");
 
@@ -110,11 +113,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) subjectTextView.getLayoutParams();
 
-            if (Build.VERSION.SDK_INT > 16) {
-                layoutParams.removeRule(RelativeLayout.CENTER_VERTICAL);
-            } else {
-                layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, 0);
-            }
+            layoutParams.removeRule(RelativeLayout.CENTER_VERTICAL);
 
             roomTextView.setText(currentSubstitution.getRoom());
             roomTextView.setVisibility(View.VISIBLE);
@@ -129,7 +128,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (currentSubstitution.getClassYearLetter().contains("X")) {
                 string = "AG (" + currentSubstitution.getClassCourse().substring(3).trim() + ")";
             } else {
-                string = currentSubstitution.getClassYearLetter() + " (" + currentSubstitution.getClassCourse().toLowerCase() + ")";
+                string = currentSubstitution.getClassYearLetter() + " (" + currentSubstitution.getClassCourse().toLowerCase(Locale.GERMANY) + ")";
             }
             int pos = string.indexOf("(");
             SpannableString spannableString = new SpannableString(string);
@@ -138,7 +137,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         } else {
             courseTextView.setText(currentSubstitution.getClassYearLetter());
         }
-        periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), String.valueOf(currentSubstitution.getPeriod())));
+        periodTextView.setText(String.format((String) context.getResources().getText(R.string.period_description), currentSubstitution.getPeriod()));
         infoTextView.setText(currentSubstitution.getInfo());
 
         // change visibility on onclick event

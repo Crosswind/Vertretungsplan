@@ -33,7 +33,7 @@
                 android:layout_height="80dp"
                 android:background="@drawable/circle"
                 android:gravity="center"
-                android:text="DEU"
+                android:text="@string/default_subject"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
@@ -41,15 +41,15 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:paddingLeft="5dp"
-                android:text="Frau Hardt"
+                android:paddingStart="5dp"
+                android:text="@string/default_teacher"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
                 android:id="@+id/roomTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="O03"
+                android:text="@string/default_room"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
         </LinearLayout>

@@ -12,8 +12,8 @@ import de.gymnasium_beetzendorf.vertretungsplan.data.Substitution;
 
 public class SubstitutionDiffUtil extends DiffUtil.Callback {
 
-    private List<Substitution> oldSubstitutionList;
-    private List<Substitution> newSubstitutionList;
+    private final List<Substitution> oldSubstitutionList;
+    private final List<Substitution> newSubstitutionList;
 
 
     public SubstitutionDiffUtil(List<Substitution> oldSubstitutionList, List<Substitution> newSubstitutionList) {

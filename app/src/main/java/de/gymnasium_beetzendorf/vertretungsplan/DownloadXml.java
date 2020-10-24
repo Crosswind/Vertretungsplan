@@ -48,12 +48,12 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
             String filename;
             switch (fileType) {
                 case "substitution":
-                    Log.i(TAG, "Schule(DownloadXML): " + String.valueOf(school));
+                    Log.i(TAG, "Schule(DownloadXML): " + school);
 
-                    filename = "substitution_" + String.valueOf(school) + ".xml";
+                    filename = "substitution_" + school + ".xml";
                     break;
                 case "schedule":
-                    filename = "schedule_" + String.valueOf(school) + "_" + schedClass + ".xml";
+                    filename = "schedule_" + school + "_" + schedClass + ".xml";
                     break;
                 default:
                     filename = "temp.xml";
@@ -64,7 +64,7 @@ class DownloadXml extends AsyncTask<String, Void, String> implements Constants {
             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 
 
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             int count;
             while ((count = bufferedInputStream.read(data)) != -1) {
                 bufferedOutputStream.write(data, 0, count);

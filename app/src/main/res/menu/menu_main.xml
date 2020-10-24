@@ -13,5 +13,5 @@
         android:title="@string/menu_settings_title" />
     <item
         android:id="@+id/menu_uber"
-        android:title="Über" />
+        android:title="@string/menu_settings_about" />
 </menu>

@@ -40,7 +40,7 @@
             android:layout_gravity="center"
             android:layout_marginBottom="?actionBarSize"
             android:layout_marginTop="10dp"
-            android:contentDescription="logo"
+            android:contentDescription="@string/logo"
             android:src="@drawable/web_hi_res_512" />
 
 

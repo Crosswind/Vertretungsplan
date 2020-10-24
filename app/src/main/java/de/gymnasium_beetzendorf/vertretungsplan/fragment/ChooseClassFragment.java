@@ -7,15 +7,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import com.google.android.material.snackbar.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 
@@ -77,7 +79,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         Intent intent = new Intent(activity, RefreshService.class);
         intent.putExtra(RefreshService.INSTRUCTION, RefreshService.CLASSLIST_REFRESH);
@@ -100,7 +102,7 @@ public class ChooseClassFragment extends ChooseFragment implements WelcomeActivi
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.welcome_school_fragment, container, false);
 

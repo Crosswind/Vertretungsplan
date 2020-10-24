@@ -10,14 +10,16 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import com.google.android.material.tabs.TabLayout;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.viewpager.widget.ViewPager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,7 +44,7 @@ public class MainActivity extends BaseActivity
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private TabLayout mMainTabLayout;
     private DatabaseHandler mDatabaseHandler;
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean new_update = intent.getBooleanExtra("new_update", false);
@@ -106,17 +108,17 @@ public class MainActivity extends BaseActivity
             mSwipeRefreshLayout.setOnRefreshListener(this::refresh);
         }
 
-        int currentVersion = 0;
+        long currentVersion = 0;
         try {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            currentVersion = packageInfo.versionCode;
+            currentVersion = packageInfo.getLongVersionCode();
         } catch (PackageManager.NameNotFoundException e) {
             Log.i(TAG, "Name not found: ", e);
         }
         if (currentVersion > mSharedPreferences.getInt(PREFERENCE_CURRENT_VERSION, 0)) {
             refresh();
             showWhatsNewDialog();
-            mSharedPreferences.edit().putInt(PREFERENCE_CURRENT_VERSION, currentVersion).apply();
+            mSharedPreferences.edit().putLong(PREFERENCE_CURRENT_VERSION, currentVersion).apply();
         } else {
             displayData();
         }
@@ -149,19 +151,15 @@ public class MainActivity extends BaseActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.menu_refresh:
-                refresh();
-                break;
-            case R.id.menu_settings:
-                startActivity(new Intent(this, PreferenceActivity.class));
-                break;
-            case R.id.menu_donate:
-                startActivity(new Intent(this, DonateActivity.class));
-                break;
-            case R.id.menu_uber:
-                startActivity(new Intent(this, AboutActivity.class));
-                break;
+
+        if (id == R.id.menu_refresh) {
+            refresh();
+        } else if (id == R.id.menu_settings) {
+            startActivity(new Intent(this, PreferenceActivity.class));
+        } else if (id == R.id.menu_donate) {
+            startActivity(new Intent(this, DonateActivity.class));
+        } else if (id == R.id.menu_uber) {
+            startActivity(new Intent(this, AboutActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }

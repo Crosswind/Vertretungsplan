@@ -1,6 +1,5 @@
 package de.gymnasium_beetzendorf.vertretungsplan;
 
-import android.os.Parcel;
 import android.text.style.URLSpan;
 import android.view.View;
 
@@ -9,12 +8,8 @@ import android.view.View;
  */
 
 public class ChromeTabsUrlSpan extends URLSpan {
-    public ChromeTabsUrlSpan(String url) {
+    ChromeTabsUrlSpan(String url) {
         super(url);
-    }
-
-    public ChromeTabsUrlSpan(Parcel src) {
-        super(src);
     }
 
     @Override

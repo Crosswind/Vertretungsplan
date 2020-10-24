@@ -22,7 +22,7 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="37dp"
-            android:contentDescription="app icon"
+            android:contentDescription="@string/logo"
             android:src="@drawable/web_hi_res_512" />
 
         <TextView
@@ -52,6 +52,6 @@
             android:layout_below="@id/linkButton"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="16dp"
-            android:text="Changelog" />
+            android:text="@string/changelog" />
     </RelativeLayout>
 </LinearLayout>

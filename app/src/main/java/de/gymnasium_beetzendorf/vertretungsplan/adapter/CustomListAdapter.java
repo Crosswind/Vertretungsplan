@@ -1,12 +1,13 @@
 package de.gymnasium_beetzendorf.vertretungsplan.adapter;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.R;
 
 public class CustomListAdapter extends ArrayAdapter<String> {
 
-    private List<String> list;
+    private final List<String> list;
 
     public CustomListAdapter(Context context, int resource, List<String> list) {
         super(context, resource, list);
