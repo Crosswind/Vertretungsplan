@@ -5,7 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.util.Log;
 
 import java.text.ParseException;
@@ -38,7 +38,7 @@ public class BootReceiver extends BroadcastReceiver implements Constants {
 
             // assign RefreshService class
             Intent alarmIntent = new Intent(context, RefreshService.class);
-            PendingIntent alarmPendingIntent = PendingIntent.getService(context, alarmManagerRequestCode, alarmIntent, 0);
+            PendingIntent alarmPendingIntent = PendingIntent.getService(context, alarmManagerRequestCode, alarmIntent, PendingIntent.FLAG_IMMUTABLE);
             // set the alarm
             // it starts at 6 am and repeats every 30 min
 
