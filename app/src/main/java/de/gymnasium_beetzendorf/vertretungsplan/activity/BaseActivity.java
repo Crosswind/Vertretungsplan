@@ -7,9 +7,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -86,8 +87,13 @@ public abstract class BaseActivity extends AppCompatActivity implements Constant
 
     protected boolean hasInternetAccess() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
+        Network network = connectivityManager.getActiveNetwork();
+        if (network == null) {
+            return false;
+        }
+        NetworkCapabilities activeNetworks = connectivityManager.getNetworkCapabilities(network);
+
+        return activeNetworks != null && (activeNetworks.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || activeNetworks.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || activeNetworks.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || activeNetworks.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
     }
 
     protected void showWhatsNewDialog() {

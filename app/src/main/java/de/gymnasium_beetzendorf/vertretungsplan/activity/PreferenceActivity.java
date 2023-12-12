@@ -20,10 +20,7 @@ public class PreferenceActivity extends BaseActivity {
         // related to the PreferenceActivity thing
         getToolbar().setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(PreferenceActivity.this));
 
-
-        getFragmentManager().beginTransaction()
-                .replace(R.id.settingsContainer, new PreferenceFragment())
-                .commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.settingsContainer, new PreferenceFragment()).commit();
     }
 
     @Override
@@ -33,7 +30,7 @@ public class PreferenceActivity extends BaseActivity {
 
     @Override
     protected Toolbar getToolbar() {
-        return (Toolbar) findViewById(R.id.mainToolbar);
+        return findViewById(R.id.mainToolbar);
     }
 
     @Override
@@ -45,7 +42,13 @@ public class PreferenceActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            /*
+            I have removed this next function call because it was deprecated and doesn't seem
+            to serve any kind of purpose anymore
+            Someone has mentioned this here:
+            https://stackoverflow.com/questions/72634225/onbackpressed-is-deprecated-what-is-the-alternative
+             */
+            //onBackPressed();
             NavUtils.navigateUpFromSameTask(this);
             return true;
         }

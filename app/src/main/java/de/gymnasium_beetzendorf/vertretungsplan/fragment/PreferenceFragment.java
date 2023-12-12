@@ -3,10 +3,15 @@ package de.gymnasium_beetzendorf.vertretungsplan.fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
+
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
+
 import android.util.Log;
+
+import androidx.annotation.Nullable;
+import androidx.preference.PreferenceFragmentCompat;
 
 import java.util.Calendar;
 import java.util.List;
@@ -17,7 +22,7 @@ import de.gymnasium_beetzendorf.vertretungsplan.RefreshService;
 import de.gymnasium_beetzendorf.vertretungsplan.data.Constants;
 import de.gymnasium_beetzendorf.vertretungsplan.data.School;
 
-public class PreferenceFragment extends android.preference.PreferenceFragment
+public class PreferenceFragment extends PreferenceFragmentCompat
         implements Constants, SharedPreferences.OnSharedPreferenceChangeListener {
 
 
@@ -30,7 +35,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         DatabaseHandler databaseHandler = new DatabaseHandler(getActivity(), DatabaseHandler.DATABASE_NAME, null, DatabaseHandler.DATABASE_VERSION);
 
-        ListPreference schoolListPreference = (ListPreference) findPreference("schoolName");
+        ListPreference schoolListPreference = findPreference("schoolName");
         // disable this as long as multiple school support has not been implemented
         schoolListPreference.setEnabled(false);
 
@@ -51,7 +56,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
         schoolListPreference.setSummary(school);
 
         // classes to chose from
-        ListPreference classListPreference = (ListPreference) findPreference("class_year_letter");
+        ListPreference classListPreference = findPreference("class_year_letter");
 
         List<String> classList = databaseHandler.getClassList();
 
@@ -97,6 +102,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
             getActivity().startService(intent);
             return true;
         });
+    }
+
+    @Override
+    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
+
     }
 
     @Override

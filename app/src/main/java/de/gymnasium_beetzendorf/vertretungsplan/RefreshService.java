@@ -3,12 +3,13 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -130,7 +131,7 @@ public class RefreshService extends IntentService implements Constants {
     private void setNextDayAlarm(long lastRefreshOfDay) {
         Intent alarmIntent = new Intent(this, RefreshService.class);
         alarmIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+        PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, PendingIntent.FLAG_IMMUTABLE);
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         assert alarmManager != null;
         alarmManager.cancel(alarmPendingIntent);
@@ -168,12 +169,12 @@ public class RefreshService extends IntentService implements Constants {
 
                 // intent that opens the main activity when notification is clicked
                 Intent notificationIntent = new Intent(this, MainActivity.class);
-                PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, 0);
+                PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
                 // build the notification and fire it to the user
                 NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 if (notificationManager != null) {
-                    Notification notification = new Notification.Builder(this)
+                    Notification notification = new Notification.Builder(this, NotificationChannel.DEFAULT_CHANNEL_ID)
                             .setContentTitle("Neue Vertretung!")
                             .setContentText("Aktualisiert: " + updated)
                             .setSmallIcon(R.mipmap.ic_launcher)

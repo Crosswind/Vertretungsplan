@@ -88,7 +88,7 @@ public class MainActivity extends BaseActivity
         if (!mSharedPreferences.getBoolean(PREFERENCE_ALARM_REGISTERED, false)) {
             // assign RefreshService class
             Intent alarmIntent = new Intent(this, RefreshService.class);
-            PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, 0);
+            PendingIntent alarmPendingIntent = PendingIntent.getService(this, BootReceiver.alarmManagerRequestCode, alarmIntent, PendingIntent.FLAG_IMMUTABLE);
 
             // set the alarm
             // it starts at 6 am and repeats once an hour
