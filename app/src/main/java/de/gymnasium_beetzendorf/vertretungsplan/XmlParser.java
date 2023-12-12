@@ -2,7 +2,9 @@ package de.gymnasium_beetzendorf.vertretungsplan;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+
+import androidx.preference.PreferenceManager;
+
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;

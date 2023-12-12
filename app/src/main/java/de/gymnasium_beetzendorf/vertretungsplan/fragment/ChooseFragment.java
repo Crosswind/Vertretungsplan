@@ -4,16 +4,19 @@ import android.app.Activity;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+
+import androidx.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,7 +76,7 @@ public abstract class ChooseFragment extends Fragment {
     }
 
     protected CoordinatorLayout getCoordinatorLayout() {
-        return (CoordinatorLayout) activity.findViewById(R.id.welcome_coordinator);
+        return activity.findViewById(R.id.welcome_coordinator);
     }
 
     protected abstract String getNextButtonText();

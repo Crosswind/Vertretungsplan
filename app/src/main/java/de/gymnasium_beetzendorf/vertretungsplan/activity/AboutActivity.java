@@ -24,7 +24,7 @@ public class AboutActivity extends BaseActivity implements Constants {
 
     @Override
     protected Toolbar getToolbar() {
-        return (Toolbar) findViewById(R.id.mainToolbar);
+        return findViewById(R.id.mainToolbar);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class AboutActivity extends BaseActivity implements Constants {
         }
 
         if (packageInfo != null) {
-            mVersionTextView.setText(String.format(getString(R.string.version_number), packageInfo.versionName, packageInfo.versionCode));
+            mVersionTextView.setText(String.format(getString(R.string.version_number), packageInfo.versionName, packageInfo.getLongVersionCode()));
         } else {
             mVersionTextView.setText(R.string.version_number_not_found);
         }
